@@ -53,6 +53,28 @@ Facts this design rests on, checked 2026-09-17 against the Claude Code docs and 
   gcrypt remote is named **icm** in the cloud (a routine otherwise fetched `main` from the raw repo,
   which only holds gcrypt's `master`; seen 2026-09-17). On a laptop it stays `origin`.
 
+## What the provider keeps
+
+Checked 2026-09-20 against [Claude Code data usage](https://code.claude.com/docs/en/data-usage) and
+[How long do you store my data?](https://privacy.claude.com/en/articles/10023548-how-long-do-you-store-my-data).
+On a Free, Pro or Max plan, Claude Code included: data is kept for 30 days if the owner does not
+allow it to be used for model improvement, and for up to 5 years if they do. Content flagged for a
+usage policy violation is kept for up to 2 years either way. Cloud sessions follow the same terms,
+and a cloud session can be deleted. The setting is at
+[claude.ai/settings/data-privacy-controls](https://claude.ai/settings/data-privacy-controls):
+have the owner open it during setup step 05 and choose on purpose. Recheck these numbers when
+they matter; terms change.
+
+## Capabilities
+
+| The steps say | Here it is |
+| --- | --- |
+| the instruction file | `CLAUDE.md` at the root |
+| open a cloud session | claude.ai/code or the mobile app, with the environment from **Setup** below |
+| schedule a routine | a cloud routine bound to that environment and the repo; its whole prompt is one line pointing at a `SKILL.md` |
+| publish a page | an artifact; always republished to its existing URL, listed in `domains/system/output/pages.md` |
+| skills | `core/skills/*/SKILL.md` and the owner's `skills/`; downloaded ones in `.claude/skills/` |
+
 ## Setup
 
 Prerequisites on the owner's computer: the ICM repo with `origin` = `gcrypt::git@github.com:<owner>/<repo>.git`,
