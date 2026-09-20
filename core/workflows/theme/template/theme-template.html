@@ -51,6 +51,7 @@ html,body{margin:0}body{background:var(--page-bg);background-attachment:fixed;co
 
 <section class="icm-stack"><h2 class="icm-heading">{{components}}</h2><div class="spec" id="parts"></div></section>
 </main></div>
+<script>/*ICM-HOST*/</script>
 <script type="module">/*ICM-JS*/</script>
 <script type="module">/*ICM-EDITOR*/
 const attr = v => JSON.stringify(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;'), soon = new Date(Date.now() + 2 * 864e5).toISOString().slice(0, 10);
@@ -69,7 +70,8 @@ const paint = () => { const cs = getComputedStyle(document.documentElement), v =
 paint(); addEventListener('icm-theme-change', () => requestAnimationFrame(paint));
 const side = document.getElementById('side'), open = document.getElementById('open');
 open.onclick = () => open.setAttribute('aria-expanded', side.classList.toggle('is-open'));
-/* A page served on its own has no artifact runtime: Save then only reaches the clipboard. In an artifact the choice is kept in its db. */
-addEventListener('icm-theme-save', async e => { try { await window.claude?.db?.set?.('theme', 'current', e.detail) } catch {} });
+/* The page names no harness: it reaches the host's store only through window.icmHost (core/adapters/<agent>/page-host.js). Served on
+   its own there is no host, and Save only answers; Copy still works. */
+addEventListener('icm-theme-save', async e => { try { const db = window.icmHost ? await window.icmHost.use('db') : null; if (db) await db.doc('theme/current').set(e.detail) } catch {} });
 </script>
 </body></html>

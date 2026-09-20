@@ -8,6 +8,7 @@
 The page never writes to the repo. Save puts the choice in the artifact's db (theme/current) and "Copy for the agent" puts it on
 the clipboard; core/skills/theme/SKILL.md says how the agent turns either into _config/theme.json.
 """
+import glob
 import importlib.util
 import json
 import os
@@ -38,6 +39,8 @@ def page():
     assert not missing, "labels without a text: %s" % missing
     assert "/*ICM-EDITOR*/" in src, "the template has no slot /*ICM-EDITOR*/"
     src = re.sub(r"\{\{(\w+)\}\}", lambda m: labels[m[1]], src)
+    hosts = sorted(glob.glob(os.path.join(ROOT, "core/adapters/*/page-host.js")) + glob.glob(os.path.join(HERE, "../../../adapters/*/page-host.js")))
+    src = src.replace("/*ICM-HOST*/", open(hosts[0], encoding="utf-8").read() if hosts else "")   # the adapter's page side, as in the feed
     return lib.inline(src.replace("/*ICM-EDITOR*/", lib.themes_data() + lib.editor_module()))
 
 
