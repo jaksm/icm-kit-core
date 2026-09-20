@@ -38,7 +38,9 @@ The choice itself. If they skip, write `skipped` with their reason and add a lin
 ## Writes
 
 `domains/system/output/connectors-and-routines.md`: what kind of backup, the date, and where it is
-kept **in their words** ("the drawer at my sister's"), never a path to a secret.
+kept **in their words** ("the drawer at my sister's"), never a path to a secret. If the stick is
+made but they have not decided where it will live, the step is still `done`; the place goes to
+`open-tasks.md`. Advise against the desk the computer sits on: fire or a burglary takes both.
 
 ## Proof
 

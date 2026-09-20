@@ -32,7 +32,8 @@ and picks up where it stopped.
    what goes in `evidence`. "I ran it" is not evidence.
 5. The owner may skip any step marked optional. Write `skipped` with their reason; it goes to
    `domains/system/output/open-tasks.md` so it is not forgotten.
-6. Commit after every step, message in the owner's language. Then say in one or two sentences what
+6. Commit after every step, message in the owner's language. The owner's own repo only exists from
+   step 03, so 01 and 02 get their commits right after it. Then say in one or two sentences what
    now exists and what comes next, and ask whether to go on now or another day.
 7. After the last step, run `steps/14-audit.md` even if some steps were skipped.
 
@@ -44,6 +45,10 @@ and picks up where it stopped.
   scheduled routine) happens on the owner's explicit word, one action at a time.
 - Installing software: list what is missing and why each thing is needed, then install on their word.
 - Verify where the result shows, not where the tool reports. A closed dialog is not confirmation.
+- What the owner says they never want (lists, praise, long answers) holds from your very next
+  message, not from the moment it is written to a file.
+- The owner hears about their ICM, not about your tooling. Unavailable connectors, plugin notices
+  and other status of the harness that setup does not need stay out of the conversation.
 
 ### Order
 

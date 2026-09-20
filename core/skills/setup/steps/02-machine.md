@@ -33,11 +33,19 @@ https://brew.sh: installing it asks for their password, which is theirs to type.
 Then make the passphrase prompt work, or signing will hang later:
 
 ```bash
-mkdir -p ~/.gnupg && chmod 700 ~/.gnupg
-grep -q pinentry-program ~/.gnupg/gpg-agent.conf 2>/dev/null || echo "pinentry-program $(command -v pinentry-mac || command -v pinentry)" >> ~/.gnupg/gpg-agent.conf
-grep -q GPG_TTY ~/.zshrc 2>/dev/null || echo 'export GPG_TTY=$(tty)' >> ~/.zshrc   # or ~/.bashrc
+G="${GNUPGHOME:-$HOME/.gnupg}"; mkdir -p "$G" && chmod 700 "$G"
+grep -q pinentry-program "$G/gpg-agent.conf" 2>/dev/null || echo "pinentry-program $(command -v pinentry-mac || command -v pinentry)" >> "$G/gpg-agent.conf"
+rc="$HOME/.$(basename "${SHELL:-zsh}")rc"; grep -q GPG_TTY "$rc" 2>/dev/null || echo 'export GPG_TTY=$(tty)' >> "$rc"
 gpgconf --kill gpg-agent
+printf %s "$G/S.gpg-agent" | wc -c      # must be under 100
 ```
+
+That last number matters on a Mac: gpg talks to its agent through a socket in that folder, and the
+system refuses a socket path longer than 104 characters. With a long home path key creation dies
+with `can't connect to the gpg-agent: File name too long`, which no owner can interpret. If the
+number is 100 or more, put a redirect file at `$G/S.gpg-agent` (and the same for
+`S.gpg-agent.ssh`, `S.gpg-agent.extra`, `S.gpg-agent.browser`, `S.keyboxd`) holding two lines,
+`%Assuan%` and `socket=/tmp/gpg-<user>/S.gpg-agent`, with that folder created mode 700. Keys stay where they are.
 
 ## Checkpoint
 

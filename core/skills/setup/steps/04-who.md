@@ -6,7 +6,8 @@ a conversation, not a form.
 ## Detect
 
 `grep -l '<!-- setup:' *.md` at the root of the ICM prints nothing (that covers the three records
-and the instruction file, whatever the adapter calls it).
+and the instruction file, whatever the adapter calls it). Notes inside `domains/system/output/`
+belong to later steps and stay until those steps run.
 
 ## Ask
 
