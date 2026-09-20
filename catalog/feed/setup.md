@@ -2,7 +2,7 @@
 
 Needs the adapter's **publish a page** capability with a store the page can write to; without the
 store the feed still works and nothing is learned from it, say so. `sources` and `morning-review`
-are not required, they add the `inbox` reel. The funnel scripts run through `uv` (they declare their
+are not required, they add the `inbox` row. The funnel scripts run through `uv` (they declare their
 own dependencies); images need ImageMagick, video needs `yt-dlp` and `ffmpeg`: see
 `recipes/cloud-binaries.md` before relying on any of them in a routine.
 
@@ -20,6 +20,7 @@ from a list. What language the page speaks. Whether the feed should be the last 
 {
   "data": "domains/system/data/feed", "media_dir": "pages/media", "out": "pages/feed.html",
   "max_age_hours": 48,
+  "covers": {"<row id>": "media/<file>"},
   "hosts": {"youtube\\.com|youtu\\.be": "Watch on YouTube"},
   "labels": {"title": "...", "endTitle": "...", "cards": {"one": "...", "other": "..."}}
 }
@@ -36,7 +37,7 @@ The same file may translate the component library's own words (keys in
 none): what they follow and what would make an item matter. Without it nothing from outside can
 become a card, by rule 1 of `SKILL.md`, and the first feed will rightly be empty of signals.
 
-`_config/feed/feeds.csv`: `group,name,url,status,notes`. One group becomes one reel. **Run every url
+`_config/feed/feeds.csv`: `group,name,url,status,notes`. One group becomes one row. **Run every url
 through `core/scripts/check-feed.py` before it is written**, and write only `ok`
 ones; tell the owner which ones were not and why. `_config/feed/channels.csv`: `group,channel,channel_id,status,notes`.
 
@@ -46,12 +47,16 @@ ones; tell the owner which ones were not and why. `_config/feed/channels.csv`: `
 `domains/system/output/pages.md`: a row for the feed: name, source (`core/workflows/feed`, data in
 `<data>`), how it is rebuilt (`build-feed-page.py --publish`), and its address once published.
 
+**A standing cover per row.** For each row they named, pick an image with them once (their own photo
+is best; `fetch-media.py <page-url> <row id>` otherwise), and write it under `covers`. It is what a
+row shows on days when no card brings its own picture.
+
 ## First run and proof
 
 1. `pull-signals.py`, then `read-sources.py`. Read `manifest.json` with the owner: how many feeds
    answered, how many items passed, what `00-errors.csv` and `025-unread.csv` say.
-2. Write the first day together, small: one reel per area they named, two at most, and the
-   signal reels that scored, a few stories in all. `template/example-day.json` is the shape. If no signal scored, show
+2. Write the first day together, small: one row per area they named, two at most, and the
+   signal rows that scored, a few stories in all. `template/example-day.json` is the shape. If no signal scored, show
    them `03-scores/` and ask whether the topic records say what they meant.
 3. `build-feed-page.py --preview`, serve the folder locally, open it at phone width. Proof: the
    cards show, details open, and after a like `window.__writes` holds an item with `liked: true`.

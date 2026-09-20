@@ -65,7 +65,18 @@ def is_photo(path):
     The site's logo returned as og:image for every page is caught by the ledger, not here.
     """
     w, h = image_size(path) or (0, 0)
-    return w >= 400 and h >= 250 and 0.4 <= w / h <= 2.6
+    if not (w >= 400 and h >= 250 and 0.4 <= w / h <= 2.6):
+        return False
+    # ponytail: a wordmark on a flat ground passes the size test (seen 2026-09-20: a site's square
+    # logo as og:image). Quantized to 256 colors at 200 px, photos kept 224 or more and the logo
+    # 168. A naive threshold on ten samples; if it misjudges, measure again before moving it.
+    try:
+        tool = ["magick"] if shutil.which("magick") else ["convert"]
+        k = subprocess.run(tool + [path, "-resize", "200x200", "-colors", "256", "-format", "%k", "info:"],
+                           capture_output=True, text=True).stdout.strip()
+        return not k.isdigit() or int(k) >= 200
+    except FileNotFoundError:
+        return True
 
 
 def download(url, to):
@@ -221,10 +232,10 @@ def openverse(query):
 
 def query_for(card):
     """What to search for: a fact that NAMES the thing, or None. The hook is a sentence about the
-    owner, the title of the reel is a topic, and an amount or a date names nothing."""
-    for row in card.get("facts") or []:
-        if len(row) == 2 and 3 < len(str(row[1])) < 40 and not re.search(r"\d", str(row[1])):
-            return str(row[1])
+    owner, the title of the row is a topic, and an amount or a date names nothing."""
+    for pair in card.get("facts") or []:
+        if len(pair) == 2 and 3 < len(str(pair[1])) < 40 and not re.search(r"\d", str(pair[1])):
+            return str(pair[1])
     return None
 
 
@@ -241,6 +252,7 @@ def store_direct(url, name):
         download(url, raw)
         if os.path.getsize(raw) < 3000:
             return None            # a tracking pixel or an error page, not a photo
+        ledger_free([raw], name)   # the same picture under a second name is a placeholder, not media
         return "media/" + os.path.basename(store([raw], name))
     except Exception:
         return None
@@ -248,18 +260,19 @@ def store_direct(url, name):
 
 def fill(path, dry=False):
     feed = json.load(open(path, encoding="utf-8"))
+    assert "rows" in feed, "no `rows` in %s" % path
     # invariant: every searched image is listed with its query, because the agent must LOOK at
     # each one before it stays (SKILL.md, rule 6). A count would hide what was put on the card.
-    report = {"had": 0, "from_source": 0, "from_page": 0, "from_openverse": [], "without_media": []}
-    for reel in feed["reels"]:
-        cover = reel.get("cover") or {}
-        for i, card in enumerate([cover] + list(reel.get("stories") or [])):
+    report = {"had": 0, "from_source": 0, "from_page": [], "from_openverse": [], "without_media": []}
+    for row in feed["rows"]:
+        cover = row.get("cover") or {}
+        for i, card in enumerate([cover] + list(row.get("stories") or [])):
             if card.get("media") or card.get("video"):
                 report["had"] += 1
                 continue
             got = None
             # `image` is the thumbnail pull-signals.py already took from the feed
-            name = "%s-%d" % (slug(reel["id"]), i)
+            name = "%s-%d" % (slug(row["id"]), i)
             got = None if dry or not card.get("image") else store_direct(card["image"], name)
             if got:
                 report["from_source"] += 1
@@ -268,19 +281,19 @@ def fill(path, dry=False):
             if not got and not dry and page:          # the page's own image, before any search
                 try:
                     got = fetch(page, name)[0]
-                    report["from_page"] += 1
+                    report["from_page"].append({"card": "%s#%d" % (row["id"], i), "page": page, "file": got})
                 except Exception:
                     got = None
             if not got and not dry:
                 found = openverse(query_for(card))
                 got = found and store_direct(found[0], name)
                 if got:
-                    report["from_openverse"].append({"card": "%s#%d" % (reel["id"], i), "query": query_for(card), "file": got, **found[1]})
+                    report["from_openverse"].append({"card": "%s#%d" % (row["id"], i), "query": query_for(card), "file": got, **found[1]})
             if got:
                 card["media"] = got
                 card.pop("image", None)
             if not got:
-                report["without_media"].append("%s#%d" % (reel["id"], i))
+                report["without_media"].append("%s#%d" % (row["id"], i))
     if not dry:
         open(path, "w", encoding="utf-8").write(json.dumps(feed, ensure_ascii=False, indent=1))
     return report

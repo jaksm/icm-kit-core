@@ -16,8 +16,8 @@ Read `core/RECIPES.md` first. Nothing here changes `core/`.
   `_config/overrides/core/workflows/feed/template/feed-template.html` and edit the copy. The build
   refuses a template that lost one of the rules or script lines it depends on (`HOLDS` in the
   builder); keep them, each is there because its absence once broke the page silently.
-- **A reel of a kind that is only theirs** (listings, a price they track, a game's patch notes): it
-  is content, not code. Write a skill in the owner's `skills/` that produces stories for that reel
+- **A row of a kind that is only theirs** (listings, a price they track, a game's patch notes): it
+  is content, not code. Write a skill in the owner's `skills/` that produces stories for that row
   from its own source, and let this workflow place them.
 - **A card that does something** (`actions`): add the action to `_config/actions.json` first. The
   agent cannot compose a call on a card; the build refuses an id that is not in the catalog.

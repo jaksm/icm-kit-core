@@ -22,10 +22,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:#1a1917;color:var(--ov
 #feed::-webkit-scrollbar{display:none}
 
 /* Vocabulary:
-     reel   = what scrolls TOP TO BOTTOM, one topic
-     cover  = the first screen of a reel, the name of the topic and its aggregate
-     story  = a screen inside a reel, flicked LEFT AND RIGHT */
-.reel{position:relative;height:100%;scroll-snap-align:start;scroll-snap-stop:always;
+     row   = what scrolls TOP TO BOTTOM, one topic
+     cover  = the first screen of a row, the name of the topic and its aggregate
+     story  = a screen inside a row, flicked LEFT AND RIGHT */
+.row{position:relative;height:100%;scroll-snap-align:start;scroll-snap-stop:always;
   overflow:hidden;background:#1a1917}
 /* invariant: overflow-y is `clip`, not `hidden`. `hidden` makes a scroll port on the Y axis
    too, so the track swallows the vertical scroll and the feed stops flicking; `clip` only
@@ -87,21 +87,21 @@ html,body{margin:0;height:100%;overflow:hidden;background:#1a1917;color:var(--ov
 .media.wide::after{background:linear-gradient(to bottom,rgba(20,19,17,.7) 0%,
   rgba(20,19,17,.2) 10%,rgba(20,19,17,.1) 26%,rgba(20,19,17,.42) 52%,
   rgba(20,19,17,.88) 74%,rgba(20,19,17,.99) 88%,#141311 97%)}
-/* invariant: only the FRONT state is in the flow. A blanket `.reel > *{position:relative}`
+/* invariant: only the FRONT state is in the flow. A blanket `.row > *{position:relative}`
    once beat `position:absolute` on the details, the curtain and the rail by specificity, and
    all three fell into the flow. */
 .front{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;
   transform:translateZ(0)}
 
 /* Two indicators, each measuring its own axis.
-   #steps, upright dots on the right edge: how many reels are left DOWNWARD.
-   #bar, the segmented bar on top: where you are among the STORIES of the current reel. */
+   #steps, upright dots on the right edge: how many rows are left DOWNWARD.
+   #bar, the segmented bar on top: where you are among the STORIES of the current row. */
 #steps{position:fixed;right:7px;top:50%;translate:0 -50%;z-index:6;
   display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none}
 #steps i{width:4px;height:4px;border-radius:999px;background:rgba(250,249,245,.3);
   transition:height .28s var(--ease),background-color .28s var(--ease)}
 #steps i.past{background:rgba(250,249,245,.5)}
-/* A reel is seen when all its stories are seen: the dot takes the accent color, so what is
+/* A row is seen when all its stories are seen: the dot takes the accent color, so what is
    still unopened shows from above. */
 #steps i.seen{background:var(--over-accent)}
 #steps i.here{height:17px;background:var(--over)}
@@ -183,7 +183,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#1a1917;color:var(--ov
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;max-width:100%;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:rtl;text-align:left}
 
-/* COVER: the first screen of a reel. */
+/* COVER: the first screen of a row. */
 .story.cover{padding-right:20px}
 .cover h2{font-family:var(--font-serif);font-weight:400;font-size:clamp(40px,12vw,58px);
   line-height:1.1;letter-spacing:-.03em;margin:0;padding-bottom:.05em;
@@ -243,7 +243,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#1a1917;color:var(--ov
   white-space:nowrap;animation:hint 2.6s var(--ease) infinite}
 .hint svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;
   stroke-linecap:round;stroke-linejoin:round}
-.reel.touched .hint{display:none}
+.row.touched .hint{display:none}
 @keyframes hint{0%,72%,100%{opacity:.6;transform:translateX(0)}
                84%{opacity:1;transform:translateX(4px)}}
 
@@ -388,11 +388,11 @@ function flush() {
   // the card being looked at has not closed its interval yet; without this every write
   // reports zero for what is on screen
   if (nowKey && nowSince && items[nowKey]) items[nowKey].ms += Date.now() - nowSince;
-  // `build` is the fingerprint of this very page, `reels` its reels. Without them nobody
+  // `build` is the fingerprint of this very page, `rows` its rows. Without them nobody
   // knows tomorrow which page the diary measured, on a day when the feed was published twice.
   writing = writing.then(() => store.set({
     date: D.date, build: D.build || null, builds: builds,
-    reels: (D.reels || []).map(r => r.id), items: items
+    rows: (D.rows || []).map(r => r.id), items: items
   })).catch(() => {});
 }
 
@@ -498,7 +498,7 @@ function media(g) {
   if (!path) return '<div class="media none"' + tone + '></div>';
   const fail = "this.closest('.media').classList.add('none');this.remove()";
   if (/\.(mp4|webm|mov)$/i.test(path)) {
-    // preload="none" and a manual play: otherwise every reel holds a decoder from the start
+    // preload="none" and a manual play: otherwise every row holds a decoder from the start
     return '<div class="media"' + tone + '><video src="' + esc(path) +
       '" muted loop playsinline preload="none" disablepictureinpicture' +
       ' onerror="' + fail + '"></video></div>';
@@ -616,30 +616,30 @@ const sourceText = src => {
 
 // One story, the same shape for the cover and for an item: media, the front state, and the
 // layer with details. The cover is a story like any other, only first and with the topic's name.
-function story(reel, r, o) {
+function story(row, r, o) {
   const hasMetric = r.metric !== '' && r.metric != null;
   const hasDetails = !!(r.body || (r.facts || []).length || r.next || (r.links || []).length ||
     r.quote || (r.list || []).length || r.series);
   // ONLY the cover carries video. A story without media of its own falls back to the still
-  // cover, not to the video: otherwise every story of a reel holds a decoder for the same clip.
+  // cover, not to the video: otherwise every story of a row holds a decoder for the same clip.
   // invariant: video is checked FIRST. A cover has `media` too (the still), so checking
   // `r.media` first would never reach the video.
-  const mediaFrom = (o.cover && reel.cover.video)
-    ? {media: reel.cover.video, tone: reel.cover.tone}
-    : (r.media ? r : reel.cover);
-  names[o.key] = {topic: reel.cover.title, hook: r.hook || reel.cover.title};
+  const mediaFrom = (o.cover && row.cover.video)
+    ? {media: row.cover.video, tone: row.cover.tone}
+    : (r.media ? r : row.cover);
+  names[o.key] = {topic: row.cover.title, hook: r.hook || row.cover.title};
   if ((r.actions || []).length) cardActions[o.key] = r.actions.slice(0, 3);
   return '<div class="story on-photo' + (o.cover ? ' cover' : '') + '" data-key="' + esc(o.key) + '">' +
     media(mediaFrom) + '<div class="layer front">' +
     (o.cover ? '<div class="eyebrow">' + esc(D.date) + '</div>' +
-               '<h2>' + esc(reel.cover.title) + '</h2>' +
-               (r.hook ? '' : '<p class="subtitle">' + esc(reel.cover.subtitle) + '</p>') : '') +
+               '<h2>' + esc(row.cover.title) + '</h2>' +
+               (r.hook ? '' : '<p class="subtitle">' + esc(row.cover.subtitle) + '</p>') : '') +
     (r.eyebrow ? '<div class="eyebrow-s">' + esc(r.eyebrow) + '</div>' : '') +
     tags(r.tags) + deadline(r.deadline) + metric(r) + delta(r.delta) + gauge(r.gauge) +
     (r.hook ? '<h3 class="hook">' + esc(r.hook) + '</h3>' : '') +
     '</div>' +
     (hasDetails ? '<div class="layer details">' +
-      '<h3>' + esc(r.title || r.hook || reel.cover.title) + '</h3>' +
+      '<h3>' + esc(r.title || r.hook || row.cover.title) + '</h3>' +
       (hasMetric ? '<div class="meta"><b>' + esc(r.metric) + (r.unit ? ' ' + esc(r.unit) : '') +
         '</b>' + (r.label ? ' ' + esc(r.label) : '') + '</div>' : '') +
       (r.body ? '<p class="body">' + esc(r.body) + '</p>' : '') +
@@ -659,28 +659,28 @@ function story(reel, r, o) {
     '</div>';
 }
 
-// The feed is a list of reels. Each reel is a track: the cover, then the stories.
+// The feed is a list of rows. Each row is a track: the cover, then the stories.
 let html = '';
 const meta = [], names = Object.create(null);
-for (const reel of D.reels) {
-  meta.push({topic: reel.cover.title});
-  html += '<section class="reel" data-id="' + esc(reel.id) + '"><div class="track">' +
-    [reel.cover, ...reel.stories].map((x, i) => story(reel, x, {cover: i === 0, key: reel.id + '#' + i})).join('') +
+for (const row of D.rows) {
+  meta.push({topic: row.cover.title});
+  html += '<section class="row" data-id="' + esc(row.id) + '"><div class="track">' +
+    [row.cover, ...row.stories].map((x, i) => story(row, x, {cover: i === 0, key: row.id + '#' + i})).join('') +
     '</div>' +
-    (reel.stories.length ? '<div class="hint" aria-hidden="true">' + esc(L.swipe) +
+    (row.stories.length ? '<div class="hint" aria-hidden="true">' + esc(L.swipe) +
       '<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></div>' : '') +
     '</section>';
 }
 meta.push({topic: ''});
-const storyCount = D.reels.reduce((a, r) => a + r.stories.length, 0);
+const storyCount = D.rows.reduce((a, r) => a + r.stories.length, 0);
 feed.innerHTML = html +
-  '<section class="reel" id="end"><div class="track"><div class="story on-paper">' +
+  '<section class="row" id="end"><div class="track"><div class="story on-paper">' +
   '<div class="front">' +
   '<div class="date">' + esc(D.date) + '</div>' +
   '<h2>' + esc(L.endTitle) + '</h2>' +
   '<p>' + esc(L.endBody) + '</p>' +
   '<div class="tally">' +
-    '<div><b>' + D.reels.length + '</b><span>' + esc(plural(D.reels.length, L.reels)) + '</span></div>' +
+    '<div><b>' + D.rows.length + '</b><span>' + esc(plural(D.rows.length, L.rows)) + '</span></div>' +
     '<div><b>' + storyCount + '</b><span>' + esc(plural(storyCount, L.cards)) + '</span></div>' +
     '<div><b id="n-liked">0</b><span>' + esc(L.liked) + '</span></div>' +
   '</div>' +
@@ -690,7 +690,7 @@ feed.innerHTML = html +
 const bar = document.getElementById('bar');
 const steps = document.getElementById('steps');
 steps.innerHTML = '<i></i>'.repeat(meta.length);
-const reels = [...feed.children], dots = [...steps.children];
+const rows = [...feed.children], dots = [...steps.children];
 
 // invariant: the target is held in a variable, not read from the DOM. `.visible` arrives only
 // when the smooth scroll settles, so three quick presses of an arrow all computed the same
@@ -745,12 +745,12 @@ function closeDetails(st) {
 // invariant: the diary fills ASYNCHRONOUSLY from `db`, after the first draw. Everything that
 // depends on the diary is mapped here, and this is called again after the seed.
 function refreshSeen() {
-  reels.forEach((sec, i) => {
+  rows.forEach((sec, i) => {
     const st = [...sec.querySelectorAll('.story[data-key]')];
     const all = st.length > 0 && st.every(x => isSeen(x.dataset.key));
     if (steps.children[i]) steps.children[i].classList.toggle('seen', all);
   });
-  const t = trackOf(reels[target]);
+  const t = trackOf(rows[target]);
   if (t) whereAmI(t);
 }
 
@@ -767,12 +767,12 @@ function refreshLikes() {
 function trackOf(r) { return r && r.querySelector('.track'); }
 function indexIn(t) { return t && t.clientWidth ? Math.round(t.scrollLeft / t.clientWidth) : 0; }
 function currentStory() {
-  const t = trackOf(reels[target]);
+  const t = trackOf(rows[target]);
   return t ? t.children[indexIn(t)] : null;
 }
 function barFor(i) {
-  // The bar on top measures the stories of the CURRENT reel, so it is rewritten on every change.
-  const t = trackOf(reels[i]);
+  // The bar on top measures the stories of the CURRENT row, so it is rewritten on every change.
+  const t = trackOf(rows[i]);
   const n = t ? t.children.length : 0;
   bar.hidden = n < 2;
   if (n < 2) return;
@@ -817,20 +817,20 @@ function at(i) {
   dots.forEach((s, j) => { s.classList.toggle('here', j === i); s.classList.toggle('past', j < i); });
   barFor(i);
   document.getElementById('h-topic').textContent = (meta[i] || {}).topic || '';
-  document.getElementById('h-position').textContent = (i + 1) + '/' + reels.length;
+  document.getElementById('h-position').textContent = (i + 1) + '/' + rows.length;
   document.getElementById('up').disabled = i <= 0;
-  document.getElementById('down').disabled = i >= reels.length - 1;
-  rememberPlace(i, indexIn(trackOf(reels[i])));
+  document.getElementById('down').disabled = i >= rows.length - 1;
+  rememberPlace(i, indexIn(trackOf(rows[i])));
   lookAt(currentKey());
 }
 
 function currentKey() { const st = currentStory(); return st ? (st.dataset.key || null) : null; }
 
 // IntersectionObserver, not a scroll handler: nothing is computed until something moves.
-// invariant: only the visible reel plays. A phone refuses too many decoders at once, and
+// invariant: only the visible row plays. A phone refuses too many decoders at once, and
 // part of the cards would stay on a black first frame.
-function video(reel, play) {
-  for (const v of reel.querySelectorAll('video')) {
+function video(row, play) {
+  for (const v of row.querySelectorAll('video')) {
     if (play) { const p = v.play(); p && p.catch(() => {}); }
     else v.pause();
   }
@@ -838,9 +838,9 @@ function video(reel, play) {
 
 // No zoom. A slow zoom was the one source of overhang past the frame, and overhang is what
 // iOS let through under the curtain. The image stands, a wide one only fades in.
-function frame(reel, play) {
+function frame(row, play) {
   if (!G || QUIET || !play) return;
-  for (const im of reel.querySelectorAll('.media.wide .main')) {
+  for (const im of row.querySelectorAll('.media.wide .main')) {
     if (im._in) continue;
     im._in = 1;
     G.from(im, {autoAlpha: 0, duration: .45});
@@ -852,20 +852,20 @@ const io = new IntersectionObserver(entries => {
     u.target.classList.toggle('visible', u.isIntersecting);
     video(u.target, u.isIntersecting);
     frame(u.target, u.isIntersecting);
-    if (u.isIntersecting) { at(reels.indexOf(u.target)); refreshLikes(); }
+    if (u.isIntersecting) { at(rows.indexOf(u.target)); refreshLikes(); }
     // a card that leaves the screen folds everything it opened
     else u.target.querySelectorAll('.open').forEach(closeDetails);
   }
 }, {root: feed, threshold: 0.55});
-reels.forEach(r => io.observe(r));
+rows.forEach(r => io.observe(r));
 at(0);
-reels[0].classList.add('visible');
-video(reels[0], true);
-frame(reels[0], true);
+rows[0].classList.add('visible');
+video(rows[0], true);
+frame(rows[0], true);
 
 const go = k => {
-  target = Math.max(0, Math.min(reels.length - 1, k));
-  reels[target].scrollIntoView({behavior: QUIET ? 'auto' : 'smooth'});
+  target = Math.max(0, Math.min(rows.length - 1, k));
+  rows[target].scrollIntoView({behavior: QUIET ? 'auto' : 'smooth'});
 };
 
 feed.addEventListener('click', e => {
@@ -948,24 +948,24 @@ addEventListener('keydown', e => {
   if (e.key === 'ArrowRight') { e.preventDefault(); sideways(1); }
   if (e.key === 'ArrowLeft') { e.preventDefault(); sideways(-1); }
   if (e.key === 'Home') { e.preventDefault(); go(0); }
-  if (e.key === 'End') { e.preventDefault(); go(reels.length - 1); }
+  if (e.key === 'End') { e.preventDefault(); go(rows.length - 1); }
 });
 
 // The horizontal track. The position is read from scrollLeft, rounded to the width of a story.
 function sideways(d) {
-  const t = trackOf(reels[target]);
+  const t = trackOf(rows[target]);
   if (!t || t.children.length < 2) return;
   const i = Math.max(0, Math.min(t.children.length - 1, indexIn(t) + d));
   t.scrollTo({left: i * t.clientWidth, behavior: QUIET ? 'auto' : 'smooth'});
 }
 for (const t of feed.querySelectorAll('.track')) {
   if (t.children.length < 2) continue;
-  const sec = t.closest('.reel');
+  const sec = t.closest('.row');
   t.addEventListener('scroll', () => {
     sec.classList.add('touched');
-    if (reels[target] === sec) {
+    if (rows[target] === sec) {
       whereAmI(t); lookAt(currentKey());
-      // invariant: the place is remembered on a HORIZONTAL scroll too, not only when the reel changes.
+      // invariant: the place is remembered on a HORIZONTAL scroll too, not only when the row changes.
       rememberPlace(target, indexIn(t));
     }
   }, {passive: true});
@@ -977,12 +977,12 @@ document.getElementById('down').addEventListener('click', () => go(target + 1));
 
 // Put the reader back where they stopped. Runs after every listener, because a scroll fires
 // whereAmI(), which needs the bar to know its segments.
-// invariant: without `behavior:auto` a jump to the twentieth reel animates through all twenty;
+// invariant: without `behavior:auto` a jump to the twentieth row animates through all twenty;
 // this is restoring state, not navigation.
 (function restorePlace() {
   const m = readPlace();
-  if (!m || !reels[m.i]) return;
-  const sec = reels[m.i];
+  if (!m || !rows[m.i]) return;
+  const sec = rows[m.i];
   restoring = true;
   // invariant: wait for the next frame. Right after drawing, `clientWidth` of the track can be
   // zero, so the horizontal jump went to zero and it looked as if remembering did not work.

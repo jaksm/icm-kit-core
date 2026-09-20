@@ -4,7 +4,7 @@
     build-feed-page.py [<data>/<date>.json]    # default: the newest day; writes `out`
     build-feed-page.py --publish [day]         # the page without its own head, plus the connector manifest
     build-feed-page.py --preview [day]         # with a fake `db`: open it and read window.__writes
-    build-feed-page.py --stale [day]           # which reels have sources that changed since the last build
+    build-feed-page.py --stale [day]           # which rows have sources that changed since the last build
     build-feed-page.py --same <a.html> <b.html>  # do two built pages carry the same feed
     build-feed-page.py --check
 
@@ -40,7 +40,7 @@ LABELS = {
     "open": "Open", "openOn": "Open on {host}",
     "endTitle": "That is all for today",
     "endBody": "What you looked at and what you liked is written down, and tomorrow's feed follows it.",
-    "reels": {"one": "reel", "other": "reels"}, "cards": {"one": "card", "other": "cards"}, "liked": "liked",
+    "rows": {"one": "row", "other": "rows"}, "cards": {"one": "card", "other": "cards"}, "liked": "liked",
 }
 # Fields that are not components but carry the story or the cover itself.
 CARRIERS = {"title", "eyebrow", "unit", "label", "subtitle", "tone", "video", "metricVariant",
@@ -73,11 +73,11 @@ def catalog(cfg):
 
 def cards(feed):
     """(where, card, is_cover) for every screen of the feed."""
-    for reel in feed.get("reels") or []:
-        rid = reel.get("id") or "?"
-        yield "reel '%s' cover" % rid, reel.get("cover") or {}, True
-        for i, st in enumerate(reel.get("stories") or []):
-            yield "reel '%s' story %d" % (rid, i), st, False
+    for row in feed.get("rows") or []:
+        rid = row.get("id") or "?"
+        yield "row '%s' cover" % rid, row.get("cover") or {}, True
+        for i, st in enumerate(row.get("stories") or []):
+            yield "row '%s' story %d" % (rid, i), st, False
 
 
 def check_actions(feed, cat):
@@ -185,7 +185,7 @@ def source_name(src):
 def check(feed, root=None, media=None):
     """Fails loudly instead of building a feed with an unsupported number. Returns the story count."""
     root, media = root or ROOT, media or media_path
-    assert feed.get("reels"), "the feed has no reels; an empty day is one reel that says so"
+    assert feed.get("rows"), "the feed has no rows; an empty day is one row that says so"
 
     def media_exists(rel, where):
         # invariant: the path must be RELATIVE, because the page asks for `media/<file>`. With an
@@ -195,9 +195,9 @@ def check(feed, root=None, media=None):
         assert os.path.exists(media(rel)), "%s: media does not exist: %s" % (where, rel)
 
     total = 0
-    for reel in feed["reels"]:
-        assert reel.get("stories"), "reel '%s' has no stories" % (reel.get("id") or "?")
-        total += len(reel["stories"])
+    for row in feed["rows"]:
+        assert row.get("stories"), "row '%s' has no stories" % (row.get("id") or "?")
+        total += len(row["stories"])
     for where, c, cover in cards(feed):
         for need in (("title", "subtitle") if cover else ("hook", "source")):
             assert c.get(need), "%s has no %s" % (where, need)
@@ -219,45 +219,45 @@ def check(feed, root=None, media=None):
 
 
 def expand(feed):
-    """Push `reel.defaults` down into every story, before checking and building. The same pair
+    """Push `row.defaults` down into every story, before checking and building. The same pair
     repeated on fifteen stories is fifteen rows the agent must write; the page knows nothing of it."""
-    for reel in feed.get("reels") or []:
-        for st in (reel.get("stories") or []) if reel.get("defaults") else []:
-            for k, v in reel["defaults"].items():
+    for row in feed.get("rows") or []:
+        for st in (row.get("stories") or []) if row.get("defaults") else []:
+            for k, v in row["defaults"].items():
                 if k == "facts":
                     st["facts"] = (st.get("facts") or []) + [list(x) for x in v]   # general pairs go AFTER its own
                 elif k not in st:
                     st[k] = v
-        reel.pop("defaults", None)
+        row.pop("defaults", None)
     return feed
 
 
 def prints(feed, root=None):
-    """Fingerprint of the sources per reel: what the agent had to read to write it. Reading is
+    """Fingerprint of the sources per row: what the agent had to read to write it. Reading is
     most of the cost of a feed, so next time what did not change is not read again."""
     out = {}
-    for reel in feed.get("reels") or []:
-        paths = {source_name(c.get("source")) for c in [reel.get("cover") or {}] + list(reel.get("stories") or [])} - {""}
+    for row in feed.get("rows") or []:
+        paths = {source_name(c.get("source")) for c in [row.get("cover") or {}] + list(row.get("stories") or [])} - {""}
         h = hashlib.sha256()
         for rel in sorted(paths):
             h.update(rel.encode("utf-8"))
             p = os.path.join(root or ROOT, rel)
             if os.path.isfile(p):
                 h.update(open(p, "rb").read())
-        out[reel["id"]] = h.hexdigest()[:16]
+        out[row["id"]] = h.hexdigest()[:16]
     return out
 
 
 def page_print(feed, pr):
-    """One fingerprint of the whole page: which reels, in which order, from which sources.
+    """One fingerprint of the whole page: which rows, in which order, from which sources.
 
     The attention diary is written with this number, so tomorrow it is mechanically known whether
     it measured the page that was published. Without it a diary from a superseded page of the
     same day reads like evidence, and thresholds get moved on it.
     """
     h = hashlib.sha256((feed.get("day") or feed.get("date") or "").encode("utf-8"))
-    for reel in feed.get("reels") or []:
-        h.update(b"\x00" + reel["id"].encode("utf-8") + str(len(reel.get("stories") or [])).encode() + (pr.get(reel["id"]) or "").encode())
+    for row in feed.get("rows") or []:
+        h.update(b"\x00" + row["id"].encode("utf-8") + str(len(row.get("stories") or [])).encode() + (pr.get(row["id"]) or "").encode())
     return h.hexdigest()[:12]
 
 
@@ -286,6 +286,26 @@ def ratios(feed, media=None):
     return out
 
 
+def same_image(feed, media=None):
+    """invariant: one image file under several names fails the build. It is how a placeholder
+    passes for content: four cards of a row each "have media", and it is one picture."""
+    media, seen = media or media_path, {}
+    for rel in sorted({c["media"] for _, c, _ in cards(feed) if c.get("media")}):
+        seen.setdefault(hashlib.md5(open(media(rel), "rb").read()).hexdigest(), []).append(rel)
+    dup = [v for v in seen.values() if len(v) > 1]
+    assert not dup, "the same image under several names: %s. Keep one, on the cover, and let the cards fall back to it." % dup
+
+
+def bare(feed):
+    """Screens that will show no image: no media of their own and none on the cover of their row."""
+    out = []
+    for row in feed.get("rows") or []:
+        c = row.get("cover") or {}
+        if not (c.get("media") or c.get("video")):
+            out += ["%s#%d" % (row["id"], i) for i, x in enumerate([c] + list(row.get("stories") or [])) if not x.get("media")]
+    return out
+
+
 def template(cfg, L):
     own = os.path.join(ROOT, "_config/overrides/core/workflows/feed", TEMPLATE)
     t = open(own if os.path.exists(own) else os.path.join(HERE, TEMPLATE), encoding="utf-8").read()
@@ -309,7 +329,13 @@ def labels(cfg):
 def assemble(feed, day, cfg, media=None):
     """The page data: the feed plus everything the page needs and must not compute itself."""
     cat = catalog(cfg)
+    if "reels" in feed and "rows" not in feed:   # ponytail: days written before 0.5.0 called a row a reel; drop when none are built any more
+        feed["rows"] = feed.pop("reels")
     feed = expand(feed)
+    for row in feed.get("rows") or []:           # the standing cover of a row, when the day brings none
+        c = row.get("cover") or {}
+        if not (c.get("media") or c.get("video")) and cfg["covers"].get(row.get("id")):
+            c["media"] = cfg["covers"][row["id"]]
     feed.pop("prints", None)
     check_schema(feed, schema())
     total = check(feed, media=media)
@@ -319,6 +345,7 @@ def assemble(feed, day, cfg, media=None):
     # invariant: EVERY media file gets a ratio. The page picks full screen or a frame by it, so a
     # file without one silently gets the wrong frame.
     unmeasured = sorted({c.get(k) for _, c, _ in cards(feed) for k in ("media", "video")} - {None, ""} - set(feed["ratios"]))
+    same_image(feed, media)
     assert not unmeasured, "no size for: %s. The header reader does not know the format and no external tool is here (imagemagick, ffmpeg)." % ", ".join(unmeasured)
     # `date` is for reading ("18 September 2026"); a document path in `db` takes only letters,
     # digits and _ - . ~ : @ +, so the day goes separately, from the file name.
@@ -387,7 +414,7 @@ def main(flags, args):
     feed, pr, total = assemble(json.loads(json.dumps(raw)), os.path.splitext(os.path.basename(path))[0], cfg)
     if "--stale" in flags:
         changed = [k for k, v in pr.items() if not old or old.get(k) != v]
-        print("stale: " + (", ".join(changed) if changed else "no reel"))
+        print("stale: " + (", ".join(changed) if changed else "no row"))
         return 0
     page = render(feed, cfg)
     out = os.path.join(ROOT, cfg["out"])
@@ -402,6 +429,9 @@ def main(flags, args):
         page = re.sub(r"\n/\* A page served on its own.*?\n:root\{padding-top[^}]*\}", "", page[page.index("<title>"):], flags=re.S)
         assert ":root{padding-top" not in page and "safe-area" in page, "the fixed bars must keep env(safe-area-inset)"
         out = out.replace(".html", "-publish.html")
+        files = {rel: os.path.relpath(media_path(rel), ROOT) for rel in sorted(feed["ratios"])}
+        open(out.replace(".html", ".files.json"), "w", encoding="utf-8").write(json.dumps(files, indent=1))
+        print("files: %d media files to publish beside the page, listed in %s" % (len(files), os.path.relpath(out.replace(".html", ".files.json"), ROOT)))
     os.makedirs(os.path.dirname(out), exist_ok=True)
     open(out, "w", encoding="utf-8").write(page)
     # The fingerprints go back into the day's data, so next time knows what is new, and `build`
@@ -409,8 +439,10 @@ def main(flags, args):
     # invariant: this is why an unknown flag stops the run instead of being ignored.
     raw["prints"], raw["build"] = pr, feed["build"]
     open(path, "w", encoding="utf-8").write(json.dumps(raw, ensure_ascii=False, indent=1))
-    print("wrote %s, %d B, %d reels, %d stories, %d screens; media beside it: %s/"
-          % (os.path.relpath(out, ROOT), os.path.getsize(out), len(feed["reels"]), total, total + len(feed["reels"]) + 1, cfg["media_dir"]))
+    b = bare(feed)
+    print("bare: %s" % (("%d screens without an image: %s" % (len(b), ", ".join(b[:12]))) if b else "every screen has an image"))
+    print("wrote %s, %d B, %d rows, %d stories, %d screens; media beside it: %s/"
+          % (os.path.relpath(out, ROOT), os.path.getsize(out), len(feed["rows"]), total, total + len(feed["rows"]) + 1, cfg["media_dir"]))
     return 0
 
 
@@ -426,7 +458,7 @@ def _check():
     cover = {"title": "A", "subtitle": "s", "media": "media/a.png"}
 
     def feed(**kw):
-        return {"reels": [dict({"id": "a", "cover": dict(cover), "stories": [dict(st)]}, **kw)]}
+        return {"rows": [dict({"id": "a", "cover": dict(cover), "stories": [dict(st)]}, **kw)]}
 
     assert check(feed(stories=[st, dict(st)]), tmp, media) == 2
     assert check(feed(cover={"title": "A", "subtitle": "s"}), tmp, media) == 1, "a cover without media must pass"
@@ -435,7 +467,7 @@ def _check():
     # "something failed" once passed for months on the wrong reason (a renamed field tripped the
     # schema first), and the rules it was named for were never exercised.
     for bad, why in [
-        ({"reels": []}, "no reels"),
+        ({"rows": []}, "no rows"),
         (feed(stories=[]), "has no stories"),
         (feed(cover=dict(cover, media="media/none.png")), "media does not exist"),
         (feed(cover=dict(cover, media=os.path.join(tmp, "a.png"))), "must be a relative path"),
@@ -482,10 +514,19 @@ def _check():
         else:
             raise AssertionError("passed and must not: " + why)
 
-    f = expand({"reels": [{"id": "a", "defaults": {"source": "src.md", "facts": [["S", "v"]]},
+    f = expand({"rows": [{"id": "a", "defaults": {"source": "src.md", "facts": [["S", "v"]]},
                            "stories": [{"hook": "h", "facts": [["own", "1"]]}, {"hook": "h", "source": "other.md"}]}]})
-    s0, s1 = f["reels"][0]["stories"]
-    assert s0["source"] == "src.md" and s0["facts"] == [["own", "1"], ["S", "v"]] and s1["source"] == "other.md" and "defaults" not in f["reels"][0]
+    s0, s1 = f["rows"][0]["stories"]
+    assert s0["source"] == "src.md" and s0["facts"] == [["own", "1"], ["S", "v"]] and s1["source"] == "other.md" and "defaults" not in f["rows"][0]
+
+    open(os.path.join(tmp, "b.png"), "wb").write(png(1200, 800))
+    try:
+        same_image(feed(stories=[dict(st, media="media/b.png")]), media)
+    except AssertionError as e:
+        assert "several names" in str(e)
+    else:
+        raise AssertionError("one picture under two names passed")
+    assert bare(feed(cover={"title": "A", "subtitle": "s"})) == ["a#0", "a#1"] and not bare(feed())
 
     g = feed()
     assert ratios(g, media) == {"media/a.png": 1.5}
@@ -497,7 +538,7 @@ def _check():
     cfg = config()
     t = template({**cfg}, {"locale": "en", **LABELS})
     assert "{{title}}" not in t and "<title>Daily feed</title>" in t
-    broken = open(os.path.join(HERE, TEMPLATE), encoding="utf-8").read().replace(".story.cover{", ".reel .cover .story{")
+    broken = open(os.path.join(HERE, TEMPLATE), encoding="utf-8").read().replace(".story.cover{", ".row .cover .story{")
     try:
         check_template(broken)
     except AssertionError:
@@ -510,10 +551,10 @@ def _check():
     assert MARK in page and "/*ICM-JS*/" not in page and "/*FEED-DATA*/" not in page
     a, b = os.path.join(tmp, "a.html"), os.path.join(tmp, "b.html")
     open(a, "w", encoding="utf-8").write(page)
-    g2 = json.loads(json.dumps(g)); g2["reels"][0] = dict(reversed(list(g2["reels"][0].items())))
+    g2 = json.loads(json.dumps(g)); g2["rows"][0] = dict(reversed(list(g2["rows"][0].items())))
     open(b, "w", encoding="utf-8").write(render(g2, cfg))
     assert same(a, b), "key order must not matter"
-    g2["reels"][0]["stories"][0]["hook"] = "other"
+    g2["rows"][0]["stories"][0]["hook"] = "other"
     open(b, "w", encoding="utf-8").write(render(g2, cfg))
     assert not same(a, b)
     print("ok")

@@ -20,6 +20,7 @@ DEFAULTS = {
     "max_chars": 12000,
     "video_seconds": 6, "video_max_mb": 3.0, "image_width": 1080,
     "junk_paths": [],                        # extra path words that mark a logo or a banner on the owner's sites
+    "covers": {},                            # {"row id": "media/<file>"}: the standing cover of a row
     "hosts": {},                             # {"regex of a host": "button label"}; without a match: "Open on <host>"
     "seen_ms": 1200,
     "labels": {},
