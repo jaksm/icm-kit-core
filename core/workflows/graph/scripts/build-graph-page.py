@@ -232,7 +232,7 @@ def demo():
     for lone in ["loose-idea", "unfiled-note"]:
         files["%s.md" % lone] = "# %s\n\nNothing points here yet.\n" % lone
     files["_config/graph.json"] = '{"nested": ["domains"]}\n'   # one group, and so one color, per area
-    files["CLAUDE.md"] = "# Router\n\n%s\n" % "\n".join("- `domains/%s/CONTEXT.md`" % a for a in areas)
+    files["ROUTER.md"] = "# Router\n\n%s\n" % "\n".join("- `domains/%s/CONTEXT.md`" % a for a in areas)
     for rel, text in files.items():
         os.makedirs(os.path.dirname(os.path.join(root, rel)) or root, exist_ok=True)
         open(os.path.join(root, rel), "w", encoding="utf-8").write(text)
