@@ -1,0 +1,21 @@
+/* Data tokens: the colors that carry meaning in numbers. State colors mean "this changes what you do".
+   The categorical ramp is for charts and category dots (expenses, graph); rank decides the slot, the tail is grey. */
+:root{
+  --state-good:#2B7142; --state-warn:#8A5A0C; --state-bad:#B73B2A;
+  --cat-1:#2A3FE0; --cat-2:#B5750F; --cat-3:#2F7A47; --cat-4:#C2402E; --cat-5:#7A4FD0; --cat-6:#1E8A99; --cat-7:#B5527F; --cat-8:#5C6B7A;
+  --cat-9:#8E99A5; --cat-10:#A9B2BC; --cat-11:#C0C7CE; --cat-12:#D5DAE0;
+}
+/* on a dark ground the same three, lifted until they read as text (checked by build.py check_contrast) */
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --state-good:#7CC492; --state-warn:#E0B052; --state-bad:#F0917F;
+  --cat-1:#7D8EFF; --cat-2:#E0A544; --cat-3:#5DB07A; --cat-4:#E8705E; --cat-5:#A98BF2; --cat-6:#45B5C4; --cat-7:#DB83AB; --cat-8:#93A1B0;
+  --cat-9:#7C8896; --cat-10:#66717D; --cat-11:#525C67; --cat-12:#414A54;
+}}
+:root[data-theme="dark"]{
+  --state-good:#7CC492; --state-warn:#E0B052; --state-bad:#F0917F;
+  --cat-1:#7D8EFF; --cat-2:#E0A544; --cat-3:#5DB07A; --cat-4:#E8705E; --cat-5:#A98BF2; --cat-6:#45B5C4; --cat-7:#DB83AB; --cat-8:#93A1B0;
+  --cat-9:#7C8896; --cat-10:#66717D; --cat-11:#525C67; --cat-12:#414A54;
+}
+.on-photo{
+  --state-good:#BFE3C4; --state-warn:#F3D79A; --state-bad:#F5B0A4;
+}

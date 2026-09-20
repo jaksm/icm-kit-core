@@ -1,0 +1,21 @@
+/* Rows and tables: a line of a list with something trailing, and numbers in columns. */
+.icm-row{display:flex;justify-content:space-between;align-items:center;gap:var(--s-4);min-height:var(--tap);
+  padding:var(--s-3) var(--s-2);border-bottom:var(--border) solid var(--c-hairline);color:var(--c-fg);min-width:0}
+/* invariant: a button brings its own border style and color; reset all of it and restate the one hairline, or a list of
+   button rows shows a second, brighter frame around each row */
+button.icm-row,a.icm-row{font:inherit;background:none;border:0;border-bottom:var(--border) solid var(--c-hairline);width:100%;text-align:left;cursor:pointer;text-decoration:none;-webkit-appearance:none}
+.icm-row:last-child{border-bottom-color:transparent}
+.icm-row>:first-child{min-width:0;overflow-wrap:anywhere}.icm-row>:last-child:not(:first-child){flex:none;text-align:right;white-space:nowrap}
+.icm-row .icm-dot{margin-right:6px}
+.icm-row.is-current,.icm-row[aria-current="true"]{background:var(--c-mark);color:var(--c-on-mark);box-shadow:inset 4px 0 0 var(--c-on-mark);border-bottom-color:var(--c-on-mark);
+  --c-fg-2:var(--c-on-mark);--c-muted:var(--c-on-mark)}
+/* invariant: the focus ring is flush with the row's own box (offset = minus its width). Inset any further and a sliver of the
+   marked ground and of the ink bar shows outside the ring, which reads as two misaligned frames. On a marked row the ring is ink. */
+.icm-row:focus-visible{outline:2px solid var(--c-accent);outline-offset:-2px}
+.icm-row.is-current:focus-visible,.icm-row[aria-current="true"]:focus-visible{outline-color:var(--c-on-mark)}
+.icm-table{border-collapse:collapse;width:100%;font-size:var(--t-2);font-variant-numeric:tabular-nums lining-nums;color:var(--c-fg)}
+.icm-table th,.icm-table td{text-align:left;vertical-align:baseline;padding:var(--s-2) var(--s-3) var(--s-2) 0;border-bottom:var(--border) solid var(--c-hairline)}
+.icm-table thead th{font-size:var(--t-1);font-weight:600;color:var(--c-fg-2);border-bottom-color:var(--c-edge-strong)}
+.icm-table tbody th{font-weight:var(--w-body)}
+.icm-table .is-num{text-align:right;padding-right:0}
+.icm-table tfoot td,.icm-table tfoot th{font-weight:var(--w-strong);border-bottom:0;border-top:var(--border) solid var(--c-edge-strong)}

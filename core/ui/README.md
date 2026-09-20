@@ -36,8 +36,23 @@ Part of [icm-kit](https://github.com/jaksm/icm-kit), usable on its own.
 | `icm-action` | one thing a card can do: open a link or call a connector, with a fix per error code |
 | `icm-choice`, `icm-slider`, `icm-input`, `icm-confirm` | the page asking a question |
 
-Primitives: `icm-icon`, `icm-link`, `icm-button`. Tokens live in `tokens/`; the default palette is
-matched to the Claude app so an artifact reads as part of it. Change `tokens/colors.css` to restyle.
+## Primitives
+
+Plain classes (and three small elements) that compose with each other and with the components. A component never
+carries an outer margin: the container spaces it, which is what lets anything sit anywhere.
+
+| Kind | Primitives |
+| --- | --- |
+| layout | `icm-page`, `icm-stack`, `icm-cluster`, `icm-grid`, `icm-divider` |
+| text | `icm-title`, `icm-heading`, `icm-subheading`, `icm-text`, `icm-caption`, `icm-eyebrow`, `icm-mono`, `icm-num`, `icm-mark` |
+| surfaces | `icm-card` (`is-pressable`, `is-marked`, `is-plain`), `icm-sheet`, `icm-shade` |
+| rows | `icm-row` (`is-current`), `icm-table` |
+| meters | `icm-bar`, `icm-segments`, `icm-dot`, `icm-badge` |
+| controls | `<icm-button>`, `<icm-link>`, `<icm-icon>`, `icm-option`, `icm-field`, `icm-question`, `icm-tabs` |
+
+Tokens live in `tokens/`: one design system, light and dark, no host-matched variant. A page loads the fonts itself
+(`build.FONTS_LINK`). `python3 build.py --docs` builds `docs/index.html`, which shows every primitive and component
+live with its markup, the existing pages assembled from them, and five pages that could be built next.
 
 ## Use
 
@@ -71,9 +86,10 @@ keeps its own copy.
 
 ## Design language
 
-`DESIGN.md` is the working record: what exists, where each page leaves the language, and what is still
-to be decided. `python3 build.py --workbench` builds one page with every token and component on both
-surfaces, under every palette and theme.
+Calm brutal: cold paper, blue-black ink, ultramarine for what can be acted on, one yellow marker for what is current,
+Archivo and IBM Plex Mono, 1.5px borders, 8px corners, a hard shadow only on what can be pressed. `docs/` is the
+concept and the documentation in one page; `DESIGN.md` is the written record and the status. `build.py --check`
+fails when schema and code drift, or when a text token drops under WCAG AA on any ground.
 
 ## Develop
 

@@ -1,8 +1,12 @@
-.icm-slider{margin-top:16px}
-.icm-slider-q{font-family:var(--font-serif);font-size:16.5px;line-height:1.4;color:var(--c-fg);
-  margin-bottom:8px;text-wrap:pretty}
-.icm-slider-v{font-family:var(--font-serif);font-size:28px;line-height:1.1;color:var(--c-accent);
-  font-variant-numeric:tabular-nums lining-nums}
-.icm-slider-v small{font-family:var(--font-sans);font-size:14px;color:var(--c-fg-2);margin-left:4px}
-.icm-slider input{width:min(100%,280px);margin-top:8px;accent-color:var(--c-accent);
-  height:var(--tap);background:none}
+.icm-slider-v{--num:var(--t-6);color:var(--c-fg)}
+/* the native range, drawn in the language: an edged track, the filled part in the accent, a square thumb with an ink edge.
+   --p is the filled share, set by the component. The input is --tap tall so the thumb is easy to catch. */
+.icm-slider input{-webkit-appearance:none;appearance:none;width:min(100%,320px);height:var(--tap);margin:0;background:none;cursor:pointer}
+.icm-slider input::-webkit-slider-runnable-track{height:10px;border:var(--border) solid var(--c-edge-strong);border-radius:var(--radius-s);
+  background:linear-gradient(var(--c-accent-fill),var(--c-accent-fill)) 0/var(--p,50%) 100% no-repeat}
+.icm-slider input::-moz-range-track{height:10px;border:var(--border) solid var(--c-edge-strong);border-radius:var(--radius-s);
+  background:linear-gradient(var(--c-accent-fill),var(--c-accent-fill)) 0/var(--p,50%) 100% no-repeat}
+.icm-slider input::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;margin-top:-9px;border-radius:var(--radius-s);
+  background:var(--c-mark);border:var(--border) solid var(--c-on-mark);box-shadow:2px 2px 0 var(--c-press)}
+.icm-slider input::-moz-range-thumb{width:22px;height:22px;border-radius:var(--radius-s);background:var(--c-mark);border:var(--border) solid var(--c-on-mark)}
+.icm-slider input:focus-visible{outline:2px solid var(--c-accent);outline-offset:2px}

@@ -1,7 +1,11 @@
 /* Layout tokens and the page reset every artifact starts from. */
 :root{
-  --gutter:20px;
-  --radius:16px;
+  --gutter:16px;
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:24px; --s-6:36px; --s-7:56px; --s-8:88px; --s-9:136px;
+  --radius:8px; --radius-s:4px;
+  --border:1.5px;
+  /* a hard shadow means "this can be pressed": pressing moves the thing into its shadow. Never blurred. */
+  --press:3px;
   --radius-pill:999px;
   --tap:48px;       /* minimum touch target, Apple HIG */
 }

@@ -5,19 +5,21 @@
 .on-paper{
   --c-fg:var(--ink); --c-fg-2:var(--ink-2); --c-muted:var(--ink-muted);
   --c-accent:var(--accent);
-  --c-hairline:var(--line); --c-fill:rgba(20,19,17,.06); --c-border:var(--line);
+  --c-hairline:var(--line); --c-fill:var(--card);
+  --c-edge:var(--edge); --c-edge-strong:var(--edge-strong); --c-border:var(--edge-strong);   /* --c-border: the old name, kept as the strong edge */
+  --c-accent-fill:var(--accent-fill);
+  --c-mark:var(--mark); --c-on-mark:var(--on-mark); --c-on-accent:var(--on-accent); --c-press:var(--press-color);
+  --c-hold:var(--mark); --burst-0:var(--mark); --burst-1:var(--accent); --burst-2:var(--ink);
 }
 .on-photo{
   --c-fg:var(--over); --c-fg-2:var(--over-2); --c-muted:var(--over-muted);
   --c-accent:var(--over-accent);
   --c-hairline:rgba(250,249,245,.11); --c-fill:rgba(250,249,245,.12);
-  --c-border:rgba(250,249,245,.3);
+  --c-edge:rgba(250,249,245,.28); --c-edge-strong:rgba(250,249,245,.55); --c-border:rgba(250,249,245,.55);
+  --c-accent-fill:var(--over-accent);
+  --c-mark:var(--mark); --c-on-mark:var(--on-mark); --c-on-accent:#16202B; --c-press:transparent;
+  --c-hold:rgba(255,255,255,.34); --burst-0:var(--mark); --burst-1:#fff; --burst-2:var(--over-accent);   /* no hard shadows over a photo */
   text-shadow:0 1px 14px rgba(var(--scrim-ink),.55),0 1px 2px rgba(var(--scrim-ink),.4);
 }
-/* State colors are the same on both surfaces: they mean "this changes what you do". */
-:root{
-  --state-good:#7a8c46; --state-warn:#9a6b1f; --state-bad:#b4532a;
-}
-.on-photo{
-  --state-good:#cfe0a8; --state-warn:#f0cf95; --state-bad:#f2a68c;
-}
+/* anything on the marker's ground is ink on yellow: the scrim shadow that helps light text over a photo only smears it */
+.on-photo :is(.icm-next,.icm-card.is-marked,.icm-row.is-current,.icm-option.is-on,.icm-option[aria-pressed="true"],.icm-badge.is-marked,.icm-tabs input:checked+span,.icm-action.is-asking,.icm-action.is-holding){text-shadow:none}

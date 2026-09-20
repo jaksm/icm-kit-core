@@ -1,6 +1,1 @@
-.icm-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.icm-tags span{font-size:11.5px;line-height:1.5;padding:3px 10px;border-radius:var(--radius-pill);
-  color:var(--c-fg-2);border:1px solid var(--c-border)}
-.icm-tags span.is-good{color:var(--state-good);border-color:currentColor}
-.icm-tags span.is-warn{color:var(--state-warn);border-color:currentColor}
-.icm-tags span.is-bad{color:var(--state-bad);border-color:currentColor}
+.icm-tags{display:flex;flex-wrap:wrap;gap:6px}

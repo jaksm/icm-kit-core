@@ -3,8 +3,8 @@
 // it from a labels.json beside lib/), so components never carry a second language.
 export const LABELS = {
   locale: 'en',
-  yes: 'yes', no: 'no',
-  asking: 'sure?', running: 'working…', done: 'done', failed: 'did not go through',
+  yes: 'Yes', no: 'No',
+  hold: 'hold to confirm', asking: 'sure?', running: 'working…', done: 'done', failed: 'did not go through',
   today: 'today', dueIn: 'in {n} {days}', dueAgo: '{n} {days} ago',
   days: {one: 'day', other: 'days'},
   fixes: {

@@ -16,9 +16,9 @@ export class IcmSlider extends IcmElement {
     const min = this.min ?? 0, max = this.max ?? 100;
     const v = this.value ?? Math.round((min + max) / 2);
     return html`<div class="icm-slider">
-      ${this.question ? html`<div class="icm-slider-q">${this.question}</div>` : null}
-      <div class="icm-slider-v">${v}${this.unit ? html`<small>${this.unit}</small>` : null}</div>
-      <input type="range" min=${min} max=${max} step=${this.step ?? 1} .value=${String(v)}
+      ${this.question ? html`<div class="icm-slider-q icm-question">${this.question}</div>` : null}
+      <div class="icm-slider-v icm-num">${v}${this.unit ? html`<small>${this.unit}</small>` : null}</div>
+      <input type="range" style="--p:${((v - min) / ((max - min) || 1) * 100).toFixed(1)}%" min=${min} max=${max} step=${this.step ?? 1} .value=${String(v)}
              @input=${this._move}>
     </div>`;
   }

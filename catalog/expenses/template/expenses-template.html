@@ -2,48 +2,29 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>{{title}}</title>
+<!--ICM-FONTS-->
 <style>
 /*ICM-CSS*/
-/* Only what is particular to this page. State is CSS: one radio per month, no script draws anything,
-   so the page still shows its numbers where scripts do not run. */
-body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-sans);font-size:15px;line-height:1.45;
-  font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
-main{max-width:720px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top,0px)) 16px 48px}
-h1{font-family:var(--font-serif);font-weight:400;font-size:26px;margin:0 0 16px}
-input[name=m]{position:absolute;opacity:0;pointer-events:none}
-.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin:0 -16px 18px;padding:0 16px;border-bottom:1px solid var(--line-soft)}
-.tabs::-webkit-scrollbar{display:none}
-.tabs label{flex:none;padding:8px 10px;cursor:pointer;color:var(--ink-muted);border-bottom:2px solid transparent;white-space:nowrap}
-input[name=m]:focus-visible ~ .tabs{outline:2px solid var(--ink);outline-offset:2px}
+/* Only what is particular to this page; everything else is a primitive of the library (icm-page, icm-stack, icm-tabs, icm-card,
+   icm-stat, icm-table, icm-dot, icm-bar, icm-series). State is CSS: one radio per month inside icm-tabs, no script draws
+   anything, so the page still shows its numbers where scripts do not run. */
+body{margin:0;background:var(--paper)}
+.icm-page{--page:720px}
 .panel{display:none}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:20px}
-.card{background:var(--card);border-radius:16px;padding:14px 16px}
-.card .k{margin:0;font-size:13px;color:var(--ink-muted)}
-.card .v{margin:2px 0;font-family:var(--font-serif);font-size:30px;line-height:1.1}
-.card .v span{font-size:16px;color:var(--ink-muted);margin-left:3px}
-.card .s{margin:0;font-size:13px;color:var(--ink-2)}
-.card .n{margin:8px 0 0;font-size:12.5px;color:var(--ink-muted)}
-.v.good{color:#4f7a4a}.v.near{color:#a9802a}.v.bad{color:var(--accent)}
-table{width:100%;border-collapse:collapse}
-th{font-weight:400;text-align:left;padding:6px 8px 6px 0;white-space:nowrap}
-td{padding:6px 0}
-.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px}
-.bar{width:100%}.bar span{display:block;height:8px;border-radius:4px;min-width:2px}
-.num{text-align:right;padding-left:12px;white-space:nowrap}.pct{text-align:right;padding-left:10px;color:var(--ink-muted);width:3.2em}
-tfoot th,tfoot td{border-top:1px solid var(--line);padding-top:9px;font-weight:500}
-tr.small th,tr.small td{color:var(--ink-muted)}
-.foot{font-size:13px;color:var(--ink-muted);margin:8px 0 0}
-dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:22px 0 0;padding-top:16px;border-top:1px solid var(--line-soft)}
-dt{font-size:13px;color:var(--ink-muted)}dd{margin:0}
+.icm-table td.bar{width:34%}
+tr.small th,tr.small td{color:var(--c-muted)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--s-4);margin:0;padding-top:var(--s-4);border-top:var(--border) solid var(--c-hairline)}
+.facts dd{margin:0}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-@media (max-width:480px){th{white-space:normal}.bar{display:none}}
+@media (max-width:480px){.icm-table td.bar{display:none}}
 __RULES__
 </style>
 <body class="on-paper">
-<main>
-<h1>{{title}}</h1>
-__RADIOS__
-<div class="tabs" role="tablist" aria-label="{{months}}">__TABS__</div>
+<main class="icm-page"><div class="icm-stack is-loose">
+<h1 class="icm-title">{{title}}</h1>
+<div class="icm-tabs is-scroll" role="tablist" aria-label="{{months}}">__TABS__</div>
 <div class="panels">__PANELS__</div>
-</main>
+</div></main>
+<script>/* ?theme=dark or ?theme=light forces a theme, for a preview or a screenshot; without it the system decides */
+{const t=new URLSearchParams(location.search).get('theme');if(t)document.documentElement.dataset.theme=t}</script>
 <script type="module">/*ICM-JS*/</script>

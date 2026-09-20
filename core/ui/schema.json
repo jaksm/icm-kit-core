@@ -79,7 +79,8 @@
    "element": "icm-delta",
    "props": {
     "value": "the difference",
-    "label": "against what"
+    "label": "against what",
+    "good": "which direction is good news: `down` (default, e.g. spending) or `up` (e.g. sessions)"
    },
    "variants": {
     "_prop": "direction",

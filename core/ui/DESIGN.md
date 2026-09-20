@@ -1,50 +1,39 @@
-# Design language: where it stands
+# Design language: calm brutal
 
-One language for two kinds of page: the pages an agent builds for one person (feed, expenses, graph,
-anything new) and the kit's own landing page. Both read the same tokens from `tokens/`. This file is
-the working record of the refinement: what exists, where pages break the language, and what is
-still to be decided. Open the workbench while reading it:
+One design system for every page an agent builds for its owner. It shares a brand with the kit's site
+(`icm-kit-site/DESIGN.md`, loud) and none of its volume: these pages are used daily on a phone. The concept and the
+documentation are one page, built from the real components:
 
 ```bash
-python3 build.py --workbench && python3 -m http.server 8912 --directory workbench
+python3 build.py --docs && python3 -m http.server 8912 --directory .   # then /docs/  (?theme=dark, ?only=components, ?audit=1 for a visual pass)
 ```
 
-## What exists
+## Decided
 
-| Layer | Where | State |
-| --- | --- | --- |
-| Color, type, layout, motion tokens | `tokens/*.css` | in use by every page |
-| Surfaces: `on-paper`, `on-photo` | `tokens/surface.css` | a component reads only `--c-*`, the surface decides |
-| Palettes | `colors.css` (host-matched, the default), `palettes/archive.css` (opt-in, `data-palette="archive"`) | **archive is a draft**: the landing page's first pass, as tokens |
-| Light and dark | `prefers-color-scheme`, or `data-theme` | both palettes have both |
-| Components | 15 components, 3 primitives, `schema.json` | each shown on both surfaces on the workbench |
-| `--mark` | `colors.css` | new: the highlighter for what is being read or followed right now; only the landing page uses it yet |
+| Axis | Decision |
+| --- | --- |
+| Palettes | One. The host-matched look and the `archive` draft are gone (0.3.0). |
+| Color | Paper `#EEF1F4`, ink `#16202B` at three strengths, ultramarine `#2A3FE0` only for what can be acted on or followed, marker `#F2CB4E` for current, chosen, changed. Every text token passes WCAG AA on every ground; `build.py --check` enforces it. |
+| The marker | Never decoration and never alone: yellow on paper is a weak contrast, so a marked thing also gets an ink bar. |
+| Type | Archivo variable and IBM Plex Mono (only for paths, file contents, captions of figures). Six sizes 13 to 28, nothing under 13, body 16. Headings balance, prose is `pretty`, changing numbers are tabular. |
+| Shape | 1.5px ink borders, 8px corners, a 3px hard shadow only on what can be pressed; pressing moves the thing into its shadow. No blur, no gradient. No hard shadows over a photo. |
+| Edges | Two strengths, both ink with alpha so nested edges never fight: `--edge` for what is read (a card, a table, a frame), `--edge-strong` for what is pressed or typed into. A strong edge plus the hard shadow means "you can act". In the dark theme the shadow is the strong edge's color, so it reads as thickness, not glow. Rows live in `icm-card is-list` (no padding, clipped), so a marked row meets the card's corners. |
+| Accent | `--accent` as text and line, `--accent-fill` as a filled shape (primary button, bars); the fill keeps white text in both themes. A loud number is loud by size, not by color. |
+| Surfaces | `on-paper` and `on-photo`; a component reads only `--c-*`. Text over a photo always sits on the scrim. |
+| Composition | Primitives are plain classes (layout, text, surfaces, rows, meters, controls). Components are fixed compositions of them, render nothing without data, and carry no outer margin: the container spaces them. |
+| Motion | How often decides how much: constant input is instant, daily is subtle, a rare success may celebrate (the burst). Transform and opacity only, exits faster than entrances, transitions where input can interrupt. A hover never changes the metrics of text; content never fades in; everything is still under reduced motion. |
+| Confirming | What changes something outside is confirmed by holding (the marker fills the button left to right), never by a red warning. Keyboard and reduced motion get a neutral second press. |
 
-## The pages, and where each one leaves the language
+## Proposed, not settled
 
-| Page | Source | Uses tokens | Leaves them |
-| --- | --- | --- | --- |
-| Feed | icm-kit-core `catalog/feed/template/feed-template.html` | fonts, `--over*`, `--paper`, `--ink*`, `--accent`, radius, motion | 19 literal colors: the dark ground `#1a1917`, every scrim stop (`rgba(20,19,17,…)` instead of `--scrim-ink`), segment and dot whites; sizes and spacing are all literal |
-| Expenses | icm-kit-core `catalog/expenses/` | tokens for text and lines | category inks are 12 literal hexes in `build-expenses-page.py`; state colors `good/near/bad` are its own |
-| Graph | icm-kit-core `core/workflows/graph/template/` | tokens for chrome | 5 literal colors; node colors computed in script |
-| Landing | icm-kit-site `index.src.html` | all colors, type and radius from tokens (archive palette) | light only (`data-theme="light"`), two literals (`#F6EFD6` for the "it does not" panel, `#E6ECF2` on the prompt); layout, scale and spacing are its own |
+The dark theme's values, the space scale `--s-1…--s-9`, state and category colors (`tokens/data.css`), the burst.
 
-## To decide, roughly in this order
+## Not done
 
-1. **One palette or two.** The default is matched to the host app so a page reads as part of it; the
-   archive palette gives the kit a face of its own. Either pages stay host-matched and only the site
-   is archive, or archive becomes the default and host-matched the option. Everything below depends on this.
-2. **Type.** Host palette: serif for what is read, sans for what is operated. Archive: one grotesque
-   plus a mono for paths. Decide per palette, or one rule for both. Web fonts cost a request and a
-   published page's policy must allow the font host.
-3. **A scale.** There are no size or space tokens: every page invents its own numbers. Candidate:
-   a type scale and a 4 px space scale as tokens, used first on the landing page and the feed.
-4. **The dark ground of the feed** as tokens (`--ground`, the scrim from `--scrim-ink`), so a palette can move it.
-5. **Data colors.** A categorical ramp and the three state colors as tokens, shared by expenses, the
-   graph and `icm-series`.
-6. **`--mark`.** Where else the highlighter belongs: the current row of the feed, the routed row in the graph.
-7. **The landing page's dark mode**, once 1 is decided.
-8. Motion: what moves, per the rule in `tokens/motion.css`; the landing page's "follow the agent" is the one orchestrated moment there.
+The feed, expenses and graph templates in icm-kit-core still carry their own markup and literal colors (feed 19,
+expenses 12, graph 5); the recipes they move to are in part 2 of the docs. Core is not released with 0.3.0 until they
+move, because the new default changes every page. The gaps found while assembling five future pages are listed under
+each in part 4 of the docs. Fonts come from Google Fonts.
 
 ## Rules that already hold, and stay
 

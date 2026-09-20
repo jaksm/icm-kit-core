@@ -1,0 +1,400 @@
+<!doctype html>
+<!-- icm-ui docs: the design concept and the documentation in one page. Built by `python3 build.py --docs` into docs/index.html
+     from the REAL tokens and components (slots ICM-CSS, ICM-JS) and from schema.json/actions.json (slot ICM-DOCS).
+     The page's own chrome uses only tokens and the d-* classes below, so the docs are the first consumer of the language.
+     invariant: no hover here changes the metrics of text; content never fades in; everything stands still under reduced motion. -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>icm-ui</title>
+<!--ICM-FONTS-->
+<style>/*ICM-CSS*/
+html{scroll-behavior:smooth;scroll-padding-top:var(--s-5)}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--paper);color:var(--ink);font:var(--w-body) var(--t-3)/1.55 var(--font-sans)}
+.d-shell{display:grid;grid-template-columns:240px minmax(0,1fr);max-width:1320px;margin:0 auto}
+.d-nav{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;padding:var(--s-5) var(--s-4);border-right:var(--border) solid var(--line);font-size:var(--t-2)}
+.d-nav b{display:block;font-size:var(--t-4);font-weight:var(--w-loud);font-stretch:85%;letter-spacing:-.03em}
+#ver,.d-swatch .d-mono{font-variant-numeric:tabular-nums}
+.d-nav small{font:400 var(--t-1) var(--font-mono);color:var(--ink-muted)}
+.d-nav a{display:block;color:var(--ink-2);text-decoration:none;padding:5px var(--s-2);border-radius:var(--radius-s)}
+.d-nav a:hover{background:var(--mark);color:var(--on-mark)}.d-nav a.h{font-weight:var(--w-strong);color:var(--ink);margin-top:var(--s-4)}
+.d-sw{display:grid;gap:var(--s-2);margin:var(--s-4) 0;border:0;padding:0}.d-sw legend{font:400 var(--t-1) var(--font-mono);color:var(--ink-muted);padding:0}
+.d-sw div{display:flex;border:var(--border) solid var(--ink);border-radius:var(--radius-s);overflow:hidden}
+.d-sw label{flex:1;text-align:center;padding:4px 0;cursor:pointer;font-size:var(--t-1)}.d-sw input{position:absolute;opacity:0}
+.d-sw input:checked+span{background:var(--ink);color:var(--paper)}.d-sw label span{display:block;padding:3px 0}.d-sw input:focus-visible+span{outline:2px solid var(--accent);outline-offset:-2px}
+main{padding:0 var(--s-6) var(--s-9);min-width:0}
+.d-part{padding-top:var(--s-8)}.d-part>header{border-bottom:var(--border) solid var(--ink);padding-bottom:var(--s-4);margin-bottom:var(--s-6)}
+h1{font-size:44px;font-weight:var(--w-loud);font-stretch:85%;letter-spacing:-.04em;line-height:1;margin:0 0 var(--s-4)}
+h2{font-size:var(--t-6);font-weight:var(--w-loud);font-stretch:90%;letter-spacing:-.03em;line-height:1.1;margin:0}
+h3{font-size:var(--t-5);font-weight:var(--w-strong);letter-spacing:-.02em;line-height:1.2;margin:var(--s-7) 0 var(--s-2)}
+h4{font-size:var(--t-3);font-weight:var(--w-strong);margin:0 0 var(--s-1)}
+p{margin:0 0 var(--s-4);max-width:68ch}.d-lede{font-size:var(--t-4);color:var(--ink-2);max-width:60ch}
+.d-mono,code{font:400 var(--t-1)/1.5 var(--font-mono)}code{background:var(--line-soft);padding:1px 5px;border-radius:3px}
+.d-status{font:500 11px var(--font-mono);border:var(--border) solid var(--ink);border-radius:3px;padding:0 6px;vertical-align:middle;margin-left:var(--s-2)}
+.d-status.locked{background:var(--ink);color:var(--paper)}.d-status.proposed{background:var(--mark);color:var(--on-mark)}
+.d-grid{display:grid;gap:var(--s-4);grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}.d-g2{display:grid;gap:var(--s-5);grid-template-columns:1fr 1fr}.d-g3{display:grid;gap:var(--s-5);grid-template-columns:repeat(3,1fr)}
+.d-rule{border-top:var(--border) solid var(--ink);padding-top:var(--s-3)}.d-rule p{margin:0;color:var(--ink-2);font-size:var(--t-2)}
+.d-swatch{border:var(--border) solid var(--edge);border-radius:var(--radius);overflow:hidden;background:var(--card)}.d-swatch i{display:block;height:64px;border-bottom:var(--border) solid var(--edge)}.d-swatch div{padding:var(--s-2) var(--s-3)}.d-swatch p{margin:0;font-size:var(--t-1);color:var(--ink-2)}
+.d-cell{border:var(--border) solid var(--edge);border-radius:var(--radius);padding:var(--s-4);min-height:120px;display:flex;flex-direction:column;gap:var(--s-3);align-items:flex-start;min-width:0}
+.d-cell.on-paper{background:var(--card)}/* invariant: text over a photo always sits on the scrim, never on the bare image; the stand-in photo gets the same scrim a card has,
+   so the contrast seen here is the contrast a real card has at its lightest point */
+.d-cell.on-photo{background:linear-gradient(rgba(var(--scrim-ink),.6),rgba(var(--scrim-ink),.82)),linear-gradient(160deg,#5f6f52,#2b3328 60%,#141311);border-color:var(--ink)}
+.d-cell>.d-mono{color:var(--c-muted);text-shadow:none}
+.d-bars span{display:grid;grid-template-columns:7em 1fr;align-items:center;margin-bottom:var(--s-2)}.d-bars i{display:block;height:14px;background:var(--accent);border-radius:2px}
+.d-spec>div{display:grid;grid-template-columns:7em 1fr;align-items:baseline;border-top:var(--border) solid var(--line);padding:var(--s-3) 0}
+.d-card{background:var(--card);border:var(--border) solid var(--edge);border-radius:var(--radius);padding:var(--s-4)}
+.d-drawer{overflow:hidden;display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s var(--ease-drawer)}.d-drawer.open{grid-template-rows:1fr}.d-drawer>div{min-height:0}
+.d-icons{display:flex;flex-wrap:wrap;gap:var(--s-3)}.d-icons span{display:grid;justify-items:center;gap:4px;width:72px;font:400 11px var(--font-mono);color:var(--ink-2)}.d-icons icm-icon{font-size:24px}
+table{border-collapse:collapse;width:100%;font-size:var(--t-2)}th,td{text-align:left;vertical-align:top;padding:var(--s-2) var(--s-3) var(--s-2) 0;border-top:var(--border) solid var(--line)}th{font-weight:var(--w-strong)}
+.d-demo{border:var(--border) solid var(--edge);border-radius:var(--radius);overflow:hidden;margin:var(--s-4) 0 var(--s-6);background:var(--paper)}
+.d-demo .live{padding:var(--s-5);min-width:0}.d-demo .live.on-photo{background:linear-gradient(rgba(var(--scrim-ink),.6),rgba(var(--scrim-ink),.82)),linear-gradient(160deg,#5f6f52,#2b3328 60%,#141311)}
+.d-demo>.pair{display:grid;grid-template-columns:1fr 1fr}.d-demo>.pair>.live+.live{border-left:var(--border) solid var(--edge)}
+.d-demo details{border-top:var(--border) solid var(--edge);background:var(--paper)}.d-demo summary{cursor:pointer;padding:var(--s-2) var(--s-4);font:500 var(--t-1) var(--font-mono);color:var(--ink-2)}
+.d-demo pre{margin:0;padding:0 var(--s-4) var(--s-4);font:400 12.5px/1.6 var(--font-mono);white-space:pre-wrap;overflow-wrap:anywhere;color:var(--ink)}
+.d-made{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:var(--s-2) 0 var(--s-3)}
+.d-phones{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:var(--s-6) var(--s-5);align-items:start;margin-top:var(--s-5)}
+.d-phone{--sheet-pos:absolute;position:relative;border:var(--border) solid var(--edge-strong);border-radius:28px;overflow:hidden;height:640px;background:var(--paper);box-shadow:6px 6px 0 var(--press-color);display:flex;flex-direction:column}
+.d-phone>.scroll{overflow:auto;flex:1;scrollbar-width:none}.d-phone .icm-page{--page:100%;padding:var(--s-5) var(--gutter) var(--s-7);min-height:100%}
+/* the scrim is dark at the top too: the position and the segments are text over the photo like everything else */
+.d-phone.photo{background:linear-gradient(rgba(var(--scrim-ink),.72),rgba(var(--scrim-ink),.3) 22%,rgba(var(--scrim-ink),.4) 45%,rgba(var(--scrim-ink),.92) 78%,var(--scrim-floor)),linear-gradient(150deg,#8fa27a,#4c5a41 45%,#232a20)}
+.d-cap{margin-top:var(--s-3)}.d-cap h4{margin-bottom:2px}.d-cap p{font-size:var(--t-2);color:var(--ink-2);margin:0 0 var(--s-2)}.d-cap ul{margin:0;padding-left:1.1em;font-size:var(--t-2);color:var(--ink-2)}
+.d-audit .d-nav,.d-audit .d-part>header,.d-audit main p:not([class^="icm"]):not(blockquote p),.d-audit main table:not(.icm-table),.d-audit details,.d-audit .d-made,.d-audit .d-rule,.d-audit .d-cap,.d-audit #status{display:none}
+.d-audit .d-shell{grid-template-columns:1fr;max-width:none}.d-audit main{padding:0 12px}.d-audit .d-part{padding-top:8px}.d-audit h3{margin:10px 0 2px;font-size:var(--t-2)}.d-audit h4{margin:6px 0 2px;font-size:var(--t-1)}
+.d-audit .d-demo{margin:2px 0 6px}.d-audit .d-demo .live{padding:10px}
+.d-audit .d-phones{grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-top:4px}
+.d-todo{border:var(--border) dashed var(--ink-muted);border-radius:var(--radius);padding:var(--s-5);color:var(--ink-muted)}
+@media(max-width:860px){.d-demo>.pair{grid-template-columns:1fr}.d-demo>.pair>.live+.live{border-left:0;border-top:var(--border) solid var(--ink)}.d-shell{grid-template-columns:1fr}.d-nav{position:static;height:auto;border-right:0;border-bottom:var(--border) solid var(--line)}.d-nav .d-links{display:none}main{padding:0 var(--gutter) var(--s-8)}.d-g2,.d-g3{grid-template-columns:1fr}h1{font-size:34px}}
+</style>
+<script type="module">/*ICM-JS*/</script>
+</head><body class="on-paper">
+<div class="d-shell">
+<nav class="d-nav"><b>icm-ui</b><small id="ver"></small>
+  <fieldset class="d-sw"><legend>theme</legend><div><label><input type="radio" name="theme" value="" checked><span>system</span></label><label><input type="radio" name="theme" value="light"><span>light</span></label><label><input type="radio" name="theme" value="dark"><span>dark</span></label></div></fieldset>
+  <div class="d-links" id="toc"></div></nav>
+<main>
+
+<section class="d-part" id="intro"><header><h1>A calm interface for things you wrote down.</h1>
+<p class="d-lede">icm-ui is what an agent builds pages from: a morning feed, a spending view, a plan for a trip. It shares a brand with the kit's site and none of its volume. The site has to stop a stranger; these pages are opened every day on a phone and must get out of the way.</p></header>
+<div class="d-g3">
+<div class="d-rule"><h4>Kept from the site</h4><p>Cold paper and blue-black ink, ultramarine, the yellow marker, Archivo and IBM Plex Mono, hard edges, a shadow that is never blurred.</p></div>
+<div class="d-rule"><h4>Turned down</h4><p>No color blocks, no giant type, no 3D. Paper everywhere, 1.5px borders, 8px corners for thumbs, blue only on what can be acted on.</p></div>
+<div class="d-rule"><h4>Why “calm brutal”</h4><p>Honest construction reads as trustworthy for private data: you can see what is a button, what is a fact and what is yours to answer.</p></div></div>
+<h3>Rules every page keeps</h3>
+<div class="d-g2">
+<div class="d-rule"><h4>A shadow means “press me”</h4><p>Only pressable things carry the hard shadow, and pressing moves them into it. What is only read is flat.</p></div>
+<div class="d-rule"><h4>Yellow means “this one”</h4><p>The marker is for what is current, chosen, or changed. One marked thing per screen if possible. Never decoration, and never alone: yellow on paper is a weak contrast, so the marked thing also gets an ink bar.</p></div>
+<div class="d-rule"><h4>Blue means “you can act”</h4><p>The primary action, a link that can be followed, the filled part of a gauge. Never a background.</p></div>
+<div class="d-rule"><h4>Hover never resizes text</h4><p>No weight, width or size change under a pointer. Color, ground and the marker may change.</p></div>
+<div class="d-rule"><h4>Nothing feels stuck, nothing fades in</h4><p>Input answers at once. Content you must read appears, it does not dissolve into view.</p></div>
+<div class="d-rule"><h4>Motion answers the person</h4><p>Press, choose, open, confirm. A small spring on the thing that received input. All of it still under reduced motion.</p></div></div>
+</section>
+
+<section class="d-part" id="primitives"><header><h2>1. Primitives</h2><p class="d-lede">Everything else is assembled from these. Each value is a token in <code>tokens/</code>; change it there and this page follows.</p></header>
+
+<h3 id="color">Color <span class="d-status locked">light: decided</span><span class="d-status proposed">dark: proposed</span></h3>
+<p>Four colors with one job each. Text on paper is ink at three strengths. Lines are visible on purpose.</p>
+<div class="d-grid" id="swatches"></div>
+<h4 style="margin-top:var(--s-6)">State and data <span class="d-status proposed">proposed</span></h4>
+<p>State colors mean “this changes what you do”. The categorical ramp is for charts and category dots; rank decides the slot and the tail is grey, so a chart never needs a legend of twelve hues.</p>
+<div class="d-grid" id="data"></div>
+
+<h3 id="type">Type <span class="d-status locked">decided</span></h3>
+<p>One variable grotesque for what is read and what is operated. Six sizes, nothing under 13px, three weights. The mono is only for file paths, file contents and figure captions: if it is not a file, it is not mono.</p>
+<div class="d-spec" id="spec"></div>
+
+<h3 id="space">Space <span class="d-status proposed">proposed</span></h3>
+<div class="d-g2"><div class="d-bars d-mono" id="bars"></div>
+<div><div class="d-rule"><h4>On a phone</h4><p><code>--gutter</code> 16px at the edges, <code>--s-3</code> inside a row, <code>--s-5</code> to <code>--s-6</code> between groups, <code>--s-7</code> between sections. A touch target is never under <code>--tap</code> 48px.</p></div>
+<div class="d-rule" style="margin-top:var(--s-5)"><h4>Generous vertically</h4><p>When in doubt, add space above a heading, not inside a card.</p></div></div></div>
+
+<h3 id="surfaces">Surfaces <span class="d-status locked">decided</span></h3>
+<p>A component never reads a color directly. It reads <code>--c-*</code>, and the surface class decides what those mean, so the same component sits on paper and on a photograph.</p>
+<div class="d-g2"><div class="d-cell on-paper"><span class="d-mono">.on-paper</span><icm-metric value="62" unit="%" label="of the monthly budget" variant="quiet"></icm-metric><icm-button variant="pill" label="Show the month"></icm-button></div>
+<div class="d-cell on-photo"><span class="d-mono">.on-photo: fixed light text on a scrim, no hard shadows</span><icm-metric value="62" unit="%" label="of the monthly budget" variant="quiet"></icm-metric><icm-button variant="pill" label="Show the month"></icm-button></div></div>
+
+<h3 id="shape">Shape <span class="d-status locked">decided</span></h3>
+<div class="d-g3"><div class="d-card"><h4>Read</h4><p style="margin:0;color:var(--ink-2)">A card: <code>--border</code> 1.5px ink, <code>--radius</code> 8px, flat.</p></div>
+<div><icm-button variant="pill" label="Pressable"></icm-button><p class="d-mono" style="margin-top:var(--s-3)">the same border and corner, plus <code>--press</code> 3px hard shadow</p></div>
+<div><icm-button variant="primary" label="The one action"></icm-button><p class="d-mono" style="margin-top:var(--s-3)">blue fill: at most one per screen</p></div></div>
+
+<h3 id="marker">The marker <span class="d-status locked">decided</span></h3>
+<div class="d-g2"><div class="icm-card is-list" id="rows"></div>
+<div><div class="d-rule"><h4>Current, chosen, changed</h4><p>Tap a row: the marker moves, nothing else does. The same yellow marks the chosen option of a question and the number that changed since yesterday: <mark style="background:var(--mark);color:var(--on-mark)">4 points over last month</mark>.</p></div></div></div>
+
+<h3 id="micro">Micro-interactions <span class="d-status proposed">proposed</span></h3>
+<div class="d-g3">
+<div class="d-rule"><h4>Press</h4><p>Moves into its shadow, 80ms. Used hundreds of times a day, so that is all it does.</p><p style="margin-top:var(--s-3)"><icm-button variant="pill" label="Press"></icm-button></p></div>
+<div class="d-rule"><h4>Hold to confirm, then celebrate</h4><p>What changes something outside is confirmed by holding: the marker fills the button from the left, letting go early drains it. It is a question, never a red warning. Success is rare and earned, so it throws a little paper. This is the real <code>icm-action</code>.</p><div style="margin-top:var(--s-3)" id="act"></div></div>
+<div class="d-rule"><h4>Choose</h4><p>The marker lands with a small spring. The label never changes weight.</p><p style="margin-top:var(--s-3);display:flex;gap:var(--s-2)" id="opts"></p></div>
+<div class="d-rule"><h4>Focus</h4><p>The field grows a blue shadow: “you are typing here”.</p><p style="margin-top:var(--s-3)"><input class="icm-field" placeholder="39,7" inputmode="decimal"></p></div>
+<div class="d-rule"><h4>Open</h4><p>Details pull out like a drawer, with momentum.</p><p style="margin-top:var(--s-3)"><icm-button variant="pill" label="Details" icon="details" id="dbtn"></icm-button></p><div class="d-drawer" id="drawer"><div><p style="margin:var(--s-3) 0 0;color:var(--ink-2)">Flights booked for the 14th. The rental car is still open.</p></div></div></div>
+<div class="d-rule"><h4>How often decides how much</h4><p>Rare (a confirmed action succeeds): expressive. Daily (open details, choose): subtle, under 400ms. Constant (press, scroll, type): instant. From the keyboard: never animated; holding becomes a second press.</p></div>
+<div class="d-rule"><h4>Reduced motion</h4><p>Transitions are off and the burst does not exist. Holding becomes “sure?” and a second press, so nothing has to jump.</p></div></div>
+
+<h3 id="controls">Buttons, links, icons <span class="d-status locked">decided</span></h3>
+<div class="d-g2" id="controlcells"></div>
+<h4 style="margin-top:var(--s-5)">Icons</h4><p>Drawn inline at 1.6 stroke, sized by the font size, colored by the text.</p><div class="d-icons" id="icons"></div>
+<div id="prims"></div>
+</section>
+
+<section class="d-part" id="components"><header><h2>2. Components, taken apart</h2><p class="d-lede">A component is a fixed composition of primitives with one job, and it renders nothing when its data is missing. None of them has an outer margin: the stack that holds them decides the space. The tables come from <code>schema.json</code>.</p></header><div id="comps"></div>
+<h3 id="parts">Parts of today’s artifacts, as compositions</h3><p>The feed, the expenses page and the graph each carry markup of their own. Every one of those parts can be written with the primitives above; these are the recipes the templates move to.</p><div id="parts-out"></div></section>
+<section class="d-part" id="assembled"><header><h2>3. Assembled: today’s artifacts</h2><p class="d-lede">The three pages the kit builds now, in this language, made only of what is documented above.</p></header><div class="d-phones" id="phones-now"></div></section>
+<section class="d-part" id="future"><header><h2>4. What else it can build</h2><p class="d-lede">Five pages nobody has built yet, assembled from the same pieces. Under each: what the library is still missing to make it real.</p></header><div class="d-phones" id="phones-next"></div></section>
+<section class="d-part" id="status"><header><h2>5. Status</h2></header><div id="status-out"></div></section>
+</main></div>
+
+<script>
+/*ICM-DOCS*/
+const $=id=>document.getElementById(id),root=document.documentElement,attr=o=>JSON.stringify(o).replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+$('ver').textContent='v'+DOCS.version+' · design concept and docs'
+$('toc').innerHTML=[...document.querySelectorAll('.d-part')].map(p=>`<a class="h" href="#${p.id}">${p.querySelector('h1,h2').textContent.replace(/^A calm.*/,'Concept')}</a>`+[...p.querySelectorAll('h3[id]')].map(h=>`<a href="#${h.id}">${h.firstChild.textContent.trim()}</a>`).join('')).join('')
+const COLORS=[['--paper','Paper','the ground of every page'],['--card','Card','a thing on the page'],['--ink','Ink','text, borders, the hard shadow'],['--ink-2','Ink 2','secondary text'],['--ink-muted','Ink muted','captions, never body'],['--line','Line','dividers inside a card'],['--accent','Ultramarine','what can be acted on or followed'],['--mark','Marker','current, chosen, changed']]
+const DATA=[['--state-good','good'],['--state-warn','warn'],['--state-bad','bad'],...Array.from({length:12},(_,i)=>['--cat-'+(i+1),'cat '+(i+1)])]
+const sw=(list,el)=>{const cs=getComputedStyle(root);el.innerHTML=list.map(([v,n,d])=>`<div class="d-swatch"><i style="background:var(${v})"></i><div><h4>${n}</h4><span class="d-mono">${v} ${cs.getPropertyValue(v).trim()}</span>${d?`<p>${d}</p>`:''}</div></div>`).join('')}
+const paint=()=>{sw(COLORS,$('swatches'));sw(DATA,$('data'))};paint()
+// ?only=components shows one part alone (for a review link, or a screenshot)
+{const o=new URLSearchParams(location.search).get('only');if(o)document.querySelectorAll('.d-part').forEach(x=>x.hidden=x.id!==o)}
+// ?audit=1 strips the page to its live examples (no nav, prose, tables or markup) so a visual pass takes a few screens
+if(new URLSearchParams(location.search).has('audit'))document.documentElement.classList.add('d-audit')
+// ?theme=dark opens the page in that state, so a link can show exactly what is meant
+new URLSearchParams(location.search).forEach((v,k)=>{const el=document.querySelector(`.d-sw input[name="${k}"][value="${v}"]`);if(el){el.checked=true;root.setAttribute('data-'+k,v)}});paint()
+document.querySelectorAll('.d-sw input').forEach(el=>el.onchange=()=>{el.value?root.setAttribute('data-'+el.name,el.value):root.removeAttribute('data-'+el.name);paint()})
+$('spec').innerHTML=[['--t-6','28 / 800','What is open today'],['--t-5','22 / 700','Rental car for Lisbon'],['--t-4','18 / 500','Two offers are inside the budget you set.'],['--t-3','16 / 500','Body text. Flights are booked for the 14th; the car is still open.'],['--t-2','14 / 500','Secondary: last checked on Tuesday'],['--t-1','13 / 500','Caption, the smallest size there is']].map(([t,m,s],i)=>`<div><span class="d-mono">${t}<br>${m}</span><span style="font-size:var(${t});font-weight:${i==0?800:i==1?700:500};line-height:1.25;letter-spacing:${i<2?'-.02em':'0'}">${s}</span></div>`).join('')+`<div><span class="d-mono">mono<br>13 / 400</span><span class="d-mono">domains/travel/lisbon.md</span></div>`
+$('bars').innerHTML=[4,8,12,16,24,36,56,88,136].map((n,i)=>`<span>--s-${i+1} · ${n}<i style="width:${n}px"></i></span>`).join('')
+const R=[['Physio, the 3rd','health'],['Rental car for Lisbon','travel'],['Quarterly tax form','money']]
+$('rows').innerHTML=R.map(([a,b],i)=>`<button class="icm-row${i==1?' is-current':''}"><span>${a}</span><span class="icm-caption">${b}</span></button>`).join('')
+$('rows').onclick=e=>{const r=e.target.closest('.icm-row');if(r)[...$('rows').children].forEach(x=>x.classList.toggle('is-current',x===r))}
+$('opts').innerHTML=['Yes','Later','No'].map((t,i)=>`<button class="icm-option" aria-pressed="${i==0}">${t}</button>`).join('')
+$('opts').onclick=e=>{const b=e.target.closest('button');if(b)[...$('opts').children].forEach(x=>x.setAttribute('aria-pressed',x===b))}
+$('dbtn').addEventListener('icm-press',()=>$('drawer').classList.toggle('open'))
+$('act').innerHTML=`<icm-action label="Add to calendar" done="Added to calendar" icon="next" confirm></icm-action>`
+// the docs stand in for the page that does the work: succeed after a moment, then reset so it can be tried again
+$('act').addEventListener('icm-action',e=>{const a=e.target;setTimeout(()=>{a.state='done';setTimeout(()=>{a.state='idle';a.hinted=false;a.requestUpdate()},2600)},650)})
+const CT=`<icm-button variant="primary" label="Primary"></icm-button><icm-button variant="pill" label="Pill" icon="details"></icm-button><icm-button variant="quiet" label="Quiet"></icm-button><icm-button variant="pill" label="Disabled" disabled></icm-button><icm-link href="https://example.com" label="Open on example.com"></icm-link><div style="display:flex;gap:var(--s-3)"><icm-button variant="rail" icon="comment" label="Comment"></icm-button><icm-button variant="rail" icon="heart" label="Like" pressed></icm-button></div>`
+$('controlcells').innerHTML=['on-paper','on-photo'].map(s=>`<div class="d-cell ${s}" style="flex-direction:row;flex-wrap:wrap;align-items:center"><span class="d-mono" style="flex-basis:100%">.${s}</span>${CT}</div>`).join('')
+$('icons').innerHTML=DOCS.icons.map(n=>`<span><icm-icon name="${n}"></icm-icon>${n}</span>`).join('')
+
+// ---- demos: the live thing, and the markup that made it (what a person or an agent copies) ----
+const escH=t=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;'),tidy=h=>h.trim().replace(/&quot;/g,"'")
+const demo=(html,{both=false,photo=false}={})=>`<div class="d-demo">${both?`<div class="pair"><div class="live on-paper">${html}</div><div class="live on-photo">${html}</div></div>`:`<div class="live ${photo?'on-photo':'on-paper'}">${html}</div>`}<details><summary>markup</summary><pre>${escH(tidy(html))}</pre></details></div>`
+const PRIMS=[
+['layout','Layout','decided','Three containers do all the spacing: a stack goes down, a cluster goes across and wraps, a grid fills. Components carry no margins, so anything can sit in any of them. <code>--gap</code> overrides the space.',
+`<div class="icm-stack">
+  <h3 class="icm-heading">Lisbon, the 14th</h3>
+  <div class="icm-cluster"><span class="icm-badge">travel</span><span class="icm-badge is-warn">1 open</span></div>
+  <div class="icm-grid" style="--min:120px">
+    <div class="icm-card"><p class="icm-caption">Flights</p><p class="icm-text">Booked</p></div>
+    <div class="icm-card"><p class="icm-caption">Hotel</p><p class="icm-text">Booked</p></div>
+    <div class="icm-card is-marked"><p class="icm-caption">Car</p><p class="icm-text">Open</p></div>
+  </div>
+</div>`],
+['text','Text roles','decided','The type scale as roles. One loud number per screen is allowed; the mono is only for files.',
+`<div class="icm-stack is-tight">
+  <p class="icm-eyebrow">This month</p>
+  <h2 class="icm-title">What is open today</h2>
+  <h3 class="icm-heading">Rental car for Lisbon</h3>
+  <h4 class="icm-subheading">Two offers are inside the budget</h4>
+  <p class="icm-text">Body text. Flights are booked; <span class="icm-mark">the car is still open</span>.</p>
+  <p class="icm-text is-2">Secondary text, for what supports the line above.</p>
+  <p class="icm-caption">Caption: last checked on Tuesday</p>
+  <p class="icm-mono">domains/travel/lisbon.md</p>
+  <div><span class="icm-num is-loud">62<small>%</small></span></div>
+</div>`],
+['cards','Cards and sheets','decided','A card is flat when it is only read. <code>is-pressable</code> adds the shadow that means “press me”. <code>is-marked</code> is the current one. A sheet pulls up from the bottom for anything that needs an answer.',
+`<div class="icm-grid" style="--min:150px">
+  <div class="icm-card"><p class="icm-caption">Read</p><p class="icm-text">A fact on the page.</p></div>
+  <button class="icm-card is-pressable"><p class="icm-caption">Pressable</p><p class="icm-text">Opens the trip.</p></button>
+  <div class="icm-card is-marked"><p class="icm-caption">Marked</p><p class="icm-text">The current one.</p></div>
+  <div class="icm-card is-plain"><p class="icm-caption">Plain</p><p class="icm-text">A quiet group.</p></div>
+  <div class="icm-card"><div class="icm-stat"><p class="icm-caption">Left over</p><span class="icm-num is-good">1 080</span><p class="icm-caption">a stat: label, number, a line under it</p></div></div>
+</div>`],
+['rows','Rows and tables','decided','A row is a line with something trailing; as a button or a link it is pressable across its width. Rows live in <code>icm-card is-list</code>, which has no padding and clips, so the marked row meets the card’s rounded corners. The current row is marked, with an ink bar. Tables keep numbers tabular and right aligned.',
+`<div class="icm-stack">
+  <div class="icm-card is-list">
+    <button class="icm-row"><span>Physio, the 3rd</span><span class="icm-caption">health</span></button>
+    <button class="icm-row is-current"><span>Rental car for Lisbon</span><span class="icm-caption">travel</span></button>
+    <button class="icm-row"><span>Quarterly tax form</span><span class="icm-caption">money</span></button>
+  </div>
+  <table class="icm-table">
+    <thead><tr><th>Category</th><th class="is-num">Spent</th><th class="is-num">Share</th></tr></thead>
+    <tbody><tr><th><span class="icm-dot" style="--dot:var(--cat-1)"></span> Home</th><td class="is-num">1 240</td><td class="is-num">41%</td></tr>
+    <tr><th><span class="icm-dot" style="--dot:var(--cat-2)"></span> Food</th><td class="is-num">680</td><td class="is-num">22%</td></tr></tbody>
+    <tfoot><tr><th>Total</th><td class="is-num">3 020</td><td class="is-num">100%</td></tr></tfoot>
+  </table>
+</div>`],
+['meters','Bars, segments, dots, badges','decided','Small things that show an amount, a position or a kind. A dot always stands next to its name; a badge says its state in words.',
+`<div class="icm-stack">
+  <div class="icm-bar" style="--v:62%"><i></i></div>
+  <div class="icm-bar" style="--v:41%;--bar:var(--cat-2)"><i></i><b style="--t:70%"></b></div>
+  <div class="icm-bar is-thin" style="--v:30%"><i></i></div>
+  <div class="icm-segments"><i class="is-on"></i><i class="is-on"></i><i class="is-here"></i><i></i><i></i></div>
+  <div class="icm-cluster"><span class="icm-badge">neutral</span><span class="icm-badge is-good">on track</span><span class="icm-badge is-warn">due soon</span><span class="icm-badge is-bad">late</span><span class="icm-badge is-marked">current</span></div>
+</div>`],
+['sheet','A sheet','decided','For anything that needs an answer without leaving the page: a comment, a confirmation with details. It pulls up like a drawer over a shade; <code>--sheet-pos:absolute</code> keeps it inside a frame, as here.',
+`<div style="--sheet-pos:absolute;position:relative;height:300px;overflow:clip;border:var(--border) solid var(--c-edge);border-radius:var(--radius)">
+  <div class="icm-stack" style="padding:var(--s-4)"><p class="icm-text is-2">The page underneath.</p><button class="icm-option" data-sheet>Leave a comment</button></div>
+  <div class="icm-shade" data-sheet></div>
+  <div class="icm-sheet"><div class="icm-stack"><h3 class="icm-subheading">What should change?</h3><textarea class="icm-field" placeholder="This card is out of date"></textarea>
+    <div class="icm-cluster"><icm-button variant="primary" label="Send" data-sheet></icm-button><icm-button variant="quiet" label="Close" data-sheet></icm-button></div></div></div>
+</div>`],
+['fields','Options, fields, tabs','decided','An option is chosen with the marker and a small spring. A field is 16px so a phone does not zoom. Tabs are radios and labels: the state lives in CSS, so the page works with scripts off.',
+`<div class="icm-stack">
+  <p class="icm-question">Book the car now?</p>
+  <div class="icm-cluster"><button class="icm-option is-on" aria-pressed="true">Yes</button><button class="icm-option" aria-pressed="false">Later</button><button class="icm-option" aria-pressed="false">No</button></div>
+  <input class="icm-field" placeholder="39,7" inputmode="decimal">
+  <div class="icm-tabs"><label><input type="radio" name="d-m"><span>March</span></label><label><input type="radio" name="d-m"><span>April</span></label><label><input type="radio" name="d-m" checked><span>May</span></label></div>
+</div>`]]
+$('prims').innerHTML=PRIMS.map(([id,t,st,lede,html])=>`<h3 id="${id}">${t} <span class="d-status ${st=='decided'?'locked':'proposed'}">${st}</span></h3><p>${lede}</p>${demo(html)}`).join('')
+$('prims').addEventListener('click',e=>{const sh=e.target.closest('[data-sheet]');if(sh){const f=sh.closest('[style*=sheet-pos]');f.querySelector('.icm-sheet').classList.toggle('is-open');f.querySelector('.icm-shade').classList.toggle('is-open');return}const o=e.target.closest('.icm-cluster>.icm-option');if(o)[...o.parentNode.children].forEach(x=>{x.classList.toggle('is-on',x===o);x.setAttribute('aria-pressed',x===o)});const r=e.target.closest('.icm-row');if(r)[...r.parentNode.children].forEach(x=>x.classList.toggle('is-current',x===r))})
+
+// ---- components: samples per element, what each is made of, tables from the schema ----
+const soon=new Date(Date.now()+2*864e5).toISOString().slice(0,10)
+const SAMPLE={
+ 'icm-metric':`<icm-metric value="62" unit="%" label="of the monthly budget"></icm-metric><icm-metric value="1 240" unit="€" label="spent on the home" variant="quiet"></icm-metric>`,
+ 'icm-tags':`<icm-tags items="${attr([{text:'travel'},{text:'due soon',kind:'warn'},{text:'booked',kind:'good'}])}"></icm-tags>`,
+ 'icm-deadline':`<icm-deadline date="${soon}" label="rental car offer ends"></icm-deadline>`,
+ 'icm-delta':`<icm-delta value="4 points" direction="up" label="over last month"></icm-delta>`,
+ 'icm-gauge':`<icm-gauge value="1860" target="3000" label="1 860 of 3 000 saved"></icm-gauge>`,
+ 'icm-facts':`<icm-facts rows="${attr([['Flight','TP 1355, 07:40'],['Hotel','Alfama, 4 nights'],['Note','The host asked for the arrival time a day ahead, by message.']])}"></icm-facts>`,
+ 'icm-quote':`<icm-quote text="Stairs are fine going up; down only with the rail until week 8." from="physio, week 6"></icm-quote>`,
+ 'icm-list':`<icm-list items="${attr([['Book flights',true],['Book the hotel',true],['Rent a car']])}"></icm-list><icm-list variant="steps" items="${attr(['Mix the starter','Fold three times','Bake at 240°'])}"></icm-list>`,
+ 'icm-series':`<icm-series values="${attr([61,58,64,60,66,62])}" label="share of budget, last six months"></icm-series><icm-series variant="bars" values="${attr([3,5,2,6,4,7])}" label="sessions per week"></icm-series>`,
+ 'icm-next':`<icm-next text="Compare the two car offers before Friday."></icm-next>`,
+ 'icm-link':`<icm-link href="https://example.com" label="Open on example.com"></icm-link>`,
+ 'icm-action':`<icm-action label="Add to calendar" done="Added" icon="next" confirm></icm-action> <icm-action label="Call the host" icon="call" href="tel:+100000000" same-tab></icm-action>`,
+ 'icm-choice':`<icm-choice question="Which offer?" options="${attr(['Compact','Estate','Neither'])}" value="${attr(['Compact'])}"></icm-choice>`,
+ 'icm-slider':`<icm-slider question="How did the knee feel?" min="0" max="10" value="7" unit="/ 10"></icm-slider>`,
+ 'icm-input':`<icm-input question="Temperature this morning" placeholder="36,6" mode="decimal"></icm-input>`,
+ 'icm-confirm':`<icm-confirm question="Did you take the evening dose?" value="yes"></icm-confirm>`}
+const MADE={'icm-metric':['.icm-num','.icm-caption'],'icm-tags':['.icm-badge'],'icm-deadline':['state colors','labels'],'icm-delta':['state colors'],'icm-gauge':['.icm-bar','.icm-caption'],'icm-facts':['hairline rows'],'icm-quote':['ink bar'],'icm-list':['checks, dots, steps'],'icm-series':['inline SVG','.icm-caption'],'icm-next':['marker bar'],'icm-link':['pressable shadow','icm-icon'],'icm-action':['pressable shadow','hold fill','burst','icm-icon'],'icm-choice':['.icm-question','.icm-option'],'icm-slider':['.icm-question','.icm-num','range input'],'icm-input':['.icm-question','.icm-field'],'icm-confirm':['.icm-question','.icm-option']}
+$('comps').innerHTML=Object.entries(DOCS.schema.components).filter(([,c])=>c.element).map(([key,c])=>{const v=c.variants
+  return `<h3 id="c-${key}"><code style="font-size:inherit;background:none;padding:0">${c.element}</code></h3><p>${c.when||c.about||''}</p>
+  <div class="d-made"><span class="d-mono">made of</span>${(MADE[c.element]||[]).map(m=>`<span class="icm-badge">${m}</span>`).join('')}<span class="d-mono" style="margin-left:var(--s-3)">${c.layer||''}</span></div>
+  ${demo(`<div class="icm-stack">${SAMPLE[c.element]||''}</div>`,{both:true})}
+  <table><tr><th>prop</th><th>what it is</th></tr>${Object.entries(c.props||{}).map(([k,d])=>`<tr><td><code>${k}</code></td><td>${d}</td></tr>`).join('')}
+  ${v?`<tr><td><code>${v._prop}</code></td><td>${v.values.map(x=>`<code>${x}</code>${x===v.default?' (default)':''}: ${v[x]||''}`).join('<br>')}</td></tr>`:''}
+  ${c.limits?`<tr><td>limits</td><td>${Object.entries(c.limits).map(([k,n])=>`${k}: at most ${n}`).join(', ')}</td></tr>`:''}</table>`}).join('')
+// the docs stand in for the page that performs an action
+document.addEventListener('icm-action',e=>{const a=e.target;if(a.closest('#act')||e.detail?.link)return;setTimeout(()=>{a.state='done';setTimeout(()=>{a.state='idle';a.hinted=false;a.requestUpdate()},2600)},650)})
+
+// ---- parts of the three existing artifacts, written with primitives ----
+const PARTS=[
+['Feed: the front of a card, over a photo','Tags, a deadline, the metric and the hook in one stack on the photo surface; the rail is three rail buttons.',
+`<div class="icm-cluster is-between" style="align-items:flex-end">
+  <div class="icm-stack is-tight" style="max-width:26ch">
+    <icm-tags items="${attr([{text:'travel'},{text:'due soon',kind:'warn'}])}"></icm-tags>
+    <icm-metric value="2" label="offers inside the budget" variant="quiet"></icm-metric>
+    <h3 class="icm-heading">The rental car for Lisbon is still open</h3>
+  </div>
+  <div class="icm-stack is-tight"><icm-button variant="rail" icon="comment" label="Comment"></icm-button><icm-button variant="rail" icon="details" label="Details"></icm-button><icm-button variant="rail" icon="heart" label="Like" pressed></icm-button></div>
+</div>`,{photo:true}],
+['Feed: where you are','Segments for the cards of this row, and the position in words.',
+`<div class="icm-cluster is-between"><div class="icm-segments" style="flex:1;max-width:220px"><i class="is-on"></i><i class="is-here"></i><i></i><i></i></div><span class="icm-caption">Travel, 2 of 4</span></div>`],
+['Feed: the details of a card','A stack on paper: body, facts, the next move, a question, then what can be done.',
+`<div class="icm-stack">
+  <h3 class="icm-heading">The rental car for Lisbon</h3>
+  <p class="icm-text is-2">Two offers are inside the budget you set in March. Both can be cancelled until the day before.</p>
+  <icm-facts rows="${attr([['Compact','31 a day'],['Estate','38 a day']])}"></icm-facts>
+  <icm-next text="Pick one before Friday, the cheaper offer ends then."></icm-next>
+  <icm-choice question="Which one?" options="${attr(['Compact','Estate','Neither'])}"></icm-choice>
+  <div class="icm-cluster"><icm-action label="Add to calendar" done="Added" icon="next" confirm></icm-action><icm-link href="https://example.com" label="Open the offer"></icm-link></div>
+  <p class="icm-mono">domains/travel/lisbon.md</p>
+</div>`],
+['Expenses: the month','Tabs for the month, three stat cards, then the category table with dots and bars.',
+`<div class="icm-stack">
+  <div class="icm-tabs"><label><input type="radio" name="d-e"><span>March</span></label><label><input type="radio" name="d-e"><span>April</span></label><label><input type="radio" name="d-e" checked><span>May</span></label></div>
+  <div class="icm-grid" style="--min:130px">
+    <div class="icm-card"><p class="icm-caption">Spent</p><span class="icm-num">3 020</span></div>
+    <div class="icm-card"><p class="icm-caption">Income</p><span class="icm-num">4 100</span></div>
+    <div class="icm-card"><p class="icm-caption">Left over</p><span class="icm-num is-good">1 080</span><p class="icm-caption">above the goal</p></div>
+  </div>
+  <table class="icm-table"><tbody>
+    <tr><th><span class="icm-dot" style="--dot:var(--cat-1)"></span> Home</th><td style="width:40%"><div class="icm-bar is-thin" style="--v:41%;--bar:var(--cat-1)"><i></i></div></td><td class="is-num">1 240</td></tr>
+    <tr><th><span class="icm-dot" style="--dot:var(--cat-2)"></span> Food</th><td><div class="icm-bar is-thin" style="--v:22%;--bar:var(--cat-2)"><i></i></div></td><td class="is-num">680</td></tr>
+    <tr><th><span class="icm-dot" style="--dot:var(--cat-3)"></span> Transport</th><td><div class="icm-bar is-thin" style="--v:12%;--bar:var(--cat-3)"><i></i></div></td><td class="is-num">360</td></tr>
+  </tbody></table>
+</div>`],
+['Graph: search and the panel of a record','A field, result rows, and a card with badges and the links of the record as rows.',
+`<div class="icm-grid" style="--min:220px;align-items:start">
+  <div class="icm-stack is-tight"><input class="icm-field" style="max-width:none" placeholder="Search the base" value="lisbon">
+    <div class="icm-card is-list"><button class="icm-row is-current"><span>Lisbon, the 14th</span><span class="icm-caption">travel</span></button><button class="icm-row"><span>Lisbon budget</span><span class="icm-caption">money</span></button></div></div>
+  <div class="icm-card"><div class="icm-stack is-tight"><p class="icm-mono">domains/travel/lisbon.md</p><h3 class="icm-subheading">Lisbon, the 14th</h3>
+    <div class="icm-cluster"><span class="icm-badge">Output</span><span class="icm-badge is-good">active</span></div>
+    <div><a class="icm-row" href="#graph-demo"><span><span class="icm-dot" style="--dot:var(--cat-2)"></span> Lisbon budget</span><span class="icm-caption">links to</span></a><a class="icm-row" href="#graph-demo"><span><span class="icm-dot" style="--dot:var(--cat-1)"></span> Trips, context</span><span class="icm-caption">linked from</span></a></div></div></div>
+</div>`]]
+$('parts-out').innerHTML=PARTS.map(([t,d,h,o])=>`<h4 style="margin-top:var(--s-6)">${t}</h4><p>${d}</p>${demo(h,o)}`).join('')
+
+// ---- assembled pages: a phone frame, a page, stacks; nothing here that is not documented above ----
+const phone=(title,note,body,{photo=false,missing}={})=>`<div><div class="d-phone ${photo?'photo on-photo':'on-paper'}"><div class="scroll">${body}</div></div><div class="d-cap"><h4>${title}</h4><p>${note}</p>${missing?`<ul>${missing.map(m=>`<li>${m}</li>`).join('')}</ul>`:''}</div></div>`
+const page=inner=>`<div class="icm-page"><div class="icm-stack is-loose">${inner}</div></div>`
+const NOW=[
+phone('Feed: a card, front','On a photo: the scrim carries the text, the rail sits to the right, segments say where you are. No hard shadows here.',
+`<div style="display:flex;flex-direction:column;height:640px;padding:var(--s-4) var(--gutter) var(--s-5)">
+  <div class="icm-cluster is-between"><div class="icm-segments" style="flex:1;max-width:180px"><i class="is-on"></i><i class="is-here"></i><i></i><i></i></div><span class="icm-caption">Travel, 2 of 4</span></div>
+  <div class="icm-cluster is-between" style="margin-top:auto;align-items:flex-end;flex-wrap:nowrap">
+    <div class="icm-stack is-tight"><icm-tags items="${attr([{text:'travel'},{text:'due soon',kind:'warn'}])}"></icm-tags><icm-deadline date="${soon}" label="the cheaper offer ends"></icm-deadline>
+      <icm-metric value="2" label="offers inside the budget" variant="quiet"></icm-metric><h3 class="icm-title" style="font-size:var(--t-6)">The rental car for Lisbon is still open</h3></div>
+    <div class="icm-stack is-tight"><icm-button variant="rail" icon="comment" label="Comment"></icm-button><icm-button variant="rail" icon="details" label="Details"></icm-button><icm-button variant="rail" icon="heart" label="Like" pressed></icm-button></div>
+  </div></div>`,{photo:true}),
+phone('Feed: the same card, details','On paper: what is known, the next move, one question, what can be done, and where it came from.',
+page(`<div class="icm-stack is-tight"><p class="icm-eyebrow">Travel</p><h2 class="icm-title">The rental car for Lisbon</h2></div>
+  <p class="icm-text is-2">Two offers are inside the budget you set in March. Both can be cancelled until the day before.</p>
+  <icm-facts rows="${attr([['Compact','31 a day'],['Estate','38 a day'],['Pick-up','airport, 09:00']])}"></icm-facts>
+  <icm-next text="Pick one before Friday."></icm-next>
+  <icm-choice question="Which one?" options="${attr(['Compact','Estate','Neither'])}"></icm-choice>
+  <div class="icm-cluster"><icm-action label="Add to calendar" done="Added" icon="next" confirm></icm-action><icm-link href="https://example.com" label="Open the offer"></icm-link></div>
+  <p class="icm-mono">domains/travel/lisbon.md</p>`)),
+phone('Expenses: a month','Tabs without script, three stat cards, the category table, then the facts of the month.',
+page(`<div class="icm-stack is-tight"><h2 class="icm-title">Spending</h2><div class="icm-tabs"><label><input type="radio" name="p-e"><span>March</span></label><label><input type="radio" name="p-e"><span>April</span></label><label><input type="radio" name="p-e" checked><span>May</span></label></div></div>
+  <div class="icm-grid" style="--min:120px"><div class="icm-card"><p class="icm-caption">Spent</p><span class="icm-num">3 020</span></div><div class="icm-card"><p class="icm-caption">Income</p><span class="icm-num">4 100</span></div><div class="icm-card" style="grid-column:1/-1"><p class="icm-caption">Left over</p><span class="icm-num is-good is-loud">1 080</span><p class="icm-caption">above the goal, <span class="icm-mark">140 more than in April</span></p></div></div>
+  <table class="icm-table"><tbody>${[['Home',41,'1 240',1],['Food',22,'680',2],['Transport',12,'360',3],['Health',9,'270',4],['Small items',16,'470',9]].map(([n,v,t,c])=>`<tr><th><span class="icm-dot" style="--dot:var(--cat-${c})"></span> ${n}</th><td style="width:34%"><div class="icm-bar is-thin" style="--v:${v}%;--bar:var(--cat-${c})"><i></i></div></td><td class="is-num">${t}</td></tr>`).join('')}</tbody><tfoot><tr><th>Total</th><td></td><td class="is-num">3 020</td></tr></tfoot></table>
+  <icm-series variant="bars" values="${attr([2810,3140,2960,3300,2880,3020])}" label="spent, last six months"></icm-series>`)),
+phone('Graph: a record in the base','The canvas stays the page’s own; search, the panel and the legend are primitives.',
+`<div style="position:relative;height:640px"><svg viewBox="0 0 300 640" style="position:absolute;inset:0;width:100%;height:100%" aria-hidden="true"><g stroke="var(--line)" stroke-width="1.2">${[[150,250,70,180],[150,250,230,200],[150,250,110,340],[150,250,210,330],[70,180,40,110],[230,200,260,120]].map(([a,b,c,d])=>`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}"/>`).join('')}</g>${[[150,250,11,'--mark'],[70,180,7,'--cat-1'],[230,200,8,'--cat-2'],[110,340,6,'--cat-1'],[210,330,6,'--cat-3'],[40,110,5,'--cat-1'],[260,120,5,'--cat-2']].map(([x,y,r,c])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="var(${c})" stroke="var(--ink)" stroke-width="1.5"/>`).join('')}</svg>
+  <div style="position:absolute;left:var(--s-3);right:var(--s-3);top:var(--s-3)"><input class="icm-field" style="max-width:none" placeholder="Search the base" value="lisbon"></div>
+  <div class="icm-card" style="position:absolute;left:var(--s-3);right:var(--s-3);bottom:var(--s-3)"><div class="icm-stack is-tight"><p class="icm-mono">domains/travel/lisbon.md</p><h3 class="icm-subheading">Lisbon, the 14th</h3><div class="icm-cluster"><span class="icm-badge">Output</span><span class="icm-badge is-good">active</span><span class="icm-badge is-marked">routed here</span></div>
+    <div><a class="icm-row" href="#assembled"><span><span class="icm-dot" style="--dot:var(--cat-2)"></span> Lisbon budget</span><span class="icm-caption">links to</span></a><a class="icm-row" href="#assembled"><span><span class="icm-dot" style="--dot:var(--cat-1)"></span> Trips, context</span><span class="icm-caption">linked from</span></a></div></div></div></div>`)]
+$('phones-now').innerHTML=NOW.join('')
+const NEXT=[
+phone('A curriculum','Learning something over weeks: where you are, the steps in order, today’s session, one honest question at the end.',
+page(`<div class="icm-stack is-tight"><p class="icm-eyebrow">Learning</p><h2 class="icm-title">Bread, from starter to loaf</h2><icm-gauge value="5" target="12" label="5 of 12 sessions"></icm-gauge></div>
+  <icm-list variant="steps" items="${attr([['A living starter',true],['Hydration and flour',true],['Folding and shaping'],['Steam and the bake'],['Reading the crumb']])}"></icm-list>
+  <icm-next text="Today: fold three times, forty minutes apart."></icm-next>
+  <icm-quote text="Dough tells you when it is ready; the clock only suggests." from="notes, session 4"></icm-quote>
+  <icm-confirm question="Did today’s session happen?"></icm-confirm>`),
+ {missing:['a lesson component: a step that opens its own details','spaced repetition needs a schedule the page can read','progress per topic, not only in total']}),
+phone('A habit and body log','One measurement a day, typed or slid in, against a target, with the last weeks as a line.',
+page(`<div class="icm-stack is-tight"><p class="icm-eyebrow">Knee rehab, week 6</p><h2 class="icm-title">How is it today?</h2></div>
+  <icm-slider question="Pain going down stairs" min="0" max="10" value="3" unit="/ 10"></icm-slider>
+  <icm-input question="Minutes of exercises" placeholder="25" mode="numeric"></icm-input>
+  <icm-series values="${attr([7,6,6,5,5,4,4,3])}" label="pain, last eight days"></icm-series>
+  <icm-gauge value="18" target="28" label="18 of 28 days done"></icm-gauge>
+  <div class="icm-cluster"><icm-action label="Save today" done="Saved" confirm></icm-action></div>`),
+ {missing:['a calendar strip: which days were done','a streak that forgives one missed day','a form that saves several answers at once']}),
+phone('A trip plan','Deadlines first, then what is still open, the facts you need at the airport, and the actions.',
+page(`<div class="icm-stack is-tight"><p class="icm-eyebrow">Travel</p><h2 class="icm-title">Lisbon, the 14th</h2><icm-deadline date="${soon}" label="the cheaper car offer ends"></icm-deadline></div>
+  <icm-list items="${attr([['Flights',true],['Hotel',true],['Rental car'],['Arrival time to the host']])}"></icm-list>
+  <icm-facts rows="${attr([['Flight','TP 1355, 07:40'],['Hotel','Alfama, 4 nights'],['Budget left','420']])}"></icm-facts>
+  <div class="icm-cluster"><icm-action label="Add to calendar" done="Added" icon="next" confirm></icm-action><icm-action label="Call the host" icon="call" href="tel:+100000000" same-tab></icm-action><icm-link href="https://example.com" label="Map"></icm-link></div>`),
+ {missing:['a day-by-day timeline','a map preview that is not a link out','shared state, if two people plan together']}),
+phone('A weekly review','What moved in the base this week, the two numbers that matter, and the decisions that are waiting for you.',
+page(`<div class="icm-stack is-tight"><p class="icm-eyebrow">Week 20</p><h2 class="icm-title">What changed</h2></div>
+  <div class="icm-grid" style="--min:120px"><div class="icm-card"><icm-metric value="14" label="records touched" variant="quiet"></icm-metric><icm-delta value="5" direction="up" good="up" label="more than last week"></icm-delta></div><div class="icm-card"><icm-metric value="3" label="decisions waiting" variant="quiet" state="warn"></icm-metric></div></div>
+  <icm-quote text="Stairs are fine going up; down only with the rail until week 8." from="health / knee-rehab.md, added Tuesday"></icm-quote>
+  <icm-choice question="The tax form: who files it?" options="${attr(['Me','The accountant','Ask first'])}"></icm-choice>
+  <icm-confirm question="Archive the Kyoto notes?"></icm-confirm>`),
+ {missing:['a diff of a record: what was added, what was removed','grouping by area with a count','an area filter: this week, per domain']}),
+phone('A project tracker','Steps with their state, money against the plan, the next move, and the facts people keep asking for.',
+page(`<div class="icm-stack is-tight"><p class="icm-eyebrow">Home</p><h2 class="icm-title">The bathroom</h2><icm-tags items="${attr([{text:'on track',kind:'good'},{text:'week 3 of 5'}])}"></icm-tags></div>
+  <icm-list variant="checks" items="${attr([['Demolition',true],['Plumbing',true],['Tiles'],['Fixtures'],['Paint']])}"></icm-list>
+  <icm-gauge value="6200" target="9000" label="6 200 of 9 000 spent"></icm-gauge>
+  <icm-next text="Order the tiles by Wednesday, delivery takes ten days."></icm-next>
+  <icm-facts rows="${attr([['Plumber','Tuesdays and Thursdays'],['Tiles','matte, 60 by 60']])}"></icm-facts>`),
+ {missing:['steps with an owner and a date each','a list longer than seven items','photos of the state of things']})]
+$('phones-next').innerHTML=NEXT.join('')
+$('status-out').innerHTML=`<table><tr><th>Decided</th><td>One design system, no host-matched variant. Colors in light, type, shape, the marker and its ink bar, the motion rules, hold to confirm, the primitive layer and its class names, components without outer margins.</td></tr>
+<tr><th>Proposed</th><td>The dark theme, the space scale, state and category colors, the burst on success.</td></tr>
+<tr><th>Checked by script</th><td><code>build.py --check</code>: schema against code, and WCAG AA for every text token on every ground in both themes.</td></tr>
+<tr><th>Not done</th><td>The feed, expenses and graph templates in icm-kit-core still carry their own markup and colors; they move to the recipes in part 2. The missing pieces listed under the five future pages. Fonts are loaded from Google Fonts.</td></tr></table>`
+</script>
+</body></html>

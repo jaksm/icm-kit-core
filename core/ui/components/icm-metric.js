@@ -16,9 +16,9 @@ export class IcmMetric extends IcmElement {
     return html`
       <div class="icm-metric ${this.variant === 'quiet' ? 'is-quiet' : ''} ${
         ['good', 'warn', 'bad'].includes(this.state) ? 'is-' + this.state : ''}">
-        <b>${this.value}</b>${this.unit ? html`<small>${this.unit}</small>` : null}
+        <b class="icm-num">${this.value}${this.unit ? html`<small>${this.unit}</small>` : null}</b>
       </div>
-      ${this.label ? html`<div class="icm-metric-label">${this.label}</div>` : null}`;
+      ${this.label ? html`<div class="icm-metric-label icm-caption">${this.label}</div>` : null}`;
   }
 }
 customElements.define('icm-metric', IcmMetric);

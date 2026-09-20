@@ -1,6 +1,3 @@
-.icm-gauge{width:min(100%,260px);margin:10px 0 4px}
-.icm-gauge-bar{position:relative;height:6px;background:var(--c-fill);overflow:hidden}
-.icm-gauge-bar i{display:block;height:100%;background:var(--c-accent);width:0;
-  transition:width .6s var(--ease)}
-.icm-gauge-bar b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--c-fg)}
-.icm-gauge-label{font-size:11.5px;color:var(--c-muted);margin-top:6px}
+/* value against a target: an .icm-bar with a tick */
+.icm-gauge{width:min(100%,320px)}
+.icm-gauge-label{margin-top:6px}

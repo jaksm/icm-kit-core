@@ -25,9 +25,9 @@ export class IcmChoice extends IcmElement {
     if (!opts.length) return null;
     const chosen = this.value || [];
     return html`<div class="icm-choice">
-      ${this.question ? html`<div class="icm-choice-q">${this.question}</div>` : null}
+      ${this.question ? html`<div class="icm-choice-q icm-question">${this.question}</div>` : null}
       <div class="icm-choice-row">${opts.map(o => html`
-        <button type="button" class=${chosen.includes(o.value) ? 'is-on' : ''}
+        <button type="button" class=${'icm-option' + (chosen.includes(o.value) ? ' is-on' : '')}
           aria-pressed=${String(chosen.includes(o.value))}
           @click=${() => this._pick(o.value)}>${o.label}</button>`)}
       </div>

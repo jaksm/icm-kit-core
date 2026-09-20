@@ -1,13 +1,8 @@
-.icm-metric{display:flex;align-items:baseline;gap:6px;margin-bottom:1px}
-.icm-metric b{font-family:var(--font-serif);font-weight:400;font-size:clamp(50px,15vw,74px);
-  line-height:1.08;letter-spacing:-.035em;font-variant-numeric:tabular-nums lining-nums;
-  color:var(--c-accent);padding-bottom:.04em}
-.icm-metric small{font-family:var(--font-sans);font-size:clamp(14px,3.8vw,18px);color:var(--c-fg-2)}
-/* quiet: the number follows the story instead of leading it */
-.icm-metric.is-quiet b{font-size:clamp(28px,8vw,38px);color:var(--c-fg)}
-.icm-metric-label{font-size:12.5px;line-height:1.5;color:var(--c-muted);margin-bottom:18px}
-.icm-metric.is-quiet + .icm-metric-label{margin-bottom:14px}
+/* a number that leads: .icm-num does the work; loud by default, quiet follows the story */
+.icm-metric{display:flex;align-items:baseline;gap:6px}
+/* loud is size, not color: the accent is for what can be acted on, and a state colors the number when there is one */
+.icm-metric .icm-num{--num:clamp(48px,14vw,68px)}.icm-metric .icm-num small{font-size:var(--t-4)}
+.icm-metric.is-quiet .icm-num{--num:clamp(28px,8vw,38px)}.icm-metric.is-quiet .icm-num small{font-size:var(--t-3)}
 /* state: the number is read against a threshold, so the threshold colors it */
-.icm-metric.is-good b{color:var(--state-good)}
-.icm-metric.is-warn b{color:var(--state-warn)}
-.icm-metric.is-bad b{color:var(--state-bad)}
+.icm-metric.is-good .icm-num{color:var(--state-good)}.icm-metric.is-warn .icm-num{color:var(--state-warn)}.icm-metric.is-bad .icm-num{color:var(--state-bad)}
+.icm-metric-label{margin-top:var(--s-1)}

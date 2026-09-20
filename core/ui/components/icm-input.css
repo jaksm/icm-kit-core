@@ -1,8 +1,1 @@
-.icm-input{margin-top:16px}
-.icm-input-q{font-family:var(--font-serif);font-size:16.5px;line-height:1.4;color:var(--c-fg);
-  margin-bottom:8px;text-wrap:pretty}
-.icm-input input{font-family:var(--font-serif);font-size:20px;color:var(--c-fg);
-  background:none;border:0;border-bottom:1px solid var(--c-border);border-radius:0;
-  padding:6px 2px;width:min(100%,320px);min-height:var(--tap);-webkit-appearance:none}
-.icm-input input:focus{outline:0;border-bottom-color:var(--c-accent);border-bottom-width:2px}
-.icm-input input::placeholder{color:var(--c-muted)}
+/* icm-input is .icm-question + .icm-field; it has no styles of its own */

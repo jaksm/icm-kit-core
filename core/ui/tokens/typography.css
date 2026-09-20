@@ -1,7 +1,15 @@
-/* Type tokens. Serif for anything that is read, sans for anything that is operated. */
+/* Type tokens. One variable grotesque for everything that is read or operated; the mono only for file
+   paths, file contents and figure captions. --font-serif is kept as an alias so older page CSS still resolves.
+   The page loads the fonts (build.py FONTS_LINK); without them the system sans stands in.
+   invariant: nothing under --t-1. A hover never changes weight, width or size. */
 :root{
-  --font-sans:"Anthropic Sans",ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-  --font-serif:"Anthropic Serif",ui-serif,Georgia,Cambria,"Times New Roman",serif;
-  --font-mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  --font-sans:Archivo,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-serif:var(--font-sans);
+  --font-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --t-1:13px; --t-2:14px; --t-3:16px; --t-4:18px; --t-5:22px; --t-6:28px;
+  --w-body:500; --w-strong:700; --w-loud:800;
 }
-html{-webkit-font-smoothing:antialiased}
+html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+/* headings balance, prose avoids a lonely last word, values that change do not shift the layout */
+h1,h2,h3,h4{text-wrap:balance}
+p,li,dd,blockquote{text-wrap:pretty}

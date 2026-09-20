@@ -7,7 +7,8 @@ blocks external scripts we do not control, and offline tolerance needs zero runt
 This script is the bridge.
 
     python3 build.py --bundle   # rebuild dist/icm.js
-    python3 build.py --check
+    python3 build.py --check    # schema against code, and WCAG AA contrast of the tokens
+    python3 build.py --docs     # docs/index.html: the design concept and the documentation, from the real components
 
 Used from an artifact's own build script:
 
@@ -45,8 +46,11 @@ def _labels_path():
 
 # invariant: tokens load in this order and nothing else may come before them. Every component
 # reads --c-* from a surface class, and the surface classes are defined in surface.css.
-# Palettes come last among the tokens: each is scoped to [data-palette], so it only overrides on a page that asks.
-TOKENS = ["colors.css", "typography.css", "motion.css", "layout.css", "surface.css", "palettes/archive.css"]
+# invariant: one design system. There are no palettes: a page that wants its own look overrides tokens itself.
+TOKENS = ["colors.css", "typography.css", "motion.css", "layout.css", "data.css", "surface.css"]
+
+# The fonts the default palette names. A page puts this in its <head>; the library never fetches anything itself.
+FONTS_LINK = '<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">'
 
 
 def stylesheet():
@@ -100,7 +104,8 @@ def inline(template):
         # invariant: the assignment sits in the same script, ahead of the bundle, so LABELS reads it
         labels = json.dumps(json.load(open(LABELS, encoding="utf-8")), ensure_ascii=False)
         js = "globalThis.ICM_LABELS=%s;\n" % labels.replace("</", "<\\/") + js
-    return template.replace("/*ICM-CSS*/", stylesheet()).replace("/*ICM-JS*/", js)
+    # a page that wants the fonts the tokens name puts <!--ICM-FONTS--> in its head; the library itself never fetches anything
+    return template.replace("<!--ICM-FONTS-->", FONTS_LINK).replace("/*ICM-CSS*/", stylesheet()).replace("/*ICM-JS*/", js)
 
 
 def schema():
@@ -125,6 +130,52 @@ def check_schema():
     return True
 
 
+def _hexes(block):
+    return {k: v for k, v in re.findall(r"(--[a-z0-9-]+):\s*(#[0-9a-fA-F]{3,6})\b", block)}
+
+
+def _lum(h):
+    h = h.lstrip("#"); h = "".join(c * 2 for c in h) if len(h) == 3 else h
+    f = lambda c: c / 12.92 if c <= .03928 else ((c + .055) / 1.055) ** 2.4
+    r, g, bl = (f(int(h[i:i + 2], 16) / 255) for i in (0, 2, 4))
+    return .2126 * r + .7152 * g + .0722 * bl
+
+
+def contrast(a, b):
+    la, lb = sorted((_lum(a), _lum(b)), reverse=True)
+    return (la + .05) / (lb + .05)
+
+
+def check_contrast():
+    """WCAG AA as a script, not a sentence: every text token on every ground it is used on, in each theme.
+    4.5:1 for text; 3:1 for the things that are only shapes (borders of controls, the accent as a fill)."""
+    read = lambda n: open(os.path.join(LIB, "tokens", n), encoding="utf-8").read()
+    colors, data = read("colors.css"), read("data.css")
+    block = lambda css, sel: css[css.index(sel):].split("}", 1)[0]
+    base = {**_hexes(block(colors, ":root{")), **_hexes(block(data, ":root{"))}
+    themes = {
+        "light": base,
+        "dark": {**base, **_hexes(block(colors, ':root[data-theme="dark"]')), **_hexes(block(data, ':root[data-theme="dark"]'))},
+    }
+    photo = {**_hexes(block(data, ".on-photo{"))}
+    bad = []
+    for name, t in themes.items():
+        pairs = [(fg, bg, 4.5) for fg in ("--ink", "--ink-2", "--ink-muted", "--accent", "--state-good", "--state-warn", "--state-bad") for bg in ("--paper", "--card")]
+        pairs += [("--on-accent", "--accent-fill", 4.5), ("--on-mark", "--mark", 4.5), ("--ink", "--paper", 7)]
+        # shapes, not text: the fill of a button or a bar, and the first eight category colors, need 3:1 against their ground
+        pairs += [(fg, bg, 3) for fg in ["--accent-fill"] + ["--cat-%d" % i for i in range(1, 9)] for bg in ("--paper", "--card")]
+        for fg, bg, need in pairs:
+            r = contrast(t[fg], t[bg])
+            if r < need:
+                bad.append("%s: %s %s on %s %s = %.2f, needs %s" % (name, fg, t[fg], bg, t[bg], r, need))
+    floor = base["--scrim-floor"]   # text over a photo sits on the scrim; its darkest stop is the ground that is guaranteed
+    for fg, v in {**{k: base[k] for k in ("--over", "--over-2", "--over-muted", "--over-accent")}, **photo}.items():
+        if contrast(v, floor) < 4.5:
+            bad.append("on-photo: %s %s on the scrim floor = %.2f" % (fg, v, contrast(v, floor)))
+    assert not bad, "contrast below WCAG AA:\n  " + "\n  ".join(bad)
+    return True
+
+
 def _check():
     css = stylesheet()
     assert "--c-fg" in css and ".on-photo" in css, "surface tokens are missing"
@@ -132,6 +183,7 @@ def _check():
     assert "customElements.define" in js and len(js) > 20000, len(js)
     assert "import" not in js.split("\n")[0], "the bundle is not self-contained"
     check_schema()
+    check_contrast()
     s = inline("<style>/*ICM-CSS*/</style><script type=module>/*ICM-JS*/</script>")
     assert "</script>" not in s.split("<script type=module>")[1][:-9], "the module closes its own script tag"
     print("ok")
@@ -142,10 +194,17 @@ if __name__ == "__main__":
         _check()
     elif "--bundle" in sys.argv:
         print("wrote " + bundle())
-    elif "--workbench" in sys.argv:
-        # every token and component on one page, under every palette and theme; not committed
-        out = os.path.join(LIB, "workbench/index.html")
-        open(out, "w", encoding="utf-8").write(inline(open(os.path.join(LIB, "workbench/index.src.html"), encoding="utf-8").read()))
-        print("wrote workbench/index.html, %d B; serve the folder and open it" % os.path.getsize(out))
+    elif "--docs" in sys.argv:
+        # the design concept and the documentation in one page, built from the real components; not committed.
+        # invariant: the tables come from schema.json and actions.json, so the docs cannot name what does not exist.
+        check_schema()
+        icons = re.findall(r"^  ([a-zA-Z]+): svg`", open(os.path.join(LIB, "icons/ui.js"), encoding="utf-8").read(), re.M)
+        data = json.dumps({"schema": schema(), "actions": json.load(open(os.path.join(LIB, "actions.json"), encoding="utf-8")),
+                           "icons": icons, "version": open(os.path.join(LIB, "VERSION")).read().strip()}, ensure_ascii=False).replace("</", "<\\/")
+        src = open(os.path.join(LIB, "docs/index.src.html"), encoding="utf-8").read()
+        assert "/*ICM-DOCS*/" in src and "<!--ICM-FONTS-->" in src
+        out = os.path.join(LIB, "docs/index.html")
+        open(out, "w", encoding="utf-8").write(inline(src.replace("/*ICM-DOCS*/", "const DOCS=" + data)))
+        print("wrote " + out)
     else:
         print("%d B of style, %d B of module" % (len(stylesheet()), len(module())))

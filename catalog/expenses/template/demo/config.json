@@ -1,0 +1,24 @@
+{
+  "currency": "EUR",
+  "plan": 2400,
+  "income": 3400,
+  "savings_goal": 900,
+  "notes": {
+    "spent": "All accounts together.",
+    "income": "",
+    "left": "What stays after the month closes."
+  },
+  "category_names": {
+    "rent": "Rent",
+    "food": "Food",
+    "transport": "Transport",
+    "health": "Health",
+    "home": "Home",
+    "fun": "Fun",
+    "subscriptions": "Subscriptions",
+    "gifts": "Gifts",
+    "other": "Other",
+    "pets": "Pets",
+    "books": "Books"
+  }
+}

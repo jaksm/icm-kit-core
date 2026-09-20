@@ -4,6 +4,8 @@
   --ease:cubic-bezier(.2,.7,.3,1);
   /* A panel pulls out like a drawer: slight overshoot, because motion has momentum. */
   --ease-drawer:cubic-bezier(.22,1.08,.36,1);
+  /* A spring says "look here": on the thing that just received input, never on text metrics. */
+  --spring:cubic-bezier(.3,1.7,.5,1);
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition:none!important;animation:none!important}

@@ -11,24 +11,29 @@ export class IcmSeries extends IcmElement {
     // invariant: refuse fewer than two values. A line through one point pretends to show a
     // trend, and a single bar is a number that already has a better component.
     if (v.length < 2) return null;
-    const hi = Math.max(...v, 1), lo = Math.min(...v, 0), last = v.length - 1;
+    // invariant: a LINE is scaled to its own range, because its shape is the point and a zero baseline flattens 58..66 into
+    // a ruler; BARS compare amounts, so they keep zero.
+    const bars = this.variant === 'bars', last = v.length - 1;
+    const hi = bars ? Math.max(...v, 1) : Math.max(...v), lo = bars ? Math.min(...v, 0) : Math.min(...v);
     const x = i => PAD + i * (W - 2 * PAD) / Math.max(last, 1);
     const y = t => H - PAD - (t - lo) * (H - 2 * PAD) / (hi - lo || 1);
     let shape;
-    if (this.variant === 'bars') {
+    if (bars) {
       // bars compare separate periods; a line is for when the shape of the flow matters
-      const w = (W - 2 * PAD) / v.length * 0.62;
-      shape = v.map((t, i) => svg`<rect x=${x(i) - w / 2} y=${y(t)} width=${w}
+      // each bar sits in its own slot, so the first and the last stay inside the box
+      const slot = (W - 2 * PAD) / v.length, w = slot * 0.62;
+      shape = v.map((t, i) => svg`<rect x=${PAD + i * slot + (slot - w) / 2} y=${y(t)} width=${w}
         height=${Math.max(1, H - PAD - y(t))}
         class=${i === last ? 'is-last' : ''}/>`);
     } else {
       const d = v.map((t, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(t).toFixed(1)).join(' ');
-      shape = [svg`<path d=${d} fill="none" stroke-width="1.5" stroke-linejoin="round"/>`,
-               svg`<circle cx=${x(last)} cy=${y(v[last])} r="2.8" class="is-last"/>`];
+      shape = [svg`<path d=${d} fill="none" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>`,
+               // the last point is a zero-length round stroke: the viewBox is stretched, and a <circle> would stretch into an ellipse with it
+               svg`<path class="is-last" d=${'M' + x(last).toFixed(1) + ' ' + y(v[last]).toFixed(1) + 'h0'} stroke-width="9" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`];
     }
     return html`<div class="icm-series">
-      <svg width=${W} height=${H} viewBox="0 0 ${W} ${H}" aria-hidden="true">${shape}</svg>
-      ${this.label ? html`<div class="icm-series-label">${this.label}</div>` : null}
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${shape}</svg>
+      ${this.label ? html`<div class="icm-series-label icm-caption">${this.label}</div>` : null}
     </div>`;
   }
 }

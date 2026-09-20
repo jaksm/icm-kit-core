@@ -15,8 +15,8 @@ export class IcmInput extends IcmElement {
 
   render() {
     return html`<div class="icm-input">
-      ${this.question ? html`<div class="icm-input-q">${this.question}</div>` : null}
-      <input type="text" inputmode=${this.mode || 'text'} placeholder=${this.placeholder || ''}
+      ${this.question ? html`<div class="icm-input-q icm-question">${this.question}</div>` : null}
+      <input class="icm-field" type="text" inputmode=${this.mode || 'text'} placeholder=${this.placeholder || ''}
              .value=${this.value || ''} @input=${this._type}>
     </div>`;
   }

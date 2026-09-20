@@ -10,11 +10,11 @@ export class IcmGauge extends IcmElement {
     // the scale sits above both value and target, so neither ever touches the edge
     const scale = Math.max(v, isFinite(t) ? t : 0) * 1.06 || 1;
     return html`<div class="icm-gauge">
-      <div class="icm-gauge-bar">
-        <i style="width:${(v / scale * 100).toFixed(1)}%"></i>
+      <div class="icm-gauge-bar icm-bar" style="--v:${(v / scale * 100).toFixed(1)}%">
+        <i></i>
         ${isFinite(t) && t ? html`<b style="left:${(t / scale * 100).toFixed(1)}%"></b>` : null}
       </div>
-      ${this.label ? html`<div class="icm-gauge-label">${this.label}</div>` : null}
+      ${this.label ? html`<div class="icm-gauge-label icm-caption">${this.label}</div>` : null}
     </div>`;
   }
 }

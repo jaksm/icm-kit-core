@@ -10,7 +10,7 @@ export class IcmTags extends IcmElement {
     const items = (this.items || []).slice(0, 3);
     if (!items.length) return null;
     return html`<div class="icm-tags">${items.map(t => html`
-      <span class="is-${KINDS.includes(t.kind) ? t.kind : 'neutral'}">${t.text}</span>`)}</div>`;
+      <span class="icm-badge is-${KINDS.includes(t.kind) ? t.kind : 'neutral'}">${t.text}</span>`)}</div>`;
   }
 }
 customElements.define('icm-tags', IcmTags);

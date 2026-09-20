@@ -1,0 +1,27 @@
+/* Controls that are not a button or a link: an option to choose, a field to type in, tabs to switch a view. */
+.icm-question{font-size:var(--t-4);font-weight:600;line-height:1.35;color:var(--c-fg);margin:0 0 var(--s-3);text-wrap:pretty}
+/* option: chosen = the marker lands on it, with a small spring and an ink bar (never color alone). The label never changes weight. */
+.icm-option{font:600 var(--t-3)/1.2 var(--font-sans);min-height:var(--tap);padding:0 var(--s-4);white-space:nowrap;cursor:pointer;
+  color:var(--c-fg);background:var(--c-fill);border:var(--border) solid var(--c-border);border-radius:var(--radius);
+  transition:background-color .12s var(--ease)}
+/* the spring plays once, at the moment of choosing; at rest a chosen option is the same size as its neighbors */
+.icm-option.is-on,.icm-option[aria-pressed="true"]{background:var(--c-mark);color:var(--c-on-mark);border-color:var(--c-on-mark);box-shadow:inset 0 -4px 0 var(--c-on-mark);animation:icm-land .4s var(--spring)}
+@keyframes icm-land{from{scale:.94}}
+.icm-option:focus-visible{outline:2px solid var(--c-fg);outline-offset:3px}
+/* field: 16px so iOS does not zoom the page; focus grows a shadow in the accent: "you are typing here" */
+.icm-field{font:var(--w-body) var(--t-3)/1.3 var(--font-sans);min-height:var(--tap);padding:0 var(--s-3);width:100%;max-width:340px;
+  color:var(--c-fg);background:var(--c-fill);border:var(--border) solid var(--c-border);border-radius:var(--radius);-webkit-appearance:none;
+  transition:box-shadow .2s var(--spring)}
+textarea.icm-field{padding:var(--s-3);min-height:96px;max-width:none;resize:vertical}
+.icm-field:focus{outline:0;box-shadow:var(--press) var(--press) 0 var(--c-accent)}
+.icm-field::placeholder{color:var(--c-muted)}
+/* tabs: radios and labels, so the state lives in CSS and the page works with scripts off.
+   <div class="icm-tabs"><label><input type="radio" name="m" checked><span>May</span></label>…</div> */
+.icm-tabs{display:inline-flex;border:var(--border) solid var(--c-border);border-radius:var(--radius);overflow:hidden;max-width:100%}
+.icm-tabs label{cursor:pointer;display:flex;flex:none}
+/* many tabs (months): the strip scrolls sideways instead of wrapping or squeezing */
+.icm-tabs.is-scroll{display:flex;overflow-x:auto;scrollbar-width:none}.icm-tabs.is-scroll::-webkit-scrollbar{display:none}.icm-tabs input{position:absolute;opacity:0;pointer-events:none}
+.icm-tabs span{display:flex;align-items:center;min-height:calc(var(--tap) - 8px);padding:0 var(--s-4);font-weight:600;font-size:var(--t-2);color:var(--c-fg-2);white-space:nowrap}
+.icm-tabs label+label span{border-left:var(--border) solid var(--c-border)}
+.icm-tabs input:checked+span{background:var(--c-mark);color:var(--c-on-mark);box-shadow:inset 0 -4px 0 var(--c-on-mark)}
+.icm-tabs input:focus-visible+span{outline:2px solid var(--c-accent);outline-offset:-3px}

@@ -14,11 +14,11 @@ export class IcmConfirm extends IcmElement {
 
   render() {
     return html`<div class="icm-confirm">
-      ${this.question ? html`<div class="icm-confirm-q">${this.question}</div>` : null}
+      ${this.question ? html`<div class="icm-confirm-q icm-question">${this.question}</div>` : null}
       <div class="icm-confirm-row">
-        <button type="button" class=${this.value === 'yes' ? 'is-on' : ''}
+        <button type="button" class=${'icm-option' + (this.value === 'yes' ? ' is-on' : '')}
           @click=${() => this._pick('yes')}>${this.yes || LABELS.yes}</button>
-        <button type="button" class=${this.value === 'no' ? 'is-on' : ''}
+        <button type="button" class=${'icm-option' + (this.value === 'no' ? ' is-on' : '')}
           @click=${() => this._pick('no')}>${this.no || LABELS.no}</button>
       </div>
     </div>`;
