@@ -41,7 +41,8 @@ The choice, and anything a workflow's `setup.md` marks as one.
 
 ## Writes
 
-`core.lock` (by `install.sh`), keys in `_config/`, a row in `skills/CONTEXT.md` for anything built
+`core.lock` (by `install.sh`), keys in `_config/`, a row per installed workflow in the procedures
+table of the instruction file, a row in `skills/CONTEXT.md` for anything built
 from a recipe, a row in `domains/system/output/pages.md` for every page that was published.
 
 ## Proof

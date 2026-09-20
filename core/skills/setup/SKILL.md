@@ -17,25 +17,33 @@ and picks up where it stopped.
   capability the steps name is done here. A capability it lacks is recorded as missing, with the
   manual fallback, never faked.
 - `steps/NN-*.md`: read a step only when you reach it.
+- A release of `icm-kit-core`, when a step says `<release>`: clone https://github.com/jaksm/icm-kit-core
+  into a temporary folder outside the ICM.
 - `references/explain-*.md`: material to explain from. Not text to paste: build the explanation in
   the owner's manner.
 
 ## Process
 
 1. Read `_config/setup.json`. Missing: create it from the shape below with every step `pending`.
-2. **Adopt before you build.** For every step not `done`, run its **Detect** first. If the thing
+2. **After a core update, look again.** A step left `pending` with the evidence "not in this release"
+   is checked against `steps/`: if its file exists now, it is an ordinary pending step.
+3. **Adopt before you build.** For every step not `done`, run its **Detect** first. If the thing
    already stands (an ICM that predates the kit, a half finished earlier run), write `done` with the
    evidence and move on. Never redo what works.
-3. Take the first `pending` step, read its file, do it. Each step file has the same parts:
+4. Take the first `pending` step, read its file, do it. Each step file has the same parts:
    **Detect**, **Ask**, **Do**, **Checkpoint**, **Writes**, **Proof**.
-4. A step is `done` only when its **Proof** command gave the expected output, and that output is
-   what goes in `evidence`. "I ran it" is not evidence.
-5. The owner may skip any step marked optional. Write `skipped` with their reason; it goes to
+5. A step is `done` only when its **Proof** gave the expected result, and that result is what goes
+   in `evidence`. "I ran it" is not evidence. When everything is set up but the proof has to come
+   from the world (a message that has not arrived yet), the state is `waiting`: on resume, only ask
+   for the proof, do not start the step again. Evidence describes what **is**, not what is absent
+   ("the page exists", never "no workflows installed"), or a later step makes it false.
+6. The owner may skip any step marked optional. Write `skipped` with their reason; it goes to
    `domains/system/output/open-tasks.md` so it is not forgotten.
-6. Commit after every step, message in the owner's language. The owner's own repo only exists from
+7. Commit after every step, message in the owner's language. The owner's own repo only exists from
    step 03, so 01 and 02 get their commits right after it. Then say in one or two sentences what
    now exists and what comes next, and ask whether to go on now or another day.
-7. After the last step, run `steps/14-audit.md` even if some steps were skipped.
+8. After the last step, run `steps/14-audit.md` even if some steps were skipped. Run it again after
+   any later setup session; its evidence is overwritten, not appended.
 
 ### Checkpoints that hold in every step
 
@@ -80,7 +88,7 @@ A step whose file does not exist in this release is left `pending` with `"eviden
   "harness": "", "language": "", "os": "", "phone": "",
   "adopted": "",
   "explain": {"how_much": "", "manner": ""},
-  "steps": {"01-questionnaire": {"state": "pending", "date": "", "evidence": ""}}
+  "steps": {"01-questionnaire": {"state": "pending | waiting | done | skipped", "date": "", "evidence": ""}}
 }
 ```
 

@@ -14,7 +14,9 @@ description: Add, check and retire the outside sources of an ICM (newsletters, f
 ## Process
 
 1. **Can the service send mail?** Before building anything for a new source, ask that. If yes, it
-   is configured on its side to mail the owner, and that is the whole integration.
+   is configured on its side to mail the owner, and that is the whole integration. If it has
+   neither mail nor a feed, say so: the choices are asking the organisation, or a routine that
+   watches its page, which is a routine and needs the owner to want one.
 2. **Split by role, not by source.** What is addressed to the person (a deadline, money, a human,
    the state) comes by mail. Bulk signal (news, releases, videos) is better read as a feed by a
    script, because turning a feed into mail destroys its ids and dates, and with them deduplication.
@@ -24,8 +26,9 @@ description: Add, check and retire the outside sources of an ICM (newsletters, f
 4. **Read the existing rules at the provider first.** A rule that deletes beats a rule that labels,
    silently; two old delete rules once ate senders that had just been added as sources.
 5. **Checkpoint.** Propose the row for `senders.csv` and the rule it becomes. The owner says yes.
-6. Write the row, rebuild the rules the way the provider's recipe says, import or create them, then
-   **open the list of rules and count**. A closed dialog is not confirmation.
+6. Create or import the rule the way the provider's recipe says, **open the list of rules and
+   count**, and only then write the row: `senders.csv` describes rules that exist. A closed dialog is
+   not confirmation.
 7. A rule never touches mail that already arrived: relabel old mail with the same query, by hand, if it matters.
 8. One source, then a few days of watching where its mail lands, then the next.
 

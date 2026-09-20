@@ -20,7 +20,11 @@ Then: which mail provider they use, and which two or three things they wish they
 ## Do
 
 `<release>/install.sh . --add sources`, then follow `core/workflows/sources/setup.md`. It picks the
-recipe for their provider; for a provider without one, `recipes/any-mail.md`.
+recipe for their provider; for a provider without one, `recipes/any-mail.md`. Add a row for
+`core/workflows/sources/` to the procedures table of the instruction file, or later sessions will not find it.
+
+If the agent cannot read this mailbox, say in plain words what that costs: the provider still sorts
+the mail, but the morning review cannot be offered.
 
 ## Checkpoint
 
@@ -36,4 +40,5 @@ One source, then a pause of a few days. Being able to add thirty in five minutes
 
 ## Proof
 
-A message from the new source arrived and landed where the rule says. Looked at in the mailbox, not assumed.
+A message from the new source arrived and landed where the rule says. Looked at in the mailbox, not
+assumed. That can take days: until then the step is `waiting`, with what was set up as evidence.
