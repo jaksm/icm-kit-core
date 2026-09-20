@@ -198,4 +198,10 @@ def main():
 
 
 if __name__ == "__main__":
+    # invariant: an unknown flag stops the run. This script writes files, and a flag that is silently
+    # ignored (`--help` did this) writes them for someone who only asked a question.
+    unknown = [a for a in sys.argv[1:] if a.startswith("-") and a != "--check"]
+    if unknown:
+        print(__doc__ if unknown == ["--help"] else "unknown flag: %s; known: --check" % " ".join(unknown))
+        sys.exit(0 if unknown == ["--help"] else 2)
     main()
