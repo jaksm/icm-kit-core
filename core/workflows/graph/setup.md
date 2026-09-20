@@ -20,3 +20,5 @@ To change how the page looks, copy `template/graph-template.html` to
 `python3 core/workflows/graph/scripts/build-graph-page.py --check` prints node, edge and orphan
 counts and writes the page. The page holds the whole text of the ICM: it is git ignored, and it is
 published only as a private page.
+
+The page is built from the library's primitives and tokens (`core/ui`, shown live by `python3 core/ui/build.py --docs`): change a token there for every page at once, the copy of the template for this page only. `--demo` builds the page from mock data into `previews/`, which is the quickest way to see a change without your base.

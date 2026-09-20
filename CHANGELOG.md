@@ -3,6 +3,10 @@
 One entry per release, newest first. Every entry ends with **Outside core**: `nothing`, or `required`, which
 means the migration note lists work in your own files and `core-update` must stop at that release before going on.
 
+## 0.6.0
+New look, one design system: `core/ui` is icm-ui 0.3.2 ("calm brutal": cold paper, ink, ultramarine for what can be acted on, one yellow marker, Archivo and IBM Plex Mono, hard edges, no host-matched variant). The feed, expenses and graph templates are rebuilt from the library's primitives and write no color, gradient or font of their own; category and node colors are the `--cat` tokens. Every builder has `--demo` (the page from mock data shipped beside the template, into `previews/`), and `scripts/build-previews.py` builds all of them with an index. `icm-action` with `confirm` is confirmed by holding. `RELEASING.md` step 3 now includes the previews.
+**Outside core**: required only if you keep a changed copy of a page template in `_config/overrides/`. [MIGRATIONS/0.5.2-0.6.0.md](MIGRATIONS/0.5.2-0.6.0.md)
+
 ## 0.5.2
 New: icm-ui 0.2.0 in `core/ui`: an opt-in palette (`data-palette="archive"`) and the `--mark` token. Pages look the same unless they ask for the palette. A new ICM no longer inherits the kit's landing page, which moved to its own repo.
 **Outside core**: nothing. [MIGRATIONS/0.5.1-0.5.2.md](MIGRATIONS/0.5.1-0.5.2.md)

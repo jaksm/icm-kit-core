@@ -22,4 +22,6 @@ Read `core/RECIPES.md` first. Nothing here changes `core/`.
 - **A card that does something** (`actions`): add the action to `_config/actions.json` first. The
   agent cannot compose a call on a card; the build refuses an id that is not in the catalog.
 
-Proof after any change: `build-feed-page.py --check`, then `--preview` at phone width.
+The page is built from the library's primitives and tokens (`core/ui`, shown live by `python3 core/ui/build.py --docs`): change a token there for every page at once, the copy of the template for this page only. `--demo` builds the page from mock data into `previews/`, which is the quickest way to see a change without your base.
+
+Proof after any change: `build-feed-page.py --check`, then `--demo` (mock data) or `--preview` (your day) at phone width.
