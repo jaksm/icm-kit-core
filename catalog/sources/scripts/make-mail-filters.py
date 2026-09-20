@@ -14,7 +14,8 @@ import os
 import sys
 from xml.sax.saxutils import quoteattr
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+# invariant: installed at <icm>/core/workflows/sources/scripts/, so the ICM root is five folders up
+ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../.."))
 SRC = os.path.join(ROOT, "_config/sources/senders.csv")
 OUT = os.path.join(ROOT, "_config/sources/mail-filters.xml")
 
