@@ -2,14 +2,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>{{title}}</title>
+<!--ICM-FONTS-->
 <style>/*ICM-CSS*/
 
 /* One card per screen, vertical flicking with snap, a segmented progress bar on top, actions
    in a rail on the right. A card has TWO states: the front, with media and one sentence, and
    the details that replace it. Everything over media sits on a dark ground, because reading
-   over a photograph is the one case where paper does not work. */
-html,body{margin:0;height:100%;overflow:hidden;background:#1a1917;color:var(--over);
-  font-family:var(--font-sans);-webkit-text-size-adjust:100%;overscroll-behavior:none}
+   over a photograph is the one case where paper does not work.
+   No color, no gradient stop and no font is written here: the ground, the scrims, the type roles and the space between
+   components all come from the library's tokens (core/ui/tokens), so a change of the language changes the feed with it. */
+html,body{margin:0;height:100%;overflow:hidden;background:var(--ground);color:var(--over);
+  font:var(--w-body) var(--t-3)/1.5 var(--font-sans);-webkit-text-size-adjust:100%;overscroll-behavior:none}
 /* A page served on its own has no wrapper around it, so it pads for the safe area itself.
    With --publish this block goes away together with the doctype head (build-feed-page.py). */
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -26,7 +29,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#1a1917;color:var(--ov
      cover  = the first screen of a row, the name of the topic and its aggregate
      story  = a screen inside a row, flicked LEFT AND RIGHT */
 .row{position:relative;height:100%;scroll-snap-align:start;scroll-snap-stop:always;
-  overflow:hidden;background:#1a1917}
+  overflow:hidden;background:var(--ground)}
 /* invariant: overflow-y is `clip`, not `hidden`. `hidden` makes a scroll port on the Y axis
    too, so the track swallows the vertical scroll and the feed stops flicking; `clip` only
    cuts and hands the up and down movement to the parent. */
@@ -48,14 +51,12 @@ html,body{margin:0;height:100%;overflow:hidden;background:#1a1917;color:var(--ov
    layer by the parent's overflow, so a scaled image leaks under the card, below the curtain
    that was cut correctly. clip-path cuts compositing layers too. */
 .media{position:absolute;inset:0;z-index:0;overflow:hidden;clip-path:inset(0);
-  transform:translateZ(0);background:#1a1917}
+  transform:translateZ(0);background:var(--ground)}
 /* Without media, or when it fails to load, the card must not be a black hole: the tone of
    the topic stays in a soft gradient, so it reads as a choice and not as a fault. */
-.media.none{background:
-  radial-gradient(120% 90% at 20% 0%,color-mix(in srgb,var(--tone,#3d3a35) 55%,#1a1917) 0%,
-  #1a1917 70%)}
-@supports not (background:color-mix(in srgb,red 50%,blue)){
-  .media.none{background:radial-gradient(120% 90% at 20% 0%,#3d3a35 0%,#1a1917 70%)}
+.media.none{background:var(--ground)}
+@supports (background:color-mix(in srgb,red 50%,blue)){
+  .media.none{background:radial-gradient(120% 90% at 20% 0%,color-mix(in srgb,var(--tone,var(--ink-2)) 55%,var(--ground)) 0%,var(--ground) 70%)}
 }
 /* Upright media covers the screen. Wide media does not: stretched over an upright card it
    loses both the sky and the foreground. It goes into a frame on top, at its own ratio, with
@@ -73,24 +74,16 @@ html,body{margin:0;height:100%;overflow:hidden;background:#1a1917;color:var(--ov
    The tone of the topic comes in thinly, so the card belongs to its area. */
 /* invariant: the tone must be TRANSPARENT. A full hex as the bottom background layer covers
    the photograph and only a flat color is left. */
-.media::after{content:"";position:absolute;inset:0;
-  background:linear-gradient(to bottom,rgba(20,19,17,.74) 0%,rgba(20,19,17,.36) 9%,
-             rgba(20,19,17,.14) 20%,rgba(20,19,17,.34) 38%,rgba(20,19,17,.72) 55%,
-             rgba(20,19,17,.9) 70%,rgba(20,19,17,.99) 86%,#141311 96%)}
+.media::after{content:"";position:absolute;inset:0;background:var(--scrim-card)}
 @supports (background:color-mix(in srgb,red 20%,transparent)){
-  .media::after{background:linear-gradient(to bottom,rgba(20,19,17,.74) 0%,
-             rgba(20,19,17,.36) 9%,rgba(20,19,17,.14) 20%,rgba(20,19,17,.34) 38%,
-             rgba(20,19,17,.72) 55%,rgba(20,19,17,.9) 70%,rgba(20,19,17,.99) 86%,#141311 96%),
-             linear-gradient(color-mix(in srgb,var(--tone,#1a1917) 20%,transparent),
-                             color-mix(in srgb,var(--tone,#1a1917) 20%,transparent))}
+  .media::after{background:var(--scrim-card),linear-gradient(color-mix(in srgb,var(--tone,transparent) 20%,transparent),color-mix(in srgb,var(--tone,transparent) 20%,transparent))}
 }
-.media.wide::after{background:linear-gradient(to bottom,rgba(20,19,17,.7) 0%,
-  rgba(20,19,17,.2) 10%,rgba(20,19,17,.1) 26%,rgba(20,19,17,.42) 52%,
-  rgba(20,19,17,.88) 74%,rgba(20,19,17,.99) 88%,#141311 97%)}
+.media.wide::after{background:var(--scrim-wide)}
 /* invariant: only the FRONT state is in the flow. A blanket `.row > *{position:relative}`
    once beat `position:absolute` on the details, the curtain and the rail by specificity, and
    all three fell into the flow. */
-.front{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;
+/* invariant: components carry no outer margin; the gap of this column is the only space between them. */
+.front{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:var(--s-3);
   transform:translateZ(0)}
 
 /* Two indicators, each measuring its own axis.
@@ -98,30 +91,32 @@ html,body{margin:0;height:100%;overflow:hidden;background:#1a1917;color:var(--ov
    #bar, the segmented bar on top: where you are among the STORIES of the current row. */
 #steps{position:fixed;right:7px;top:50%;translate:0 -50%;z-index:6;
   display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none}
-#steps i{width:4px;height:4px;border-radius:999px;background:rgba(250,249,245,.3);
+#steps i{width:5px;height:5px;border-radius:1px;background:color-mix(in srgb,var(--over) 30%,transparent);
   transition:height .28s var(--ease),background-color .28s var(--ease)}
-#steps i.past{background:rgba(250,249,245,.5)}
+#steps i.past{background:color-mix(in srgb,var(--over) 55%,transparent)}
 /* A row is seen when all its stories are seen: the dot takes the accent color, so what is
    still unopened shows from above. */
 #steps i.seen{background:var(--over-accent)}
-#steps i.here{height:17px;background:var(--over)}
+/* here = the marker, as everywhere else in the language */
+#steps i.here{height:18px;background:var(--mark)}
 
 #bar{position:fixed;top:0;left:0;right:0;z-index:6;display:flex;gap:3px;
   padding:calc(env(safe-area-inset-top) + 12px) 20px 0;pointer-events:none}
-#bar i{flex:1;height:2.5px;border-radius:999px;background:rgba(250,249,245,.26);
+#bar i{flex:1;height:3px;border-radius:1px;background:color-mix(in srgb,var(--over) 26%,transparent);
   overflow:hidden}
 #bar i::after{content:"";display:block;height:100%;width:0;background:var(--over);
   transition:width .3s var(--ease)}
 #bar i.past::after,#bar i.here::after{width:100%}
 /* A seen story: the ground of the segment is lighter. Read from the diary, so it survives a
    refresh of the page. */
-#bar i.seen{background:rgba(250,249,245,.5)}
+#bar i.seen{background:color-mix(in srgb,var(--over) 50%,transparent)}
+#bar i.here::after{background:var(--mark)}
 #bar[hidden]{display:none}
 #header{position:fixed;top:0;left:0;right:0;z-index:6;display:flex;align-items:center;
   gap:9px;padding:calc(env(safe-area-inset-top) + 27px) 26px 0 20px;
-  font-size:12.5px;color:var(--over-muted);pointer-events:none;
-  text-shadow:0 1px 8px rgba(20,19,17,.6)}
-#header b{font-weight:500;color:var(--over-2)}
+  font-size:var(--t-1);color:var(--over-muted);pointer-events:none;
+  text-shadow:0 1px 8px rgba(var(--scrim-ink),.6)}
+#header b{font-weight:600;color:var(--over-2)}
 #header .position{margin-left:auto;font-variant-numeric:tabular-nums}
 
 /* THE FRONT STATE: a number, a label, one sentence. Nothing else; actions are in the rail. */
@@ -129,14 +124,11 @@ html,body{margin:0;height:100%;overflow:hidden;background:#1a1917;color:var(--ov
    light photograph (measured contrast 1.6 to 2.4 where large text needs 3), and a stronger
    curtain over everything would kill dark images, so only the band around the text is
    darkened, radially and without an edge, so it does not read as a box. */
-.front{text-shadow:0 1px 14px rgba(20,19,17,.55),0 1px 2px rgba(20,19,17,.4)}
 .front::before{content:"";position:absolute;inset:-34px -100px -46px -30px;z-index:-1;
-  pointer-events:none;
-  background:radial-gradient(130% 105% at 0% 100%,rgba(20,19,17,.88) 0%,
-             rgba(20,19,17,.72) 34%,rgba(20,19,17,.4) 62%,rgba(20,19,17,0) 84%)}
-.hook{font-family:var(--font-serif);font-weight:400;font-size:clamp(23px,6.2vw,29px);
-  line-height:1.34;letter-spacing:-.016em;margin:0;padding-bottom:.08em;
-  text-wrap:balance;max-width:19ch;color:var(--over)}
+  pointer-events:none;background:var(--scrim-text)}
+.hook{font-weight:var(--w-loud);font-stretch:88%;font-size:clamp(24px,6.6vw,30px);
+  line-height:1.12;letter-spacing:-.03em;margin:0;padding-bottom:.08em;
+  text-wrap:balance;max-width:17ch;color:var(--over)}
 
 /* THE DETAILS STATE: the content of the story is REPLACED by the details, in place. A bottom
    sheet would promise a swipe down to dismiss, and a swipe down is the navigation of the
@@ -145,7 +137,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:#1a1917;color:var(--ov
    seen at half opacity in the middle and the text mixes; so one leaves fast and the other
    enters only when the first is gone. */
 .layer{position:absolute;left:20px;right:86px;bottom:58px;z-index:2;
-  display:flex;flex-direction:column;align-items:flex-start;transform:translateZ(0)}
+  display:flex;flex-direction:column;align-items:flex-start;gap:var(--s-4);transform:translateZ(0)}
+.layer.front{gap:var(--s-3)}
 .details{opacity:0;visibility:hidden;
   max-height:calc(100% - 96px);overflow-y:auto;overscroll-behavior:contain}
 .story.open .details{right:20px}
@@ -155,91 +148,83 @@ html,body{margin:0;height:100%;overflow:hidden;background:#1a1917;color:var(--ov
 /* The rail steps aside while the details are open: every action is within reach there, and
    the gutter kept for it squeezed the table of facts. */
 .story.open .rail{opacity:0;visibility:hidden;pointer-events:none}
-.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+/* the row dots step aside too: open details run to the right edge, where the dots sit */
+body:has(.story.open) #steps{opacity:0}
+.actions,.links{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-2)}
+.actions:empty,.links:empty{display:none}
+.details>*{max-width:100%}.details icm-facts,.details icm-series,.details icm-gauge{align-self:stretch}
 .rail{transition:opacity .24s var(--ease),visibility .24s}
 /* invariant: this curtain is on the STORY and promoted to its own compositing layer. As
    `.media::before` it sat under the image's layer on iOS and the details were read over the
    full photograph (measured contrast 2.2, below 3).
    invariant: z-index 1, between the media (0) and the text layers (2). */
 .story::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
-  background:linear-gradient(to bottom,rgba(20,19,17,.93),rgba(20,19,17,.97));
+  background:var(--scrim-details);
   opacity:0;visibility:hidden;transform:translateZ(0);
   transition:opacity .3s var(--ease),visibility .3s}
 .story.open::after{opacity:1;visibility:visible}
 
-.details h3{font-family:var(--font-serif);font-weight:400;font-size:clamp(21px,5.6vw,25px);
-  line-height:1.24;letter-spacing:-.016em;margin:0;color:var(--over);text-wrap:balance}
+.details h3{font-weight:var(--w-strong);font-size:clamp(21px,5.6vw,25px);
+  line-height:1.2;letter-spacing:-.02em;margin:0;color:var(--over);text-wrap:balance}
 /* One meta line under the title keeps the numbers the front state carried, so the details
    do not start from zero. */
-.meta{font-size:13.5px;color:var(--over-2);margin-top:7px;
+.meta{font-size:var(--t-2);color:var(--over-2);margin-top:calc(var(--s-1) - var(--s-4));   /* hugs the title: the gap minus what it should be */
   font-variant-numeric:tabular-nums lining-nums}
-.meta b{font-weight:400;color:var(--over-accent)}
-.details .body{font-family:var(--font-serif);font-size:16.5px;line-height:1.5;
-  color:var(--over-2);margin:14px 0 0;text-wrap:pretty}
+.meta b{font-weight:600;color:var(--over)}
+.details .body{font-size:var(--t-3);line-height:1.5;color:var(--over-2);margin:0;text-wrap:pretty}
 
 /* The path is shown on one line, clipped from the left so the file name stays visible.
    It appears only here, inside the details. */
-.source{margin-top:16px;font-size:11.5px;color:var(--over-muted);
-  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;max-width:100%;
+.source{font:400 var(--t-1)/1.5 var(--font-mono);color:var(--over-muted);max-width:100%;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:rtl;text-align:left}
 
 /* COVER: the first screen of a row. */
 .story.cover{padding-right:20px}
-.cover h2{font-family:var(--font-serif);font-weight:400;font-size:clamp(40px,12vw,58px);
-  line-height:1.1;letter-spacing:-.03em;margin:0;padding-bottom:.05em;
+/* the cover is the one place a feed may raise its voice: the topic's name in the loud cut of the type */
+.cover h2{font-weight:var(--w-loud);font-stretch:80%;font-size:clamp(44px,13.5vw,64px);
+  line-height:.95;letter-spacing:-.045em;margin:0;padding-bottom:.05em;
   color:var(--over);text-wrap:balance}
-.cover .subtitle{font-family:var(--font-serif);font-size:18px;line-height:1.45;
-  color:var(--over-2);margin:10px 0 0;max-width:24ch}
-.cover icm-metric{margin-top:22px}
+.cover .subtitle{font-size:var(--t-4);line-height:1.4;
+  color:var(--over-2);margin:0;max-width:26ch}
+.cover icm-metric{margin-top:var(--s-3)}
 
 /* Text is PLAIN WHITE and takes no color from the image. `mix-blend-mode:difference` gives
    grey over a mid tone, which is the most common photograph: forest, grass, stone. White
    plus a strong enough curtain is boring and reliable. */
-.story.cover .media::after{
-  background:linear-gradient(to bottom,rgba(20,19,17,.72) 0%,rgba(20,19,17,.34) 10%,
-             rgba(20,19,17,.22) 26%,rgba(20,19,17,.56) 50%,rgba(20,19,17,.88) 72%,
-             rgba(20,19,17,.99) 90%,#141311 98%)}
-.cover .eyebrow{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--over-muted);margin-bottom:10px}
+.story.cover .media::after{background:var(--scrim-cover)}
+.cover .eyebrow{font-size:var(--t-1);font-weight:600;color:var(--over-muted);margin:0}
 
 /* The rail: actions live here, not in the front state, so text keeps the width.
    Everything about how the buttons look comes from the library's rail variant. */
 .rail{position:absolute;right:16px;bottom:34px;z-index:2;transform:translateZ(0);
   display:flex;flex-direction:column;gap:20px;align-items:center}
-.rail .icm-button{filter:drop-shadow(0 1px 6px rgba(20,19,17,.7))}
+.rail .icm-button{filter:drop-shadow(0 1px 6px rgba(var(--scrim-ink),.7))}
 
 /* COMMENT: a bottom sheet with a large writing surface. The strongest feedback there is,
    because writing costs, so it opens from the rail and not from inside the details. */
 #comment{position:fixed;inset:0;z-index:9;display:none}
 #comment.open{display:block}
-#comment .shade{position:absolute;inset:0;background:rgba(20,19,17,.66);
+#comment .shade{position:absolute;inset:0;background:var(--scrim-shade);
   backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
 #comment .sheet{position:absolute;left:0;right:0;bottom:0;background:var(--paper);
-  color:var(--ink);border-radius:20px 20px 0 0;padding:18px 20px calc(20px + env(safe-area-inset-bottom));
+  color:var(--ink);border-top:var(--border) solid var(--edge-strong);border-radius:var(--radius) var(--radius) 0 0;padding:var(--s-5) 20px calc(20px + env(safe-area-inset-bottom));
   max-height:88%;overflow-y:auto;transform:translateY(100%);
   transition:transform .3s var(--ease-drawer)}
 #comment.open .sheet{transform:translateY(0)}
 @media (min-width:700px){#comment .sheet{max-width:460px;left:50%;translate:-50% 0}}
-#comment .heading{font-family:var(--font-serif);font-size:21px;line-height:1.25;margin:0 0 4px;
+#comment .heading{font-size:var(--t-5);font-weight:var(--w-strong);letter-spacing:-.02em;line-height:1.2;margin:0 0 4px;
   color:var(--ink);text-wrap:balance}
-#comment .sub{font-size:12.5px;color:var(--ink-muted);margin:0 0 14px}
-#comment textarea{width:100%;min-height:9.5em;font-family:var(--font-serif);font-size:16.5px;
-  line-height:1.5;color:var(--ink);background:var(--card);border:1px solid var(--line);
-  border-radius:var(--radius);padding:12px 14px;resize:vertical;-webkit-appearance:none;box-sizing:border-box}
-#comment textarea:focus{outline:0;border-color:var(--accent)}
-#comment .thumbs{display:flex;gap:8px;margin-top:12px}
-#comment .thumbs button{font:inherit;font-size:20px;cursor:pointer;min-height:var(--tap);
-  min-width:58px;border:1px solid var(--line);border-radius:var(--radius-pill);
-  background:none;color:var(--ink-2);transition:transform .1s ease-out,color .16s var(--ease)}
-#comment .thumbs button:active{transform:scale(.95)}
-#comment .thumbs button.is-on{color:var(--accent);border-color:currentColor}
-#comment .foot{display:flex;gap:8px;margin-top:16px;align-items:center}
-#comment .foot .status{font-size:12px;color:var(--ink-muted);margin-left:auto}
+#comment .sub{font-size:var(--t-1);color:var(--ink-muted);margin:0 0 var(--s-4)}
+#comment textarea{min-height:9.5em}
+#comment .thumbs{display:flex;gap:var(--s-2);margin-top:var(--s-3)}
+#comment .thumbs .icm-option{font-size:20px;min-width:58px}
+#comment .foot{display:flex;gap:var(--s-2);margin-top:var(--s-4);align-items:center}
+#comment .foot .status{font-size:var(--t-1);color:var(--ink-muted);margin-left:auto}
 
 /* Bottom left keeps only a hint that this also flicks sideways. It goes out as soon as the
    track moves. */
 .hint{position:absolute;left:20px;bottom:22px;z-index:2;pointer-events:none;
-  display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--over-muted);
+  display:inline-flex;align-items:center;gap:5px;font-size:var(--t-1);color:var(--over-muted);
   white-space:nowrap;animation:hint 2.6s var(--ease) infinite}
 .hint svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;
   stroke-linecap:round;stroke-linejoin:round}
@@ -247,34 +232,31 @@ html,body{margin:0;height:100%;overflow:hidden;background:#1a1917;color:var(--ov
 @keyframes hint{0%,72%,100%{opacity:.6;transform:translateX(0)}
                84%{opacity:1;transform:translateX(4px)}}
 
-.eyebrow-s{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--over-muted);margin-bottom:8px}
+.eyebrow-s{font-size:var(--t-1);font-weight:600;color:var(--over-muted);margin:0}
 
 /* The end screen: how much you went through and what next. Without it the feed just stops. */
 #end .story{justify-content:center;align-items:center;text-align:center;padding:52px 24px;
   background:var(--paper);color:var(--ink)}
 #end .front{align-items:center;text-shadow:none}
 #end .front::before{content:none}
-#end .date{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--ink-muted);margin-bottom:12px}
-#end h2{font-family:var(--font-serif);font-weight:400;font-size:30px;line-height:1.14;
-  letter-spacing:-.02em;margin:0;color:var(--ink);text-wrap:balance;max-width:16ch}
-#end p{font-family:var(--font-serif);font-size:17px;line-height:1.45;color:var(--ink-2);
-  max-width:28ch;margin:12px 0 0;text-wrap:pretty}
-#end .tally{display:flex;gap:26px;margin-top:26px;justify-content:center}
+#end .date{font-size:var(--t-1);font-weight:600;color:var(--ink-muted);margin:0}
+#end h2{font-weight:var(--w-loud);font-stretch:88%;font-size:var(--t-6);line-height:1.1;
+  letter-spacing:-.03em;margin:0;color:var(--ink);text-wrap:balance;max-width:16ch}
+#end p{font-size:var(--t-3);line-height:1.45;color:var(--ink-2);max-width:28ch;margin:0;text-wrap:pretty}
+#end .tally{display:flex;gap:var(--s-5);margin-top:var(--s-4);justify-content:center}
 #end .tally div{display:flex;flex-direction:column;align-items:center;gap:2px}
-#end .tally b{font-family:var(--font-serif);font-weight:400;font-size:30px;line-height:1;
-  letter-spacing:-.02em;color:var(--accent);font-variant-numeric:tabular-nums lining-nums}
-#end .tally span{font-size:11.5px;color:var(--ink-muted)}
-#end .totop{margin-top:30px}
+#end .tally b{font-weight:var(--w-loud);font-stretch:80%;font-size:var(--t-6);line-height:1;
+  letter-spacing:-.04em;color:var(--ink);font-variant-numeric:tabular-nums lining-nums}
+#end .tally span{font-size:var(--t-1);color:var(--ink-muted)}
+#end .totop{margin-top:var(--s-4)}
 
 /* A desktop has no swipe, so the arrows show. */
 #arrows{display:none}
-#arrows button{position:fixed;left:50%;z-index:7;width:44px;height:44px;border-radius:999px;
-  background:var(--card);border:1px solid var(--line);color:var(--ink-2);cursor:pointer;
+#arrows button{position:fixed;left:50%;z-index:7;width:44px;height:44px;border-radius:var(--radius);
+  background:var(--card);border:var(--border) solid var(--edge-strong);color:var(--ink);cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   transition:transform .12s ease-out,border-color .16s var(--ease),opacity .16s var(--ease)}
-#arrows button:hover{border-color:var(--ink-muted);color:var(--ink)}
+#arrows button:hover{background:var(--mark);color:var(--on-mark)}
 #arrows button:active{transform:translateX(var(--dx)) scale(.93)}
 #arrows button:disabled{opacity:.28;cursor:default}
 #arrows button:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
@@ -305,16 +287,17 @@ html,body{margin:0;height:100%;overflow:hidden;background:#1a1917;color:var(--ov
 <main id="feed"></main>
 <div id="comment" role="dialog" aria-modal="true" aria-labelledby="c-heading">
   <div class="shade" data-do="comment-close"></div>
-  <div class="sheet">
+  <!-- invariant: the sheet is paper, and says so: a primitive reads only --c-*, which exist only inside a surface class -->
+  <div class="sheet on-paper">
     <p class="heading" id="c-heading">{{comment}}</p>
     <p class="sub" id="c-sub"></p>
-    <textarea id="c-text" rows="8" placeholder="{{commentPlaceholder}}"></textarea>
+    <textarea id="c-text" class="icm-field" rows="8" placeholder="{{commentPlaceholder}}"></textarea>
     <div class="thumbs">
-      <button type="button" id="c-up" aria-label="{{thumbUp}}">&#128077;</button>
-      <button type="button" id="c-down" aria-label="{{thumbDown}}">&#128078;</button>
+      <button type="button" class="icm-option" id="c-up" aria-label="{{thumbUp}}">&#128077;</button>
+      <button type="button" class="icm-option" id="c-down" aria-label="{{thumbDown}}">&#128078;</button>
     </div>
     <div class="foot">
-      <icm-button variant="pill" label="{{save}}" data-do="comment-save"></icm-button>
+      <icm-button variant="primary" label="{{save}}" data-do="comment-save"></icm-button>
       <icm-button variant="quiet" label="{{cancel}}" data-do="comment-close"></icm-button>
       <span class="status" id="c-status"></span>
     </div>
@@ -325,6 +308,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:#1a1917;color:var(--ov
   <button type="button" id="down" aria-label="{{nextCard}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg></button>
 </div>
 
+<script>/* ?theme=dark or ?theme=light forces a theme (the sheet and the end card follow it); without it the system decides */
+{const t=new URLSearchParams(location.search).get('theme');if(t)document.documentElement.dataset.theme=t}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.15.0/gsap.min.js"></script>
 <script type="module">/*ICM-JS*/</script>
 <script>/*ICM-HOST*/</script>

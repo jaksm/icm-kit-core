@@ -23,3 +23,18 @@
 }
 /* anything on the marker's ground is ink on yellow: the scrim shadow that helps light text over a photo only smears it */
 .on-photo :is(.icm-next,.icm-card.is-marked,.icm-row.is-current,.icm-option.is-on,.icm-option[aria-pressed="true"],.icm-badge.is-marked,.icm-tabs input:checked+span,.icm-action.is-asking,.icm-action.is-holding){text-shadow:none}
+/* Scrims: how a photograph is darkened so light text reads over it. Whole gradients as tokens, built from --scrim-ink, so a page
+   writes `background:var(--scrim-card)` and never a stop of its own. They were measured on light and dark photographs:
+   card (a story), cover (more room on top for the title), wide (a framed landscape image on top), details (the ground of the
+   open details, almost opaque), text (a soft radial ground right under the text, without an edge). */
+:root{
+  --scrim-card:linear-gradient(to bottom,rgba(var(--scrim-ink),.74) 0%,rgba(var(--scrim-ink),.36) 9%,rgba(var(--scrim-ink),.14) 20%,rgba(var(--scrim-ink),.34) 38%,rgba(var(--scrim-ink),.72) 55%,rgba(var(--scrim-ink),.9) 70%,rgba(var(--scrim-ink),.99) 86%,var(--scrim-floor) 96%);
+  --scrim-cover:linear-gradient(to bottom,rgba(var(--scrim-ink),.72) 0%,rgba(var(--scrim-ink),.34) 10%,rgba(var(--scrim-ink),.22) 26%,rgba(var(--scrim-ink),.56) 50%,rgba(var(--scrim-ink),.88) 72%,rgba(var(--scrim-ink),.99) 90%,var(--scrim-floor) 98%);
+  --scrim-wide:linear-gradient(to bottom,rgba(var(--scrim-ink),.7) 0%,rgba(var(--scrim-ink),.2) 10%,rgba(var(--scrim-ink),.1) 26%,rgba(var(--scrim-ink),.42) 52%,rgba(var(--scrim-ink),.88) 74%,rgba(var(--scrim-ink),.99) 88%,var(--scrim-floor) 97%);
+  --scrim-details:linear-gradient(to bottom,rgba(var(--scrim-ink),.93),rgba(var(--scrim-ink),.97));
+  --scrim-text:radial-gradient(130% 105% at 0% 100%,rgba(var(--scrim-ink),.88) 0%,rgba(var(--scrim-ink),.72) 34%,rgba(var(--scrim-ink),.4) 62%,rgba(var(--scrim-ink),0) 84%);
+  --scrim-shade:rgba(var(--scrim-ink),.66);
+}
+/* .icm-scrim: the same, as an element laid over an image. <div class="icm-scrim is-cover"></div> */
+.icm-scrim{position:absolute;inset:0;pointer-events:none;background:var(--scrim-card)}
+.icm-scrim.is-cover{background:var(--scrim-cover)}.icm-scrim.is-wide{background:var(--scrim-wide)}.icm-scrim.is-details{background:var(--scrim-details)}

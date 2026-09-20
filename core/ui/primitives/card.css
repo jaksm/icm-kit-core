@@ -14,7 +14,7 @@
   --c-fg:var(--c-on-mark);--c-fg-2:var(--c-on-mark);--c-muted:var(--c-on-mark)}
 .icm-card.is-plain{background:none;border-color:var(--c-hairline)}
 /* a sheet pulls up from the bottom like a drawer; --sheet-pos:absolute keeps it inside a framed preview */
-.icm-shade{position:var(--sheet-pos,fixed);inset:0;background:rgba(var(--scrim-ink),.5);opacity:0;pointer-events:none;transition:opacity .2s var(--ease)}
+.icm-shade{position:var(--sheet-pos,fixed);inset:0;background:var(--scrim-shade);opacity:0;pointer-events:none;transition:opacity .2s var(--ease)}
 .icm-shade.is-open{opacity:1;pointer-events:auto}
 .icm-sheet{position:var(--sheet-pos,fixed);left:0;right:0;bottom:0;background:var(--paper);color:var(--ink);
   border-top:var(--border) solid var(--edge-strong);border-radius:var(--radius) var(--radius) 0 0;padding:var(--s-5) var(--gutter) var(--s-6);

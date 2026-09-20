@@ -4,7 +4,8 @@ import os
 
 # invariant: installed at <icm>/core/workflows/feed/scripts/, so the ICM root is four folders up
 # from this folder. Git is not asked: inside a commit hook in a worktree it answers wrongly.
-ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../.."))
+# ICM_ROOT overrides it: that is how `build-feed-page.py --demo` builds the mock base in template/demo/ without touching anyone's ICM.
+ROOT = os.environ.get("ICM_ROOT") or os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../.."))
 
 # invariant: every number here is an agreement, not science, and the ones about hosts are dated
 # measurements that rot. They live in _config/feed.json so the owner's agent can retune them

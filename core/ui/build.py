@@ -200,7 +200,9 @@ if __name__ == "__main__":
         check_schema()
         icons = re.findall(r"^  ([a-zA-Z]+): svg`", open(os.path.join(LIB, "icons/ui.js"), encoding="utf-8").read(), re.M)
         data = json.dumps({"schema": schema(), "actions": json.load(open(os.path.join(LIB, "actions.json"), encoding="utf-8")),
-                           "icons": icons, "version": open(os.path.join(LIB, "VERSION")).read().strip()}, ensure_ascii=False).replace("</", "<\\/")
+                           "icons": icons, "version": open(os.path.join(LIB, "VERSION")).read().strip(),
+                           # where the kit's pages built from mock data are served (icm-kit-core scripts/build-previews.py); the docs only link there
+                           "previews": os.environ.get("ICM_PREVIEWS", "http://localhost:8914/")}, ensure_ascii=False).replace("</", "<\\/")
         src = open(os.path.join(LIB, "docs/index.src.html"), encoding="utf-8").read()
         assert "/*ICM-DOCS*/" in src and "<!--ICM-FONTS-->" in src
         out = os.path.join(LIB, "docs/index.html")

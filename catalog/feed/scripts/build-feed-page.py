@@ -48,7 +48,10 @@ CARRIERS = {"title", "eyebrow", "unit", "label", "subtitle", "tone", "video", "m
 
 
 def _lib_dir():
-    lib = os.environ.get("ICM_LIB") or os.path.join(ROOT, "core/ui")
+    # installed: <icm>/core/ui. In the kit's own checkout (--check, --demo) the library is two folders above this workflow.
+    here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    lib = next((p for p in (os.environ.get("ICM_LIB") or "", os.path.join(ROOT, "core/ui"), os.path.join(here, "../../core/ui"))
+                if p and os.path.exists(os.path.join(p, "build.py"))), os.path.join(ROOT, "core/ui"))
     if not os.path.exists(os.path.join(lib, "build.py")):
         sys.exit("the component library is not at %s; run install.sh again or set ICM_LIB" % lib)
     return lib
@@ -560,7 +563,39 @@ def _check():
     print("ok")
 
 
-FLAGS = {"--same", "--stale", "--preview", "--publish", "--check"}
+def demo():
+    """The feed from the mock base in template/demo/ (a day, a config, records to point at) with generated images, as a
+    preview with the store stubbed, into previews/feed.html. Nothing of an owner's is read or written."""
+    import shutil, subprocess
+    here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    kit = os.path.abspath(os.path.join(here, "../.."))
+    out = os.path.join(kit if os.path.exists(os.path.join(kit, "install.sh")) else os.path.join(ROOT, "pages"), "previews")
+    root = os.path.join(out, ".feed-root")
+    shutil.rmtree(root, ignore_errors=True)
+    shutil.copytree(os.path.join(here, "template/demo"), root)
+    subprocess.run([sys.executable, os.path.join(here, "template/make-demo-media.py"), os.path.join(root, "pages/media")], check=True)
+    env = {**os.environ, "ICM_ROOT": root, "ICM_LIB": _lib_dir()}
+    day = sorted(glob.glob(os.path.join(root, "data/[0-9]*.json")))[-1]
+    # a deadline in a mock must stay ahead of today, or the preview shows "127 days ago" forever
+    import datetime
+    raw = json.load(open(day, encoding="utf-8"))
+    for row in raw["rows"]:
+        for card in [row["cover"]] + row["stories"]:
+            if "deadline" in card:
+                card["deadline"]["date"] = (datetime.date.today() + datetime.timedelta(days=2)).isoformat()
+    open(day, "w", encoding="utf-8").write(json.dumps(raw, ensure_ascii=False, indent=1))
+    r = subprocess.run([sys.executable, os.path.abspath(__file__), "--preview", day], env=env)
+    if r.returncode:
+        return r.returncode
+    shutil.copy(os.path.join(root, "pages/feed-preview.html"), os.path.join(out, "feed.html"))
+    shutil.rmtree(os.path.join(out, "media"), ignore_errors=True)
+    shutil.copytree(os.path.join(root, "pages/media"), os.path.join(out, "media"))
+    shutil.rmtree(root)
+    print("wrote %s" % os.path.join(out, "feed.html"))
+    return 0
+
+
+FLAGS = {"--same", "--stale", "--preview", "--publish", "--check", "--demo"}
 
 if __name__ == "__main__":
     # invariant: an unknown flag stops the run. A build rewrites `prints` in the day's data file,
@@ -570,4 +605,4 @@ if __name__ == "__main__":
     if unknown:
         print(__doc__ if unknown == ["--help"] else "unknown flag: %s; known: %s" % (" ".join(unknown), " ".join(sorted(FLAGS))))
         sys.exit(0 if unknown == ["--help"] else 2)
-    sys.exit(_check() or 0) if "--check" in flags else sys.exit(main(flags, [a for a in sys.argv[1:] if not a.startswith("-")]))
+    sys.exit((_check() or 0) if "--check" in flags else demo() if "--demo" in flags else main(flags, [a for a in sys.argv[1:] if not a.startswith("-")]))
