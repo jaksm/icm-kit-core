@@ -26,7 +26,7 @@ from collections import Counter, defaultdict
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True,
                       cwd=HERE).stdout.strip() or os.getcwd()
-SKIP = {"_import", "node_modules"}   # plus every dot folder
+SKIP = {"_import", "node_modules"}   # plus dot folders at the root
 TEMPLATE = os.path.join(HERE, "template/graph-template.html")
 
 LABELS = {
@@ -58,7 +58,8 @@ FOLDER = re.compile(r"`((?:%s)/[^`\s<>.]+?)/?`" % "|".join(map(re.escape, TOPS))
 
 def files():
     for d, dirs, fs in os.walk(ROOT):
-        dirs[:] = [x for x in dirs if x not in SKIP and not x.startswith(".")]
+        # dot folders are skipped at the root only (.git, tool folders); an imported archive may keep records in them
+        dirs[:] = [x for x in dirs if x not in SKIP and not (d == ROOT and x.startswith("."))]
         for f in fs:
             if f.endswith(".md"):
                 yield os.path.relpath(os.path.join(d, f), ROOT)
