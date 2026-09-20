@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# The installer runs inside other people's ICMs, so its tests run before any commit that could change what it does.
+cd "$(git rev-parse --show-toplevel)" || exit 1
+git diff --cached --name-only | grep -qE '^(install\.sh|VERSION|CHANGELOG\.md|catalog/|MIGRATIONS/|tests/)' || exit 0
+tests/run.sh || { echo "pre-commit: tests/run.sh failed"; exit 1; }

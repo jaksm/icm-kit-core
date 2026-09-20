@@ -17,6 +17,10 @@ never touches it.
 
 ## Process
 
+0. **Get the release, outside the ICM.** `git clone --depth 1 --branch v<version> https://github.com/jaksm/icm-kit-core <temporary folder>`;
+   releases are tags, and `CHANGELOG.md` lists them. Without `--branch` you get the latest. Read
+   `CHANGELOG.md` from the installed version up: when a release in between says something is
+   required outside `core/`, update **one release at a time**, finishing steps 1 to 6 for each.
 1. `<release>/install.sh <this ICM> --status`. It prints the installed and the available version
    and every file in `core/` whose hash no longer matches the lock.
 2. Read the migrations between the two versions, oldest first. A migration says what moved, what
