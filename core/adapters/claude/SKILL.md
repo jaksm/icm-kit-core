@@ -2,7 +2,7 @@
 name: icm-adapter-claude
 type: Skill
 title: ICM system on Claude, encrypted repo usable from phone and cloud
-description: How an encrypted ICM (git + git-remote-gcrypt on GitHub) is opened in Claude Code cloud sessions, so the owner can read and write it from the Claude mobile app with the laptop off. Key generator, setup script, hooks that sync after every reply, conflict handling, revocation. Written for an admin who sets it up for non-technical users; contains no personal data.
+description: How an encrypted ICM (git + git-remote-gcrypt on GitHub) is opened in Claude Code cloud sessions, so the owner can read and write it from the Claude mobile app with the laptop off. Key generator, setup script, hooks that sync after every reply, conflict handling, revocation. The owner of the ICM sets it up, with the agent walking them through each step.
 status: active
 trust_tier: verified
 tags: [icm, adapter, claude-code, cloud, gcrypt, gpg, hooks]
@@ -15,9 +15,10 @@ Public, reusable. An ICM here is a personal knowledge base: a git repo of markdo
 encrypted blob. This skill makes that repo usable from Claude Code cloud sessions (claude.ai/code,
 including the Claude mobile app), without an always-on computer.
 
-Who does what: an **admin** (technical) runs the setup once per user. The **user** (not technical)
-only picks an environment and a repo when starting a session on the phone. Everything that can go
-wrong after setup is handled by hooks or by one sentence Claude says to the user.
+The owner sets this up once, on their own computer, with the agent doing the typing and explaining
+each step at the level the owner asked for during onboarding. After that the only thing to remember
+is to pick the environment and the repo when starting a session on the phone. Everything that can
+go wrong later is handled by hooks or by one sentence Claude says.
 
 ## How it works
 
@@ -52,27 +53,27 @@ Facts this design rests on, checked 2026-09-17 against the Claude Code docs and 
   gcrypt remote is named **icm** in the cloud (a routine otherwise fetched `main` from the raw repo,
   which only holds gcrypt's `master`; seen 2026-09-17). On a laptop it stays `origin`.
 
-## Setup, per user (admin)
+## Setup
 
-Prerequisites on the admin Mac: the user's ICM repo with `origin` = `gcrypt::git@github.com:<owner>/<repo>.git`,
-their main GPG key present, `git-remote-gcrypt`, and `.githooks/pre-push` from this skill with
+Prerequisites on the owner's computer: the ICM repo with `origin` = `gcrypt::git@github.com:<owner>/<repo>.git`,
+the owner's main GPG key present, `git-remote-gcrypt`, and `.githooks/pre-push` from this skill with
 `git config core.hooksPath .githooks`. The Claude GitHub app must have access to the repo.
 
-1. Inside the user's ICM repo:
+1. Inside the ICM repo:
    ```bash
    bash core/adapters/claude/scripts/make-cloud-setup.sh "<Name> ICM"
    ```
    It creates the cloud key, adds it as recipient, pushes, and writes a setup script to `$TMPDIR`.
    To regenerate the script for an existing key: add its fingerprint as second argument.
-2. On claude.ai/code, logged in as **the user**: create the environment with that name, network
+2. On claude.ai/code: create the environment with that name, network
    access Trusted, paste the setup script.
 3. Copy the key without seeing it: `gpg --export-secret-keys --armor <fpr> | base64 | pbcopy`, and add
    one line to the environment variables: `ICM_GPG_KEY=<paste>`. No quotes.
 4. Calendar reminder a week before the key expires.
-5. Test on the user's phone: new session, pick the environment **and** the ICM repo, ask "what do
-   you see?", then ask for a small change and check it arrives with `git pull` on the Mac.
+5. Test on the phone: new session, pick the environment **and** the ICM repo, ask "what do
+   you see?", then ask for a small change and check it arrives with `git pull` on the computer.
 
-## What the user needs to know
+## Day to day
 
 Only this: when starting a session, pick the environment "<Name> ICM" and the ICM repository.
 Everything is saved after each reply. If Claude says the ICM is not available, it also says what
@@ -82,12 +83,12 @@ to do.
 
 | Failure | Handled by |
 | --- | --- |
-| wrong or no environment, key missing or damaged | `SessionStart` prints `ICM NOT AVAILABLE` and one sentence for the user; Claude must not touch files |
+| wrong or no environment, key missing or damaged | `SessionStart` prints `ICM NOT AVAILABLE` and one sentence for the owner; Claude must not touch files |
 | network down, key expired, GitHub unreachable | same, with "try again in a few minutes" |
-| user thinks it is saved but nothing was committed | `Stop` blocks once and asks Claude to commit; second pass autosaves |
+| it looks saved but nothing was committed | `Stop` blocks once and asks Claude to commit; second pass autosaves |
 | resumed session after days | `SessionStart` rebases with autostash; it resets only on first start (`.git/icm-unlocked`) |
-| same record changed on phone and laptop | rebase conflict: Claude shows both versions and asks the user which is right |
-| push fails | `Stop` tells the user in one sentence; retried after the next reply, never loops |
+| same record changed on phone and laptop | rebase conflict: Claude shows both versions and asks which is right |
+| push fails | `Stop` says so in one sentence; retried after the next reply, never loops |
 | push to plain GitHub URL, or to a branch other than main | `pre-push` refuses |
 | setup apt mirror flakes | setup retries three times |
 | harness asks to push commits that are already on `icm/main` | `SessionStart` patches `~/.claude/stop-hook-git-check.sh` to bail on a gcrypt checkout |
@@ -136,4 +137,4 @@ delete `ICM_GPG_KEY` from the environment and, if needed, run `make-cloud-setup.
 
 - `hooks/pre-push`: symlinked from the ICM repo's `.githooks/pre-push`.
 - `hooks/session-start.sh`, `hooks/stop-sync.sh`: embedded into the setup script by the generator.
-- `make-cloud-setup.sh` and `revoke-cloud-key.sh` in `scripts/`: run by the admin on a Mac.
+- `make-cloud-setup.sh` and `revoke-cloud-key.sh` in `scripts/`: run by the owner on their computer.

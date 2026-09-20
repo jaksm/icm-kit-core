@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run by the admin inside a user's ICM repo on their Mac: makes a cloud-only GPG key, adds it to the encrypted remote, and writes the setup script for claude.ai/code.
+# Run by the owner inside their ICM repo, on their computer: makes a cloud-only GPG key, adds it to the encrypted remote, and writes the setup script for claude.ai/code.
 # invariant: the private key is never printed or written into a file; it only goes to the clipboard, on explicit request.
 # Usage: make-cloud-setup.sh "Environment name" [existing cloud key fingerprint]   (with a fingerprint: only regenerate the setup script)
 set -euo pipefail
