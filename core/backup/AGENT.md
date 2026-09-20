@@ -1,8 +1,9 @@
 # Recovery USB of an ICM
 
-The owner pointed you at this USB to put their ICM on a new computer. Before you talk, read
-`icm/<name>/how-we-talk.md` on this stick: it says which language they use and how much they want
-explained. `usb.env` holds the key fingerprint, the remote and the folder name.
+The owner pointed you at this USB to put their ICM on a new computer. Before you talk, open the
+instruction file at the root of `icm/<name>/` on this stick and read the record it names first
+(`how-we-talk.md`, or what this owner calls it): it says which language they use and how much they
+want explained. `usb.env` holds the key fingerprint, the remote and the folder name.
 
 | Path | What it is |
 | --- | --- |
