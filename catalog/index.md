@@ -19,8 +19,8 @@ Every workflow is a folder with the same three parts, so setup can offer it with
 | --- | --- | --- | --- |
 | `sources` | newsletters, feeds and notices arriving by mail, sorted by the provider's own rules, which are kept in the ICM | a mail provider with server-side rules; ready code for Gmail, recipes for others | 0.3.0 |
 | `morning-review` | a routine that sorts the inbox, leaves unread only what needs the owner, writes a daily record with proof it ran | `sources`; the adapter's mail capability; routines for the schedule | 0.3.0 |
-| `import` | an old system (notes app, old repo, a disk) walked through with the owner, five items at a time | nothing | planned, 0.4.0 |
-| `expenses` | spending per month as aggregates and a page; the statement parser is a recipe, built for the owner's bank | a sample statement | planned, 0.4.0 |
+| `import` | an old system (a notes app, another assistant's memory, an old repo, a disk, a large mailbox) walked through with the owner, five items at a time | nothing | 0.4.0 |
+| `expenses` | spending per month as aggregates and a page. Categorizing, aggregating and the page are ready; the statement parser is a recipe, built for the owner's bank | a sample statement; publishing a page, optional | 0.4.0 |
 | `feed` | a daily page of what is open in the ICM and what arrived, to flick through on the phone | sources, routines, publishing a page | planned, 0.5.0 |
 
 The graph of the ICM is not here: it is part of `core/`, every ICM has it.

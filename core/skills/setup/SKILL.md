@@ -73,7 +73,7 @@ and picks up where it stopped.
 | 09 | sources | yes |
 | 10 | reminders | yes |
 | 11 | workflows | yes |
-| 12 | import | yes, from 0.4.0 |
+| 12 | import | yes |
 | 13 | routines | yes |
 | 14 | audit | no |
 
