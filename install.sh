@@ -8,7 +8,8 @@
 set -eu
 here="$(cd "$(dirname "$0")" && pwd)"
 repo="${1:?usage: install.sh <repo> [--status|--force]}"; mode="${2:-}"
-[ -d "$repo/.git" ] || { echo "install: $repo is not a git repo"; exit 1; }
+# rev-parse, not a test for .git/: in a worktree .git is a file
+git -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || { echo "install: $repo is not a git repo"; exit 1; }
 lock="$repo/core.lock"
 sum() { shasum -a 256 "$1" | cut -d' ' -f1; }
 
