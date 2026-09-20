@@ -8,6 +8,8 @@ invariant: a pattern is added only once it has really appeared in a statement, a
 nothing stays `other`. Admitting that a category is unknown beats guessing; the share of `other`
 printed at the end is the number to watch, not something to hide.
 A row that already has a category is left alone: a category set by the owner outranks a rule.
+Money in is not an expense: rows with an amount of zero or more are left without a category and
+are not counted in the share of `other`.
 """
 import csv
 import os
@@ -48,14 +50,15 @@ def main():
     with open(src, encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f); fields = reader.fieldnames; rows = list(reader)
     changed = 0
-    for r in rows:
+    out = [r for r in rows if float(r["amount"]) < 0]
+    for r in out:
         if not (r.get("category") or "").strip():
             r["category"] = categorize(r.get("description"), rules); changed += 1
     with open(src, "w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(rows)
-    other = sum(1 for r in rows if r["category"] == "other")
-    print("%d rows, %d newly categorized, %d rules, other: %d (%d%%)" % (
-        len(rows), changed, len(rules), other, round(100 * other / len(rows)) if rows else 0))
+    other = sum(1 for r in out if r["category"] == "other")
+    print("%d rows, %d of them money out, %d newly categorized, %d rules, other: %d (%d%% of money out)" % (
+        len(rows), len(out), changed, len(rules), other, round(100 * other / len(out)) if out else 0))
     return 0
 
 

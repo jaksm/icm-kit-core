@@ -9,6 +9,7 @@ DEFAULTS = {
     "plan": None, "plan_by_month": {}, "income": None, "savings_goal": None,
     "small_share": 0.03, "opaque": ["other"], "category_names": {}, "months": [],
     "notes": {"spent": "", "income": "", "left": ""}, "labels": {},
+    "monthly_file": None, "columns": {},
 }
 
 

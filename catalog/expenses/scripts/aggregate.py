@@ -26,6 +26,8 @@ def reconcile(rows):
             by[r["statement"]].append(r)
     bad = []
     for st, rs in by.items():
+        # invariant: a stable sort by date keeps the statement's own order within a day, which the
+        # parser's contract guarantees; the opening balance is derived from the first row
         rs.sort(key=lambda r: r["date"])
         opening = float(rs[0]["balance"]) - float(rs[0]["amount"])
         diff = round(sum(float(r["amount"]) for r in rs) - (float(rs[-1]["balance"]) - opening), 2)

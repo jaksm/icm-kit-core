@@ -24,11 +24,19 @@ for this owner, in `skills/<name>/scripts/` of **their** ICM, never in `core/`.
 Write `<data>/transactions.csv` with the header
 `date,description,amount,currency,category,statement,balance`: ISO date; `amount` negative for money
 out; `category` left empty; `statement` an id for the document (its period); `balance` the running
-balance after the row, when the statement has one. Appending the same statement twice must not
-duplicate rows: key on statement id.
+balance after the row, when the statement has one. **Rows are written in the order of the
+statement**: two rows of one day must keep their order, or the balances stop adding up. Importing a
+statement id that is already in **skips** it and says so: replacing would wipe categories the owner
+fixed by hand. A corrected statement is imported after its old rows were deleted on the owner's word.
+
+The parser finds the data folder by reading the `data` key of `_config/expenses.json` (default
+`domains/money/data`), not by importing anything from `core/`.
 
 ## Hard points
 
+- In a CSV or text export, read the amount column, and **stop the import if an amount differs from
+  the change between two consecutive balances**. Lines above the header often carry the account
+  number and the owner's full name: useful for the statement id and as names to strip, never to be copied.
 - **(from use)** In a PDF, do not read amounts from their columns. Text extraction glues columns
   together without spaces and in an unreliable order; a first attempt that way produced hundreds of
   rows of which none passed a check. Read the **running balance** only, and derive each amount as
@@ -36,7 +44,10 @@ duplicate rows: key on statement id.
   changes must equal the last balance minus the first.
 - **(from use)** **Privacy is in the code, not in discipline.** Strip account numbers, card numbers
   and the names of people from the description before the row is written. What never reaches the
-  CSV cannot leak from it.
+  CSV cannot leak from it. Numbers are easy; names have no general solution. Strip the owner's own
+  name (from the statement), the words after the bank's phrases for "transfer to" and "from", and
+  the first names listed in `who-am-i.md`; say in a comment in the parser that this is the ceiling.
+  Short numbers such as a shop's branch number may stay.
 - Decimal and thousands separators differ by country; detect them from the balance column, do not assume.
 - A refund is money in with a merchant's description; it stays a positive amount and is not an expense.
 - Transfers between the owner's own accounts are not spending. Ask how they want them marked.
@@ -45,7 +56,8 @@ duplicate rows: key on statement id.
 
 `core/workflows/expenses/scripts/aggregate.py` reconciles every statement to zero. The parser has
 its own `--check` on **synthetic** rows written for the test, never on the owner's real ones. The
-description column holds no account number: `grep -E '[0-9]{8,}' transactions.csv` prints nothing.
+description column holds no account number, `grep -E '[0-9]{8,}' transactions.csv` prints nothing,
+and no name: grep for the owner's name and for every first name in `who-am-i.md` prints nothing.
 
 ## When to say no
 

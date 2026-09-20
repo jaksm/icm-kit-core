@@ -31,4 +31,4 @@ description: Spending per month and category, from the owner's bank statements t
 
 ## Outputs
 
-`transactions.csv`, `monthly.csv`, the page, and in the money area's record: which statements are in, how many rows, the last date.
+`transactions.csv`, `monthly.csv`, the page, and `<money area>/output/expenses-state.md`: which statements are in, how many rows, the last date.
