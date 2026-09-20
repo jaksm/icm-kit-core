@@ -15,7 +15,10 @@ Today there is one: `claude/`. `codex/` and `antigravity/` hold this contract an
 | Push guard | A push that is not to the encrypted remote, or not to `main`, is refused | `claude/hooks/pre-push` |
 | Cloud session | The repo can be opened with the owner's computer off, from a phone | `claude/scripts/make-cloud-setup.sh` |
 | Revocation | A cloud key can be withdrawn and the repo re-encrypted | `claude/scripts/revoke-cloud-key.sh` |
-| Routines | A prompt can run on a schedule and leave its result in the repo | cloud routines |
+| Routine | At a set time a session starts with the ICM open, runs a one-line prompt that points at a `SKILL.md`, commits and ends | cloud routines |
+| Mail | Read the inbox, label, mark read, archive. Never send, never delete | the Gmail connector; other providers: none today |
+| Calendar | Create and read events in a calendar the owner chose | the Google Calendar connector |
+| Reminder | Create one item in a list the owner already looks at | none from a cloud session; on a Mac `core/scripts/remind.sh`; otherwise a calendar event |
 | Publishing a page | A built HTML file becomes a private page with a stable URL | artifacts |
 | Skills | A folder with `SKILL.md` is discoverable by name and description | `.claude/skills/`, `skills/` |
 

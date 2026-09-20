@@ -17,8 +17,8 @@ Every workflow is a folder with the same three parts, so setup can offer it with
 
 | Name | What the owner gets | Needs | State |
 | --- | --- | --- | --- |
-| `sources` | newsletters and feeds arriving by mail, sorted by filters kept in the repo | a mail connector | planned, 0.3.0 |
-| `morning-review` | a routine that sorts the inbox, leaves unread only what needs the owner, writes a daily record with proof it ran | a mail connector, routines | planned, 0.3.0 |
+| `sources` | newsletters, feeds and notices arriving by mail, sorted by the provider's own rules, which are kept in the ICM | a mail provider with server-side rules; ready code for Gmail, recipes for others | 0.3.0 |
+| `morning-review` | a routine that sorts the inbox, leaves unread only what needs the owner, writes a daily record with proof it ran | `sources`; the adapter's mail capability; routines for the schedule | 0.3.0 |
 | `import` | an old system (notes app, old repo, a disk) walked through with the owner, five items at a time | nothing | planned, 0.4.0 |
 | `expenses` | spending per month as aggregates and a page; the statement parser is a recipe, built for the owner's bank | a sample statement | planned, 0.4.0 |
 | `feed` | a daily page of what is open in the ICM and what arrived, to flick through on the phone | sources, routines, publishing a page | planned, 0.5.0 |

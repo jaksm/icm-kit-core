@@ -62,11 +62,11 @@ and picks up where it stopped.
 | 06 | remote | no |
 | 07 | backup | recommended; may be skipped with a reason |
 | 08 | cloud | yes |
-| 09 | sources | yes, from 0.3.0 |
-| 10 | reminders | yes, from 0.3.0 |
+| 09 | sources | yes |
+| 10 | reminders | yes |
 | 11 | workflows | yes |
 | 12 | import | yes, from 0.4.0 |
-| 13 | routines | yes, from 0.3.0 |
+| 13 | routines | yes |
 | 14 | audit | no |
 
 A step whose file does not exist in this release is left `pending` with `"evidence": "not in this release"`.

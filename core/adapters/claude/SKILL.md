@@ -74,6 +74,10 @@ they matter; terms change.
 | schedule a routine | a cloud routine bound to that environment and the repo; its whole prompt is one line pointing at a `SKILL.md` |
 | publish a page | an artifact; always republished to its existing URL, listed in `domains/system/output/pages.md` |
 | skills | `core/skills/*/SKILL.md` and the owner's `skills/`; downloaded ones in `.claude/skills/` |
+| mail | the Gmail connector, connected by the owner in the app's connector settings. Its send, reply, draft, trash and spam tools exist and are **not used**: triage is read and label only. No connector for other providers today; say so |
+| calendar | the Google Calendar connector |
+| reminder | nothing from a cloud session. Locally on a Mac: `core/scripts/remind.sh`. From the cloud: a calendar event, `core/skills/setup/recipes/reminders-calendar.md` |
+| a routine's schedule | claude.ai, a routine bound to the environment and the repo, with the connectors it needs switched on for it. The runner rewrites `origin`, which is why the encrypted remote is called `icm` in the cloud |
 
 ## Setup
 
