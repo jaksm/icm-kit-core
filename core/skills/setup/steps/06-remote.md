@@ -9,6 +9,9 @@ git remote get-url origin | grep -c '^gcrypt::'      # 1
 git ls-remote origin | grep -c refs/heads/main       # 1
 ```
 
+When adopting an ICM that is in daily use, `ls-remote` decrypts the manifest and can raise a
+passphrase window nobody asked for. Skip it then: a recent push in `git log` is the evidence.
+
 ## Ask
 
 Which hosting account, and a name for the repo. A name that does not describe the content is better

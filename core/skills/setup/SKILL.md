@@ -78,10 +78,13 @@ A step whose file does not exist in this release is left `pending` with `"eviden
 ```json
 {
   "harness": "", "language": "", "os": "", "phone": "",
+  "adopted": "",
   "explain": {"how_much": "", "manner": ""},
   "steps": {"01-questionnaire": {"state": "pending", "date": "", "evidence": ""}}
 }
 ```
+
+`adopted` is set when the ICM predates the kit: its steps were detected, not performed.
 
 - The three personal records filled in the owner's words, their `<!-- setup: -->` notes deleted.
 - One commit per step.
