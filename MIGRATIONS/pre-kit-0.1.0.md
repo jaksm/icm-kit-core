@@ -31,8 +31,9 @@ updated without touching anything personal. What was personal inside those parts
 4. Every page builder that imported the library's `build.py`: change the folder to `core/ui`
    under the repo root. A builder that read `actions.json` from the library reads `_config/actions.json`.
 5. Replace the old paths in the instruction file and in records; `link-check.sh` lists the ones you missed.
-6. Regenerate the cloud environment with `core/adapters/claude/scripts/make-cloud-setup.sh`: the
-   setup script embeds the hooks, and it was generated from the old path.
+6. The cloud environment does **not** need regenerating just because the generator moved. Its setup
+   script holds copies of the two hooks and no path into the repo. Regenerate only when
+   `diff` shows that `hooks/session-start.sh` or `hooks/stop-sync.sh` changed since the script was made.
 
 ## Verify
 
