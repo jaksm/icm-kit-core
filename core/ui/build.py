@@ -6,8 +6,8 @@ component library. The page, however, must be ONE self-contained file: the artif
 blocks external scripts we do not control, and offline tolerance needs zero runtime fetches.
 This script is the bridge.
 
-    python3 skills/design-sistem/lib/build.py --bundle   # rebuild dist/icm.js
-    python3 skills/design-sistem/lib/build.py --check
+    python3 build.py --bundle   # rebuild dist/icm.js
+    python3 build.py --check
 
 Used from an artifact's own build script:
 
