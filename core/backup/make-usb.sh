@@ -16,7 +16,7 @@ NAME="$(basename "$PWD")"
 mkdir -p "$U/key" "$U/icm" "$U/tools"
 gpg --export-secret-keys --armor "$KEY" > "$U/key/secret-key.asc"
 gpg --export --armor "$KEY" > "$U/key/public-key.asc"
-rev="$HOME/.gnupg/openpgp-revocs.d/$KEY.rev"
+rev="${GNUPGHOME:-$HOME/.gnupg}/openpgp-revocs.d/$KEY.rev"
 [ -f "$rev" ] && cp "$rev" "$U/key/revocation.rev" || echo "make-usb: no revocation certificate at $rev; make one with: gpg --gen-revoke $KEY"
 cp "$(command -v git-remote-gcrypt)" "$U/tools/git-remote-gcrypt"
 git bundle create "$U/icm/$NAME.bundle" --all

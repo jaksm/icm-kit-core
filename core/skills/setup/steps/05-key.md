@@ -43,5 +43,5 @@ The passphrase window. Also: if they already keep keys, which one to use.
 
 ```bash
 gpg --list-secret-keys --with-colons | awk -F: '/^fpr/{print $10; exit}'      # a 40 character fingerprint
-ls ~/.gnupg/openpgp-revocs.d/                                                  # <fingerprint>.rev exists
+ls "${GNUPGHOME:-$HOME/.gnupg}/openpgp-revocs.d/"                                               # <fingerprint>.rev exists
 ```
