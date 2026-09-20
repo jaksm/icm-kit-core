@@ -28,6 +28,10 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
 SKIP = {"_import", "node_modules"}   # plus dot folders at the root
 TEMPLATE = os.path.join(HERE, "template/graph-template.html")
+# the owner's changed copy of the template wins over the one in core/
+_own = os.path.join(ROOT, "_config/overrides/core/workflows/graph/template/graph-template.html")
+if os.path.exists(_own):
+    TEMPLATE = _own
 
 LABELS = {
     "canvas": "Graph of the records", "search": "Search a record, a path or text",

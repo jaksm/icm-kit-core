@@ -54,7 +54,9 @@ out="${TMPDIR:-/tmp}/icm-cloud-setup-$(date +%Y%m%d-%H%M%S).sh"
   for k in $participants $fpr; do echo "$k:6:"; done
   echo 'EOF'
   for h in session-start.sh stop-sync.sh; do
-    echo "cat > ~/.claude/icm/$h <<'EOF'"; cat "$here/hooks/$h"; echo 'EOF'
+    # the owner's changed copy of a hook wins over the one in core/ (see recipes/customize.md)
+    src="_config/overrides/core/adapters/claude/hooks/$h"; [ -f "$src" ] || src="$here/hooks/$h"
+    echo "cat > ~/.claude/icm/$h <<'EOF'"; cat "$src"; echo 'EOF'
   done
   echo "cat > ~/.claude/settings.json <<'EOF'"
   echo '{"hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"bash ~/.claude/icm/session-start.sh","timeout":300}]}],"Stop":[{"hooks":[{"type":"command","command":"bash ~/.claude/icm/stop-sync.sh","timeout":300}]}]}}'
