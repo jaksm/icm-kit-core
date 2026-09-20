@@ -1,0 +1,5 @@
+.icm-deadline{display:inline-flex;align-items:baseline;gap:8px;margin-bottom:12px;
+  font-size:13px;color:var(--c-fg-2)}
+.icm-deadline b{font-weight:400;font-size:15px;color:var(--c-fg)}
+.icm-deadline.is-near b{color:var(--state-warn)}
+.icm-deadline.is-now b{color:var(--state-bad)}

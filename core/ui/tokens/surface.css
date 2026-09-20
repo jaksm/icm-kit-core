@@ -1,0 +1,23 @@
+/* Surface tokens: the one indirection that lets the SAME component sit on paper and on a
+   photo. A component never reads --ink or --over directly; it reads --c-*, and the surface
+   class decides what those mean. Without this, every artifact would need its own copy of
+   every component, which is the duplication this library exists to remove. */
+.on-paper{
+  --c-fg:var(--ink); --c-fg-2:var(--ink-2); --c-muted:var(--ink-muted);
+  --c-accent:var(--accent);
+  --c-hairline:var(--line); --c-fill:rgba(20,19,17,.06); --c-border:var(--line);
+}
+.on-photo{
+  --c-fg:var(--over); --c-fg-2:var(--over-2); --c-muted:var(--over-muted);
+  --c-accent:var(--over-accent);
+  --c-hairline:rgba(250,249,245,.11); --c-fill:rgba(250,249,245,.12);
+  --c-border:rgba(250,249,245,.3);
+  text-shadow:0 1px 14px rgba(var(--scrim-ink),.55),0 1px 2px rgba(var(--scrim-ink),.4);
+}
+/* State colors are the same on both surfaces: they mean "this changes what you do". */
+:root{
+  --state-good:#7a8c46; --state-warn:#9a6b1f; --state-bad:#b4532a;
+}
+.on-photo{
+  --state-good:#cfe0a8; --state-warn:#f0cf95; --state-bad:#f2a68c;
+}

@@ -1,0 +1,20 @@
+/* invariant: the host is `display:contents`, so the real <button> is the flex item of
+   whatever laid it out. Without this every wrapper becomes a block and rails, toolbars and
+   inline rows all lay out one element too deep. */
+icm-button{display:contents}
+.icm-button{font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:8px;
+  min-height:var(--tap);color:var(--c-fg);background:none;border:0;
+  transition:transform .1s ease-out,background-color .16s var(--ease),color .16s var(--ease)}
+.icm-button:active{transform:scale(.97)}
+.icm-button:disabled{opacity:.35;cursor:default}
+.icm-button:focus-visible{outline:2px solid var(--c-fg);outline-offset:3px;border-radius:12px}
+.icm-button.is-pill{background:var(--c-fill);border:1px solid var(--c-border);
+  border-radius:var(--radius-pill);padding:13px 24px;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.icm-button.is-quiet{padding:13px 14px;color:var(--c-muted)}
+.icm-button.is-quiet:hover{color:var(--c-fg)}
+/* rail: a stacked icon+caption action, as in the feed's right-hand rail */
+.icm-button.is-rail{flex-direction:column;gap:3px;font-size:10.5px;min-width:46px;
+  justify-content:center;color:var(--c-fg-2)}
+.icm-button.is-rail icm-icon{font-size:23px}
+.icm-button.is-rail[aria-pressed="true"]{color:var(--c-accent)}

@@ -1,0 +1,28 @@
+/* Color tokens. Matched to the Claude host UI so an artifact reads as part of the app. */
+:root{
+  --paper:#f0eee6; --card:#faf9f5;
+  --ink:#141413; --ink-2:#3d3d3a; --ink-muted:#87867f;
+  --line:#cccbc8; --line-soft:#e3dacc;
+  --accent:#b4532a;
+
+  /* Over a photo the colors are FIXED, not themed: the text has to read on a light and on
+     a dark image alike, so the scrim does the work instead of the theme. */
+  --over:#fff; --over-2:#e8e5dd; --over-muted:#bdb9b0; --over-accent:#ffb08d;
+
+  /* Scrim stops, shared by every surface that puts text over an image. Changing the ramp
+     here changes it in every artifact at once; it was measured, not guessed. */
+  --scrim-ink:20,19,17;
+  --scrim-floor:#141311;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#262624; --card:#30302e;
+  --ink:#faf9f5; --ink-2:#c2c0b6; --ink-muted:#9c9a92;
+  --line:#4a4945; --line-soft:#3d3d3a;
+  --accent:#f0a27f;
+}}
+:root[data-theme="dark"]{
+  --paper:#262624; --card:#30302e;
+  --ink:#faf9f5; --ink-2:#c2c0b6; --ink-muted:#9c9a92;
+  --line:#4a4945; --line-soft:#3d3d3a;
+  --accent:#f0a27f;
+}

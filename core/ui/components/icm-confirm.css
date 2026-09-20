@@ -1,0 +1,10 @@
+.icm-confirm{margin-top:16px}
+.icm-confirm-q{font-family:var(--font-serif);font-size:16.5px;line-height:1.4;color:var(--c-fg);
+  margin-bottom:10px;text-wrap:pretty}
+.icm-confirm-row{display:flex;gap:8px}
+.icm-confirm-row button{font:inherit;font-size:15px;cursor:pointer;min-height:var(--tap);
+  padding:11px 24px;color:var(--c-fg-2);background:none;border:1px solid var(--c-border);
+  border-radius:var(--radius-pill);transition:transform .1s ease-out,color .16s var(--ease)}
+.icm-confirm-row button:active{transform:scale(.97)}
+.icm-confirm-row button.is-on{color:var(--c-fg);background:var(--c-fill);border-color:var(--c-fg)}
+.icm-confirm-row button:focus-visible{outline:2px solid var(--c-fg);outline-offset:2px}

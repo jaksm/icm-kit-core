@@ -1,0 +1,12 @@
+/* Layout tokens and the page reset every artifact starts from. */
+:root{
+  --gutter:20px;
+  --radius:16px;
+  --radius-pill:999px;
+  --tap:48px;       /* minimum touch target, Apple HIG */
+}
+*{box-sizing:border-box}
+/* invariant: the host wrapper sets :root padding from the safe-area insets, so a page that
+   wants the full screen uses height:100%, never 100vh or 100dvh. Both ignore that padding
+   and make the card taller than the frame. */
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}

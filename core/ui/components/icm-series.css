@@ -1,0 +1,6 @@
+.icm-series{margin:10px 0 2px}
+.icm-series svg{display:block;overflow:visible}
+.icm-series path{stroke:var(--c-fg-2)}
+.icm-series rect{fill:var(--c-fg-2);opacity:.55}
+.icm-series .is-last{fill:var(--c-accent);opacity:1}
+.icm-series-label{font-size:11.5px;color:var(--c-muted);margin-top:5px}

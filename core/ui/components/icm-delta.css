@@ -1,0 +1,5 @@
+.icm-delta{display:inline-flex;align-items:center;gap:5px;font-size:13px;
+  color:var(--c-fg-2);margin-top:2px}
+.icm-delta i{font-style:normal;font-size:11px}
+.icm-delta.is-up i{color:var(--state-bad)}
+.icm-delta.is-down i{color:var(--state-good)}

@@ -1,0 +1,12 @@
+.icm-facts{margin:18px 0 0;display:flex;flex-direction:column;width:100%}
+/* invariant: the hairline sits on the ROW, not on the cells. In a two-column grid it breaks
+   at the column seam and leaves a gap in the middle of every row. */
+.icm-facts-row{display:flex;align-items:baseline;gap:16px;justify-content:space-between;
+  padding:9px 0;border-top:1px solid var(--c-hairline)}
+.icm-facts-row:first-child{border-top:0}
+.icm-facts dt{font-size:12.5px;color:var(--c-muted);flex:0 0 auto}
+.icm-facts dd{margin:0;font-size:14px;color:var(--c-fg);text-align:right;
+  font-variant-numeric:tabular-nums lining-nums;min-width:0}
+.icm-facts-row.is-long{flex-direction:column;align-items:flex-start;gap:3px}
+.icm-facts-row.is-long dd{text-align:left;font-family:var(--font-serif);font-size:16px;
+  line-height:1.45;color:var(--c-fg-2);text-wrap:pretty}

@@ -1,0 +1,5 @@
+.icm-next{margin-top:18px;display:flex;align-items:flex-start;gap:10px;font-size:14.5px;
+  line-height:1.45;color:var(--c-fg);background:var(--c-fill);
+  border:1px solid var(--c-border);border-radius:var(--radius);padding:12px 15px}
+.icm-next::before{content:"";width:6px;height:6px;border-radius:var(--radius-pill);flex:0 0 auto;
+  background:var(--c-accent);margin-top:.5em}

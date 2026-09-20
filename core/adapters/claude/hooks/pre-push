@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# git pre-push for an encrypted ICM: nothing leaves unencrypted and only main exists.
+# invariant: git-remote-gcrypt pushes its own refs/gcrypt/* ref to a plain URL; that is the only plain push allowed.
+# invariant: no git fetch in here. A gcrypt fetch nested inside a gcrypt push corrupts the remote ("Packfile does not match digest", seen 2026-09-17);
+# freshness is the caller's job: git pull --rebase right before push (stop-sync.sh does it in a separate process).
+url="$2"
+refuse() { echo "pre-push: $1" >&2; exit 1; }
+
+while read -r lref lsha rref _; do
+  case "$url" in
+    gcrypt::*) ;;
+    *) case "$lref" in
+         refs/gcrypt/*) continue ;;
+         *) refuse "$lref -> $rref on $url would leave unencrypted. Push only to the gcrypt:: remote (origin on a laptop, icm in a cloud session)." ;;
+       esac ;;
+  esac
+  [ "$rref" = refs/heads/main ] || refuse "the encrypted ICM has only main; push with: git push <gcrypt remote> HEAD:main"
+  case "$lsha" in *[!0]*) ;; *) refuse "deleting main is not allowed" ;; esac
+done
+exit 0

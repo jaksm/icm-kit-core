@@ -1,0 +1,575 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ICM Graph</title>
+<style>
+/*ICM-CSS*/
+/* Only what is particular to this page; tokens and type come from design-sistem/lib. */
+:root{--rail:#e6e3d8; --accent-soft:rgba(217,119,87,.2)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --rail:#1e1e1c; --accent-soft:rgba(217,119,87,.24);
+}}
+:root[data-theme="dark"]{--rail:#1e1e1c; --accent-soft:rgba(217,119,87,.24)}
+html,body{height:100%;overflow:clip}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-sans);font-size:14px;
+  line-height:1.45;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+canvas.dragging{cursor:grabbing}
+.float{position:fixed;z-index:2}
+.card{background:var(--card);border-radius:16px}
+
+/* top bar: search against the left edge, icon buttons against the right, space between */
+#bar{top:calc(12px + env(safe-area-inset-top,0px));left:12px;right:100px;display:flex;align-items:flex-start}
+#bar{pointer-events:none}
+#bar>*{pointer-events:auto}
+#searchbox{flex:none;width:min(340px,calc(100vw - 24px))}
+.field{position:relative}
+.field svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink-muted);pointer-events:none}
+#search{width:100%;font:inherit;font-size:14px;color:var(--ink);background:var(--card);border:1px solid var(--line);
+  border-radius:12px;padding:9px 12px 9px 34px;outline:none}
+#search:focus-visible{border-color:var(--ink)}
+#results{list-style:none;margin:6px 0 0;padding:4px;max-height:50vh;overflow:auto}
+#results li{padding:7px 10px;border-radius:8px;cursor:pointer}
+#results li[aria-selected="true"],#results li:hover{background:var(--line-soft)}
+#searchbox{width:min(420px,calc(100vw - 24px))}
+#results{max-height:65vh}
+#results .t{display:block}
+#results .p{display:block;font-size:12px;color:var(--ink-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#results .s{display:block;font-size:12.5px;color:var(--ink-2);margin-top:3px;line-height:1.4}
+/* a search match is drawn in the accent color, so it stands out from the muted snippet */
+mark{background:var(--accent-soft);color:var(--accent);font-weight:600;border-radius:3px;padding:0 1px}
+
+/* bottom: a full width status bar, as in VS Code */
+#stat{position:fixed;z-index:2;left:0;right:0;bottom:0;display:flex;align-items:center;flex-wrap:nowrap;gap:10px;white-space:nowrap;
+  font-size:12px;color:var(--ink-muted);background:var(--rail);border-top:1px solid var(--line-soft);
+  padding:3px 12px calc(3px + env(safe-area-inset-bottom,0px));min-height:28px;
+  overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain}
+#stat::-webkit-scrollbar{display:none}
+#stat .total{margin-left:auto;padding-left:12px}
+#stat b{font-weight:500;color:var(--ink-2)}
+#stat .leg{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:1px 4px;border-radius:6px}
+#stat .leg:hover{background:var(--line-soft)}
+#stat .leg:focus-visible{outline:2px solid var(--ink)}
+#stat .leg[aria-pressed="false"]{opacity:.4}
+#stat svg{color:var(--ink-muted)}
+#stat .total b{color:var(--ink)}
+
+/* right: settings */
+#settings{top:calc(52px + env(safe-area-inset-top,0px));right:12px;width:260px;max-height:calc(100% - 96px);overflow:auto;padding:4px 14px 12px}
+#settings .handle{display:flex;align-items:center;justify-content:space-between;cursor:grab;touch-action:none;user-select:none;padding:8px 0;font-weight:500}
+.iconbtn{right:12px;width:34px;height:34px;display:grid;place-items:center;
+  border:0;border-radius:12px;background:var(--card);color:var(--ink-2);cursor:pointer}
+#gear{top:calc(10px + env(safe-area-inset-top,0px))}
+#legend-btn{top:calc(10px + env(safe-area-inset-top,0px));right:54px}
+.iconbtn:hover,.iconbtn[aria-expanded="true"]{color:var(--ink)}
+.iconbtn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.x{all:unset;cursor:pointer;flex:none;width:26px;height:26px;display:grid;place-items:center;border-radius:8px;
+  color:var(--ink-muted);font-size:20px;line-height:1;font-weight:400}
+.x:hover{color:var(--ink);background:var(--line-soft)}
+.x:focus-visible{outline:2px solid var(--ink)}
+#colors{top:calc(52px + env(safe-area-inset-top,0px));right:12px;width:220px;max-height:calc(100% - 96px);overflow:auto;padding:8px 6px;opacity:.75}
+#colors:hover,#colors:focus-within{opacity:1}
+#colors button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;padding:3px 8px;border-radius:8px;font-size:12.5px}
+#colors button:hover{background:var(--line-soft)}
+#colors button:focus-visible{outline:2px solid var(--ink)}
+#colors button[aria-pressed="false"]{opacity:.4}
+#colors .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-2)}
+#colors .count{color:var(--ink-muted);font-size:12px}
+details{border-top:1px solid var(--line-soft);padding:6px 0}
+summary{cursor:pointer;color:var(--ink-2);padding:4px 0;font-size:13px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px 0;font-size:13px}
+.row label{display:flex;align-items:center;gap:8px;cursor:pointer;min-width:0}
+.row .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .count{color:var(--ink-muted);font-size:12px}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+input[type=checkbox],input[type=range]{accent-color:var(--ink)}
+input[type=range]{width:110px}
+.slider{display:grid;grid-template-columns:1fr auto;gap:2px 8px;margin:6px 0;font-size:13px}
+.slider input{grid-column:1/3;width:100%}
+.buttons{display:flex;gap:6px;margin:4px 0 2px}
+.small{font:inherit;font-size:12px;background:none;border:1px solid var(--line);color:var(--ink-2);border-radius:12px;padding:3px 10px;cursor:pointer}
+.small:hover{border-color:var(--ink-muted)}
+.small:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+
+/* bottom left: the selected node */
+#info{left:12px;bottom:calc(40px + env(safe-area-inset-bottom,0px));width:min(380px,calc(100vw - 24px));max-height:46vh;overflow:auto;padding:14px 16px}
+#info h2{font-family:var(--font-serif);font-weight:400;font-size:19px;line-height:1.2;margin:0 0 4px;text-wrap:balance}
+#info .path{font-size:12px;color:var(--ink-muted);word-break:break-all;margin:0 0 8px}
+#info .meta{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.chip{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 8px;color:var(--ink-2)}
+#info h3{font-size:12px;font-weight:500;color:var(--ink-muted);margin:10px 0 4px}
+#info ul{list-style:none;margin:0;padding:0}
+#info li button{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;padding:3px 0;font-size:13px;max-width:100%}
+#info li button:hover .name,#info li button:focus-visible .name{text-decoration:underline}
+#info .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#info .handle{display:flex;align-items:flex-start;gap:8px;cursor:grab;touch-action:none;user-select:none}
+#info .handle h2{flex:1}
+#info .x{margin:-3px -6px 0 0}
+
+
+#tip{position:fixed;z-index:3;pointer-events:none;background:var(--ink);color:var(--paper);font-size:12px;
+  padding:5px 8px;border-radius:8px;max-width:320px}
+#tip .p{opacity:.7}
+
+@media (max-width:640px){
+  #legend-btn{display:none}
+  #settings{top:calc(60px + env(safe-area-inset-top,0px));left:12px;right:12px;width:auto}
+  #colors{display:none}
+
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+
+<canvas id="c" aria-label="{{canvas}}"></canvas>
+
+<div id="bar" class="float">
+<div id="searchbox">
+  <div class="field">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="search" type="search" placeholder="{{search}}" autocomplete="off" aria-controls="results" aria-label="{{searchLabel}}">
+  </div>
+  <ul id="results" class="card" role="listbox" hidden></ul>
+</div>
+
+</div>
+<div id="stat" aria-live="polite"></div>
+
+<button id="gear" class="float iconbtn" aria-label="{{settings}}" aria-expanded="false" aria-controls="settings">
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+</button>
+<button id="legend-btn" class="float iconbtn" aria-label="{{legend}}" aria-expanded="true" aria-controls="colors">
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><circle cx="8" cy="16" r="3"/><circle cx="16" cy="16" r="3"/></svg>
+</button>
+<div id="colors" class="float card" aria-label="{{colors}}"></div>
+<div id="settings" class="float card" hidden>
+  <div class="handle"><span>{{settings}}</span><button class="x" id="settings-x" aria-label="{{closeSettings}}">×</button></div>
+  <div class="content">
+    <details open>
+      <summary>{{filters}}</summary>
+      <div class="buttons"><button class="small" id="all-on">{{all}}</button><button class="small" id="no-archive">{{noArchive}}</button></div>
+      <div id="groups"></div>
+      <div class="row"><label><input type="checkbox" id="orphans" checked> <span>{{orphans}}</span></label><span class="count" id="orphan-count"></span></div>
+      <div id="statuses"></div>
+    </details>
+    <details open>
+      <summary>{{display}}</summary>
+      <div class="row"><label><input type="checkbox" id="arrows"> <span>{{arrows}}</span></label></div>
+      <div class="slider"><span>{{nameThreshold}}</span><span id="v-threshold"></span><input type="range" id="threshold" min="1" max="8" step="0.1" value="3.1"></div>
+      <div class="slider"><span>{{nodeSize}}</span><span id="v-size"></span><input type="range" id="size" min="0.5" max="3" step="0.1" value="1"></div>
+      <div class="slider"><span>{{lineWidth}}</span><span id="v-stroke"></span><input type="range" id="stroke" min="0.2" max="3" step="0.1" value="1"></div>
+    </details>
+    <details open>
+      <summary>{{forces}}</summary>
+      <div class="slider"><span>{{centering}}</span><span id="v-center"></span><input type="range" id="center" min="0" max="0.3" step="0.01" value="0.05"></div>
+      <div class="slider"><span>{{repulsion}}</span><span id="v-repel"></span><input type="range" id="repel" min="0" max="400" step="5" value="80"></div>
+      <div class="slider"><span>{{linkPull}}</span><span id="v-pull"></span><input type="range" id="pull" min="0" max="1" step="0.02" value="0.3"></div>
+      <div class="slider"><span>{{linkLength}}</span><span id="v-dist"></span><input type="range" id="dist" min="5" max="200" step="5" value="40"></div>
+    </details>
+  </div>
+</div>
+
+<div id="info" class="float card" hidden></div>
+<div id="tip" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/7.0.0/fuse.min.js"></script>
+<script type="module">/*ICM-JS*/</script>
+
+<script>
+const D = __DATA__;
+const $ = s => document.querySelector(s);
+const TYPES = ["Reference","Output","Decision","Skill","Tracking","Architecture","Research","Context","Untyped"];
+const PALETTE = ["#b0643f","#c9a052","#7f8a4e","#9c7a63","#a3574f","#8f8568","#c48b6e","#6f7a6a"];
+const TAIL = ["#9c9a92","#b0aea5","#87867f","#c2c0b6"];
+
+// A color belongs to a group and is given once: groups by size, the archive in grey tail colors.
+const groupCount = d3.rollup(D.n, v => v.length, d => d.g);
+const groupOrder = [...groupCount.keys()].sort((a, b) => {
+  const aa = a.startsWith("{{archive}}"), bb = b.startsWith("{{archive}}");
+  return aa - bb || groupCount.get(b) - groupCount.get(a) || a.localeCompare(b);
+});
+const color = new Map(); let ip = 0, ir = 0;
+for (const g of groupOrder) color.set(g, g.startsWith("{{archive}}") ? TAIL[ir++ % TAIL.length] : PALETTE[ip++ % PALETTE.length]);
+
+const nodeById = new Map(D.n.map(n => [n.id, n]));
+const links = D.e.map(([s, t]) => ({source: s, target: t}));
+const neighbors = new Map(D.n.map(n => [n.id, {out: [], inc: []}]));
+for (const [s, t] of D.e) { neighbors.get(s).out.push(t); neighbors.get(t).inc.push(s); }
+
+const store = { read(k, d) { try { const v = localStorage.getItem("graph:" + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  write(k, v) { try { localStorage.setItem("graph:" + k, JSON.stringify(v)); } catch {} } };
+
+const state = {
+  groups: new Set(store.read("groups", groupOrder)),
+  statuses: new Set(store.read("statuses", ["active","draft","paused","archived",""])),
+  shapes: new Set(store.read("shapes", ["square","diamond","triangle","circle","ring"])),
+  orphans: true, arrows: false, selected: null, hover: null,
+};
+
+// ---------- controls ----------
+function row(name, count, dotColor, checked, onChange) {
+  const d = document.createElement("div"); d.className = "row";
+  const l = document.createElement("label");
+  const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = checked;
+  cb.addEventListener("change", () => onChange(cb.checked));
+  l.append(cb);
+  if (dotColor) { const t = document.createElement("span"); t.className = "dot"; t.style.background = dotColor; l.append(t); }
+  const s = document.createElement("span"); s.className = "name"; s.textContent = name; l.append(s);
+  const b = document.createElement("span"); b.className = "count"; b.textContent = count;
+  d.append(l, b); return {d, cb};
+}
+const groupBox = new Map(), colorBtn = new Map();
+function setGroup(g, on) {
+  on ? state.groups.add(g) : state.groups.delete(g); store.write("groups", [...state.groups]);
+  if (groupBox.has(g)) groupBox.get(g).checked = on;
+  if (colorBtn.has(g)) colorBtn.get(g).setAttribute("aria-pressed", on);
+  apply();
+}
+for (const g of groupOrder) {
+  const b = document.createElement("button"); b.setAttribute("aria-pressed", state.groups.has(g)); b.title = "{{onlyGroup}}";
+  b.innerHTML = `<span class="dot" style="background:${color.get(g)}"></span><span class="name"></span><span class="count">${groupCount.get(g)}</span>`;
+  b.querySelector(".name").textContent = g;
+  // Same as the status bar: a click leaves only that group, a second click restores all, Shift or Cmd adds.
+  b.onclick = e => {
+    const only = state.groups.size === 1 && state.groups.has(g);
+    if (e.shiftKey || e.metaKey || e.ctrlKey) { state.groups.has(g) && state.groups.size > 1 ? state.groups.delete(g) : state.groups.add(g); }
+    else state.groups = new Set(only ? groupOrder : [g]);
+    store.write("groups", [...state.groups]); apply();
+  };
+  colorBtn.set(g, b); $("#colors").append(b);
+}
+for (const g of groupOrder) {
+  const {d, cb} = row(g, groupCount.get(g), color.get(g), state.groups.has(g), on => setGroup(g, on));
+  groupBox.set(g, cb); $("#groups").append(d);
+}
+const brStatus = d3.rollup(D.n, v => v.length, d => d.st);
+for (const st of ["active","draft","paused","archived",""]) {
+  if (!brStatus.get(st)) continue;
+  const {d} = row(st || "{{noStatus}}", brStatus.get(st), null, state.statuses.has(st), on => {
+    on ? state.statuses.add(st) : state.statuses.delete(st); store.write("statuses", [...state.statuses]); apply();
+  });
+  $("#statuses").append(d);
+}
+$("#orphan-count").textContent = D.n.filter(n => !n.k).length;
+$("#all-on").onclick = () => { groupOrder.forEach(g => { state.groups.add(g); groupBox.get(g).checked = true; }); store.write("groups", [...state.groups]); apply(); };
+$("#no-archive").onclick = () => { groupOrder.forEach(g => { const on = !g.startsWith("{{archive}}"); on ? state.groups.add(g) : state.groups.delete(g); groupBox.get(g).checked = on; }); store.write("groups", [...state.groups]); apply(); };
+$("#orphans").onchange = e => { state.orphans = e.target.checked; apply(); };
+$("#arrows").onchange = e => { state.arrows = e.target.checked; draw(); };
+// Floating panels drag by their handle; a click without movement stays a click. They never go under the status bar.
+function place(el, x, y) {
+  const floor = $("#stat").getBoundingClientRect().top - 8;
+  const w = el.offsetWidth, h = Math.min(el.offsetHeight, 60);
+  x = Math.max(8, Math.min(x, innerWidth - w - 8)); y = Math.max(8, Math.min(y, floor - h));
+  Object.assign(el.style, {left: x + "px", top: y + "px", right: "auto", bottom: "auto"});
+}
+function draggable(el, isHandle, key) {
+  let v = null;
+  el.addEventListener("pointerdown", e => {
+    if (!isHandle(e.target) || e.button) return;
+    const b = el.getBoundingClientRect();
+    v = {dx: e.clientX - b.left, dy: e.clientY - b.top, x0: e.clientX, y0: e.clientY, moved: false, id: e.pointerId};
+  });
+  el.addEventListener("pointermove", e => {
+    if (!v) return;
+    if (!v.moved && Math.hypot(e.clientX - v.x0, e.clientY - v.y0) > 4) { v.moved = true; el.setPointerCapture(v.id); el.style.cursor = "grabbing"; }
+    if (v.moved) place(el, e.clientX - v.dx, e.clientY - v.dy);
+  });
+  el.addEventListener("pointerup", () => {
+    if (v && v.moved) { const b = el.getBoundingClientRect(); store.write(key, [b.left, b.top]);
+      el.addEventListener("click", e => { e.stopPropagation(); e.preventDefault(); }, {capture: true, once: true}); }
+    el.style.cursor = ""; v = null;
+  });
+  addEventListener("resize", () => { if (el.style.left) place(el, parseFloat(el.style.left), parseFloat(el.style.top)); });
+  return () => { const pos = store.read(key, null); if (pos) place(el, pos[0], pos[1]); };
+}
+const settings = $("#settings");
+draggable(settings, t => t.closest(".handle") && !t.closest("button"), "settings-pos");
+const restoreInfo = draggable($("#info"), t => t.closest(".handle") && !t.closest("button"), "info-pos");
+// invariant: at most one panel is open on the right, legend or settings, and it opens docked to the right edge.
+let legendOpen = store.read("legend", true);
+function dockRight(el) { for (const k of ["left", "top", "right", "bottom"]) el.style[k] = ""; }
+function legend() {
+  const shown = legendOpen && settings.hidden;
+  if (shown && $("#colors").hidden) dockRight($("#colors"));
+  $("#colors").hidden = !shown; $("#legend-btn").setAttribute("aria-expanded", shown);
+}
+$("#legend-btn").onclick = () => {
+  const shown = !$("#colors").hidden;
+  legendOpen = !shown; store.write("legend", legendOpen);
+  if (legendOpen) settings.hidden = true, $("#gear").setAttribute("aria-expanded", false);
+  legend();
+};
+function toggleSettings(show) {
+  if (show) dockRight(settings);
+  settings.hidden = !show; $("#gear").setAttribute("aria-expanded", show); legend();
+}
+$("#gear").onclick = () => toggleSettings(settings.hidden);
+$("#settings-x").onclick = () => toggleSettings(false);
+legend();
+
+const val = id => +$("#" + id).value;
+for (const id of ["threshold","size","stroke","center","repel","pull","dist"]) {
+  const el = $("#" + id), v = store.read("k2:" + id, null);
+  if (v != null) el.value = v;
+  $("#v-" + id).textContent = el.value;
+  el.addEventListener("input", () => {
+    $("#v-" + id).textContent = el.value; store.write("k2:" + id, el.value);
+    if (["center","repel","pull","dist"].includes(id)) { forces(); sim.alpha(0.4).restart(); } else draw();
+  });
+}
+
+// ---------- simulation ----------
+const canvas = $("#c"), ctx = canvas.getContext("2d");
+let W = 0, H = 0, dpr = 1, transform = d3.zoomIdentity;
+const sim = d3.forceSimulation(D.n).force("link", d3.forceLink(links).id(d => d.id))
+  .force("charge", d3.forceManyBody()).force("x", d3.forceX()).force("y", d3.forceY())
+  .alphaDecay(0.02).on("tick", draw);
+function forces() {
+  sim.force("charge").strength(-val("repel")).distanceMax(900);
+  sim.force("link").strength(val("pull")).distance(val("dist"));
+  sim.force("x").strength(val("center")); sim.force("y").strength(val("center"));
+}
+forces();
+
+let visible = new Set(), beforeShape = [];
+function apply() {
+  // beforeShape: passed every filter except type; the status bar counts from these, so a type that is off still shows its count.
+  beforeShape = D.n.filter(n => state.groups.has(n.g) && state.statuses.has(n.st) && (state.orphans || n.k));
+  visible = new Set(beforeShape.filter(n => state.shapes.has(shapeOf(n))).map(n => n.id));
+  if (state.selected && !visible.has(state.selected)) select(null);
+  // invariant: the color legend and the filters always show the same group state.
+  for (const g of groupOrder) { const on = state.groups.has(g); groupBox.get(g).checked = on; colorBtn.get(g).setAttribute("aria-pressed", on); }
+  statusBar(); draw();
+}
+// Shape by type; the status bar doubles as the shape legend.
+const SHAPE = {Skill: "square", Decision: "diamond", Context: "triangle", "Untyped": "ring"};
+const shapeOf = n => SHAPE[n.ty] || "circle";
+const LEGEND = [["square", "Skill", n => n.ty === "Skill"], ["diamond", "Decision", n => n.ty === "Decision"],
+  ["triangle", "Context", n => n.ty === "Context"], ["circle", "{{legendRecord}}", n => shapeOf(n) === "circle"], ["ring", "{{legendUntyped}}", n => n.ty === "Untyped"]];
+const ICON = {circle: '<circle cx="6" cy="6" r="4.5"/>', square: '<rect x="2" y="2" width="8" height="8"/>',
+  diamond: '<path d="M6 1 11 6 6 11 1 6Z"/>', triangle: '<path d="M6 1.5 11 10.5H1Z"/>',
+  ring: '<circle cx="6" cy="6" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/>'};
+function statusBar() {
+  const st = $("#stat"); st.innerHTML = "";
+  for (const [o, name, f] of LEGEND) {
+    const count = beforeShape.filter(f).length; if (!count && !state.shapes.has(o)) continue;
+    const b = document.createElement("button"); b.className = "leg"; b.setAttribute("aria-pressed", state.shapes.has(o));
+    b.title = "{{onlyPre}}" + name + "{{onlyPost}}";
+    b.innerHTML = `<svg viewBox="0 0 12 12" width="11" height="11" fill="currentColor" aria-hidden="true">${ICON[o]}</svg>${name} <b>${count}</b>`;
+    b.onclick = e => {
+      const all = LEGEND.map(x => x[0]), only = state.shapes.size === 1 && state.shapes.has(o);
+      if (e.shiftKey || e.metaKey || e.ctrlKey) { state.shapes.has(o) && state.shapes.size > 1 ? state.shapes.delete(o) : state.shapes.add(o); }
+      else state.shapes = new Set(only ? all : [o]);
+      store.write("shapes", [...state.shapes]); apply();
+    };
+    st.append(b);
+  }
+  const total = document.createElement("span"); total.className = "total"; total.innerHTML = `{{total}} <b>${visible.size}</b>`; st.append(total);
+}
+function path(n, rr) {
+  const o = shapeOf(n), x = n.x, y = n.y; ctx.beginPath();
+  if (o === "square") { const a = rr * 0.9; ctx.rect(x - a, y - a, 2 * a, 2 * a); }
+  else if (o === "diamond") { const a = rr * 1.25; ctx.moveTo(x, y - a); ctx.lineTo(x + a, y); ctx.lineTo(x, y + a); ctx.lineTo(x - a, y); ctx.closePath(); }
+  else if (o === "triangle") { const a = rr * 1.35; ctx.moveTo(x, y - a); ctx.lineTo(x + a * 0.87, y + a * 0.5); ctx.lineTo(x - a * 0.87, y + a * 0.5); ctx.closePath(); }
+  else ctx.arc(x, y, rr, 0, 2 * Math.PI);
+}
+
+const r = n => (2.2 + Math.sqrt(n.k) * 1.3) * val("size");
+function draw() {
+  const css = getComputedStyle(document.documentElement);
+  const muted = css.getPropertyValue("--ink-muted").trim(), lin = css.getPropertyValue("--line").trim();
+  const ink = css.getPropertyValue("--ink").trim(), paper = css.getPropertyValue("--paper").trim();
+  ctx.save(); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+  ctx.translate(transform.x, transform.y); ctx.scale(transform.k, transform.k);
+  const focusId = state.hover || state.selected;
+  const near = focusId ? new Set([focusId, ...neighbors.get(focusId).out, ...neighbors.get(focusId).inc]) : null;
+  const stroke = val("stroke") / transform.k;
+
+  for (const e of links) {
+    const s = e.source, t = e.target;
+    if (!visible.has(s.id) || !visible.has(t.id)) continue;
+    const isActive = focusId && (s.id === focusId || t.id === focusId);
+    ctx.globalAlpha = focusId ? (isActive ? 0.95 : 0.08) : 0.55;
+    ctx.strokeStyle = isActive ? ink : lin; ctx.lineWidth = isActive ? stroke * 1.6 : stroke;
+    ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(t.x, t.y); ctx.stroke();
+    if (state.arrows) {
+      const angle = Math.atan2(t.y - s.y, t.x - s.x), rt = r(t) + 1, a = 5 / transform.k;
+      const x = t.x - Math.cos(angle) * rt, y = t.y - Math.sin(angle) * rt;
+      ctx.fillStyle = isActive ? ink : muted; ctx.beginPath(); ctx.moveTo(x, y);
+      ctx.lineTo(x - a * Math.cos(angle - 0.45), y - a * Math.sin(angle - 0.45));
+      ctx.lineTo(x - a * Math.cos(angle + 0.45), y - a * Math.sin(angle + 0.45)); ctx.fill();
+    }
+  }
+  for (const n of D.n) {
+    if (!visible.has(n.id)) continue;
+    ctx.globalAlpha = near && !near.has(n.id) ? 0.15 : 1;
+    path(n, r(n));
+    if (shapeOf(n) === "ring") { ctx.lineWidth = Math.max(1, r(n) * 0.45); ctx.strokeStyle = color.get(n.g); ctx.stroke(); }
+    else { ctx.fillStyle = color.get(n.g); ctx.fill(); }
+    if (n.id === focusId) { path(n, r(n) + 2.5 / transform.k); ctx.lineWidth = 1.5 / transform.k; ctx.strokeStyle = ink; ctx.stroke(); }
+  }
+  const threshold = val("threshold");
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  for (const n of D.n) {
+    if (!visible.has(n.id)) continue;
+    const lit = near && near.has(n.id);
+    // Names only for the hovered or selected node and its neighbors, or once the zoom passes the threshold.
+    if (near ? !lit : transform.k < threshold) continue;
+    const size = (n.id === focusId ? 13 : 11) / transform.k;
+    ctx.font = `${size}px ui-sans-serif,system-ui,sans-serif`;
+    const text = n.t.length > 42 ? n.t.slice(0, 40) + "…" : n.t;
+    ctx.globalAlpha = 1; ctx.lineWidth = 3 / transform.k; ctx.strokeStyle = paper; ctx.fillStyle = n.id === focusId ? ink : muted;
+    ctx.strokeText(text, n.x, n.y + r(n) + 2 / transform.k); ctx.fillText(text, n.x, n.y + r(n) + 2 / transform.k);
+  }
+  ctx.restore();
+}
+
+function fit() {
+  dpr = window.devicePixelRatio || 1; W = window.innerWidth; H = window.innerHeight;
+  canvas.width = W * dpr; canvas.height = H * dpr; draw();
+}
+window.addEventListener("resize", fit);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+new MutationObserver(draw).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
+
+function hit(px, py) {
+  const [x, y] = transform.invert([px, py]); let best = null, d2 = Infinity;
+  for (const n of D.n) {
+    if (!visible.has(n.id)) continue;
+    const dx = n.x - x, dy = n.y - y, d = dx * dx + dy * dy, rr = r(n) + 4 / transform.k;
+    if (d < rr * rr && d < d2) { best = n; d2 = d; }
+  }
+  return best;
+}
+
+const zoom = d3.zoom().scaleExtent([0.05, 8]).on("zoom", e => { transform = e.transform; draw(); });
+let dragged = null;
+d3.select(canvas)
+  .call(d3.drag().container(canvas)
+    .subject(e => hit(e.x, e.y))
+    .on("start", e => { dragged = e.subject; canvas.classList.add("dragging"); if (!e.active) sim.alphaTarget(0.25).restart(); })
+    .on("drag", e => { const [x, y] = transform.invert([e.x, e.y]); dragged.fx = x; dragged.fy = y; })
+    .on("end", e => { canvas.classList.remove("dragging"); if (!e.active) sim.alphaTarget(0); dragged.fx = dragged.fy = null; dragged = null; }))
+  .call(zoom).on("dblclick.zoom", null);
+
+// invariant: while a node is selected, hover and click on other nodes do nothing; the selection is dropped by a click
+// on empty space, on the same node, or Esc; X closes only the panel. So panning never jumps to another node by accident.
+canvas.addEventListener("pointermove", e => {
+  const s = $("#tip");
+  if (state.selected) { if (state.hover) { state.hover = null; draw(); } s.hidden = true; canvas.style.cursor = ""; return; }
+  const n = hit(e.offsetX, e.offsetY);
+  if ((n && n.id) !== state.hover) { state.hover = n ? n.id : null; draw(); }
+  canvas.style.cursor = n ? "pointer" : "";
+  if (n) { s.hidden = false; s.innerHTML = ""; const a = document.createElement("div"); a.textContent = n.t;
+    const p = document.createElement("div"); p.className = "p"; p.textContent = n.id; s.append(a, p);
+    s.style.left = Math.min(e.clientX + 14, W - 330) + "px"; s.style.top = (e.clientY + 14) + "px"; }
+  else s.hidden = true;
+});
+canvas.addEventListener("pointerleave", () => { state.hover = null; $("#tip").hidden = true; draw(); });
+canvas.addEventListener("click", e => {
+  const n = hit(e.offsetX, e.offsetY);
+  if (state.selected) { if (!n || n.id === state.selected) select(null); return; }
+  if (n) select(n.id);
+});
+addEventListener("keydown", e => { if (e.key === "Escape") { select(null); $("#results").hidden = true; } });
+
+// ---------- selected node ----------
+function item(id) {
+  const n = nodeById.get(id), li = document.createElement("li"), b = document.createElement("button");
+  const t = document.createElement("span"); t.className = "dot"; t.style.background = color.get(n.g);
+  const s = document.createElement("span"); s.className = "name"; s.textContent = n.t; s.title = id;
+  b.append(t, s); b.onclick = () => select(id, true); li.append(b); return li;
+}
+function select(id, recenter) {
+  state.selected = id; const info = $("#info");
+  if (!id) { info.hidden = true; draw(); return; }
+  if (!visible.has(id)) { const g = nodeById.get(id).g; state.groups.add(g); groupBox.get(g).checked = true; apply(); }
+  const n = nodeById.get(id), nb = neighbors.get(id);
+  info.innerHTML = "";
+  const handle = document.createElement("div"); handle.className = "handle";
+  const z = document.createElement("button"); z.className = "x"; z.setAttribute("aria-label", "{{closePanel}}"); z.textContent = "×";
+  z.onclick = () => { info.hidden = true; }; // closes only the panel, the node stays selected
+  const h = document.createElement("h2"); h.textContent = n.t;
+  handle.append(h, z);
+  const p = document.createElement("p"); p.className = "path"; p.textContent = n.id;
+  const m = document.createElement("div"); m.className = "meta";
+  for (const v of [n.ty, n.st, n.tr, n.g].filter(Boolean)) { const c = document.createElement("span"); c.className = "chip"; c.textContent = v; m.append(c); }
+  info.append(handle, p, m);
+  for (const [heading, list] of [[`{{pointsTo}} ${nb.out.length}`, nb.out], [`{{pointedBy}} ${nb.inc.length}`, nb.inc]]) {
+    const h3 = document.createElement("h3"); h3.textContent = heading; info.append(h3);
+    const ul = document.createElement("ul"); list.slice().sort((a, b) => nodeById.get(a).t.localeCompare(nodeById.get(b).t)).forEach(x => ul.append(item(x)));
+    info.append(ul);
+  }
+  const wasHidden = info.hidden; info.hidden = false; info.scrollTop = 0; if (wasHidden) restoreInfo();
+  if (recenter) d3.select(canvas).transition().duration(matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 500)
+    .call(zoom.transform, d3.zoomIdentity.translate(W / 2, H / 2).scale(Math.max(transform.k, 1.2)).translate(-n.x, -n.y));
+  draw();
+}
+
+// ---------- search ----------
+// Search: exact substring over title, path, tags, description and the full text, ignoring case and
+// diacritics; Fuse only as a fallback for titles when nothing matches exactly (a typo).
+const fold = t => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\u0111/g, "d");
+for (const n of D.n) { n._t = fold(n.t); n._id = fold(n.id); n._tg = fold(n.tg.join(" ") + " " + n.d); n._b = fold(n.b); }
+const fuse = new Fuse(D.n, {keys: [{name: "t", weight: 3}, {name: "id", weight: 2}], threshold: 0.35, ignoreLocation: true});
+function search(q) {
+  const nq = fold(q); if (!nq) return [];
+  const hits = [];
+  for (const n of D.n) {
+    let score = 0, positions = [], from = 0, x;
+    while ((x = n._b.indexOf(nq, from)) >= 0 && positions.length < 50) { positions.push(x); from = x + nq.length; }
+    if (n._t.includes(nq)) score += 100;
+    if (n._id.includes(nq)) score += 40;
+    if (n._tg.includes(nq)) score += 20;
+    score += Math.min(positions.length, 20);
+    if (score) hits.push({n, score, positions});
+  }
+  hits.sort((a, b) => b.score - a.score || a.n.t.localeCompare(b.n.t));
+  if (hits.length) return hits.slice(0, 30);
+  return fuse.search(q, {limit: 10}).map(r => ({n: r.item, score: 0, positions: []}));
+}
+function highlight(text, q) {
+  // Folding keeps the character count, so positions in the folded text line up with the original.
+  const nt = fold(text), nq = fold(q), frag = document.createDocumentFragment();
+  let from = 0, x;
+  while (nq && (x = nt.indexOf(nq, from)) >= 0) {
+    frag.append(text.slice(from, x)); const m = document.createElement("mark"); m.textContent = text.slice(x, x + nq.length); frag.append(m); from = x + nq.length;
+  }
+  frag.append(text.slice(from)); return frag;
+}
+function snippet(n, pos, q) {
+  const a = Math.max(0, pos - 60), b = Math.min(n.b.length, pos + q.length + 90);
+  return (a ? "…" : "") + n.b.slice(a, b).replace(/\s+/g, " ") + (b < n.b.length ? "…" : "");
+}
+let found = [], activeIdx = 0;
+function showResults() {
+  const ul = $("#results"), q = $("#search").value.trim(); ul.innerHTML = "";
+  found.forEach((r, i) => {
+    const n = r.n, li = document.createElement("li"); li.setAttribute("role", "option"); li.setAttribute("aria-selected", i === activeIdx);
+    const t = document.createElement("span"); t.className = "t"; t.append(highlight(n.t, q));
+    const p = document.createElement("span"); p.className = "p"; p.append(highlight(n.id, q));
+    li.append(t, p);
+    for (const pos of r.positions.slice(0, 2)) { const s = document.createElement("span"); s.className = "s"; s.append(highlight(snippet(n, pos, q), q)); li.append(s); }
+    if (r.positions.length > 2) { const v = document.createElement("span"); v.className = "p"; v.textContent = `{{morePre}}${r.positions.length - 2}{{morePost}}`; li.append(v); }
+    li.onmousedown = e => { e.preventDefault(); select(n.id, true); ul.hidden = true; };
+    ul.append(li);
+  });
+  ul.hidden = !found.length;
+  const cur = ul.children[activeIdx]; if (cur) cur.scrollIntoView({block: "nearest"});
+}
+$("#search").addEventListener("input", e => {
+  const q = e.target.value.trim(); activeIdx = 0;
+  found = q.length >= 2 ? search(q) : []; showResults();
+});
+$("#search").addEventListener("keydown", e => {
+  if (!found.length) return;
+  if (e.key === "ArrowDown") { activeIdx = (activeIdx + 1) % found.length; showResults(); e.preventDefault(); }
+  if (e.key === "ArrowUp") { activeIdx = (activeIdx - 1 + found.length) % found.length; showResults(); e.preventDefault(); }
+  if (e.key === "Enter") { select(found[activeIdx].n.id, true); $("#results").hidden = true; }
+});
+$("#search").addEventListener("blur", () => setTimeout(() => $("#results").hidden = true, 100));
+$("#search").addEventListener("focus", () => { if (found.length) $("#results").hidden = false; });
+
+fit(); apply();
+d3.select(canvas).call(zoom.transform, d3.zoomIdentity.translate(W / 2, H / 2).scale(0.35));
+</script>

@@ -1,0 +1,10 @@
+icm-link{display:contents}
+.icm-link{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);
+  font-size:15px;color:var(--c-fg);background:var(--c-fill);border:1px solid var(--c-border);
+  border-radius:var(--radius-pill);padding:13px 20px;min-height:var(--tap);text-decoration:none;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  transition:transform .1s ease-out,background-color .16s var(--ease)}
+.icm-link:hover{background:var(--c-border)}
+.icm-link:active{transform:scale(.975)}
+.icm-link:focus-visible{outline:2px solid var(--c-fg);outline-offset:3px}
+.icm-link icm-icon{font-size:15px}

@@ -1,0 +1,10 @@
+/* Motion tokens. Motion is justified by what it tells you, never by liveliness:
+   it is added only where its absence would leave a change unexplained. */
+:root{
+  --ease:cubic-bezier(.2,.7,.3,1);
+  /* A panel pulls out like a drawer: slight overshoot, because motion has momentum. */
+  --ease-drawer:cubic-bezier(.22,1.08,.36,1);
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important}
+}

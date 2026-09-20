@@ -1,0 +1,8 @@
+.icm-slider{margin-top:16px}
+.icm-slider-q{font-family:var(--font-serif);font-size:16.5px;line-height:1.4;color:var(--c-fg);
+  margin-bottom:8px;text-wrap:pretty}
+.icm-slider-v{font-family:var(--font-serif);font-size:28px;line-height:1.1;color:var(--c-accent);
+  font-variant-numeric:tabular-nums lining-nums}
+.icm-slider-v small{font-family:var(--font-sans);font-size:14px;color:var(--c-fg-2);margin-left:4px}
+.icm-slider input{width:min(100%,280px);margin-top:8px;accent-color:var(--c-accent);
+  height:var(--tap);background:none}
