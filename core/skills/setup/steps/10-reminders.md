@@ -34,7 +34,7 @@ If nothing can be reached and the owner would rather enter things themselves, th
 channel: write `{"channel": "manual"}`, say the next move in the conversation, and the step is
 `done`. With the calendar route the two lists become dates; read the recipe before you explain lists.
 
-All recipes are unverified, and the ready script is too until this step has run it once: read `core/RECIPES.md`.
+The ready script is verified on macOS. All recipes are unverified: read `core/RECIPES.md`.
 
 ## Checkpoint
 

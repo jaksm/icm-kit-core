@@ -3,7 +3,7 @@
 #   core/scripts/remind.sh "Call the accountant about the statement" ["a note"]
 # The list comes from _config/reminders.json {"list": "todo"}; default "todo". The list must exist: this script never creates one.
 # invariant: the agent writes only to the catch-all list. Moving a thing to "today" is the owner's decision.
-# trust: unverified until it has been run once with the owner watching (setup step 10 does exactly that).
+# trust: verified on 2026-09-20, macOS, by the first owner: the item was read back through osascript and seen on the phone.
 set -eu
 title="${1:?usage: remind.sh \"title\" [\"note\"]}"; note="${2:-}"
 root="$(cd "$(dirname "$0")/../.." && pwd)"

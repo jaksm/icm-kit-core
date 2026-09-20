@@ -1,0 +1,12 @@
+---
+trust_tier: unverified
+---
+
+# An old repo, a folder, a disk
+
+Inventory with `find` and `git log --stat`, never by opening files: names, sizes, dates. Before
+anything else, search for secrets with the pattern from `core/scripts/leak-check.sh --pattern` and
+report the hits as paths only. `.env` files, key files and browser profiles are never opened.
+
+A repo's history may hold what its files no longer do; that is a reason to report, not to dig.
+Large binaries stay where they are: a record in the ICM points at them.
