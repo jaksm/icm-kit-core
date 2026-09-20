@@ -46,6 +46,6 @@ start inventing.
 ## Recipes mature from real setups
 
 When an unverified recipe got someone through, write what differed from the recipe into the owner's
-`domains/system/output/connectors-and-routines.md`, and offer them the text of an issue for
+`domains/system/output/open-tasks.md` under a heading for recipes that were run, and offer them the text of an issue for
 `icm-kit-core` with those differences and the platform and version. They decide whether to send
 it. There is no telemetry; this is the only way a recipe becomes `verified`.

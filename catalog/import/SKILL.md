@@ -17,12 +17,17 @@ to extract what is still in use, with the owner judging, because only they know 
 ## Process
 
 1. **Inventory without opening.** List items by title only, grouped by the area they would belong
-   to, with anything personal set apart. Folders are listed to the bottom. Show the inventory and
-   agree on the order.
+   to, with anything personal set apart. From titles alone that sorting is a guess: say so. Folders
+   are listed to the bottom. Show the inventory and agree on the order. An item that looks like
+   credentials (by its name, or by a search for words like password, login, key) is **not opened**;
+   an item the owner does not want opened stays closed. Both are listed outside the groups and end
+   up in the proposal for the source.
 2. **Groups of five.** Open five items, then give one table: number, title, date, one sentence of
-   what it holds, and a proposal. Proposals come from a closed set:
-   skip / one dated line in the history of an area / add to an existing record / a new record /
-   the idea list / archive as is under `archive/<source>/`.
+   what it holds, and a proposal. The date is the one the item itself states; file dates of a
+   copied folder are all the same day and mean nothing, and then the column says so. Proposals come from a closed set:
+   skip / one dated line under a "history" heading of the record it belongs to / add to an existing
+   record / a new record / the idea list of that area (`output/ideas.md`, created on first use, with
+   the owner's word) / archive as is under `archive/<source>/`.
 3. **Checkpoint: their word, then writing.** Nothing is written before they answer. An item they did
    not answer is asked once more; after continued silence the table's proposal is applied, and you say so.
 4. **One commit per group**, then straight to the next group. The message says what was skipped and why.
@@ -32,7 +37,9 @@ to extract what is still in use, with the owner judging, because only they know 
 ### Rules that are not up for fitting
 
 - **A password, token or key found in the source is never copied**, not into the ICM and not into
-  the conversation. Report where it is, so they can revoke it.
+  the conversation. Report where it is, so they can revoke it. The same holds for identity, tax and
+  document numbers and for single amounts of money: an item can look harmless by its title, so
+  when one turns up in an opened item, it stays out of the table too.
 - Personal material: ask before opening. When allowed, take the pattern and the method, not content
   about other people. Show the exact text of a personal entry before writing it.
 - Money: aggregates only. Identity and document numbers never enter.
@@ -43,5 +50,7 @@ to extract what is still in use, with the owner judging, because only they know 
 
 ## Outputs
 
-Records in the areas, one commit per group, a line in `domains/system/output/open-tasks.md` for the
-rest of the source, and the proposal for the source itself.
+Records in the areas, one commit per group, a line in `domains/system/output/open-tasks.md` for what
+is still to do (the rest of the source, or the owner's pending decision about it and the unopened
+items), and the proposal for the source itself. On first use, read `setup.md` once; it is not a
+precondition for a small folder.
