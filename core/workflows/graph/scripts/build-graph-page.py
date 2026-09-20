@@ -13,7 +13,10 @@ The page speaks English. _config/graph.json at the repo root overrides any label
 `archive` (prefix of the greyed out groups), `nested` (folders whose children are the groups)
 and `out` (where the page is written, default pages/graph.html).
 
-    python3 core/workflows/graph/scripts/build-graph-page.py [--check]
+    python3 core/workflows/graph/scripts/build-graph-page.py [--check | --demo]
+
+--demo writes a mock base of about sixty records (areas, skills, an archive, orphans) into a scratch folder, builds its graph
+into previews/graph.html and removes the scratch folder. Nothing of an owner's is read.
 """
 import importlib.util
 import json
@@ -25,7 +28,8 @@ from collections import Counter, defaultdict
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # invariant: this file lives at <repo>/core/workflows/graph/scripts/, so the root is four folders up.
 # Not asked of git: inside a commit hook GIT_DIR is set and rev-parse can answer with another checkout.
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
+# ICM_ROOT overrides it: that is how --demo builds the graph of a mock base without touching anyone's ICM.
+ROOT = os.environ.get("ICM_ROOT") or os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
 SKIP = {"_import", "node_modules"}   # plus dot folders at the root
 TEMPLATE = os.path.join(HERE, "template/graph-template.html")
 # the owner's changed copy of the template wins over the one in core/
@@ -104,7 +108,8 @@ def group(p):
 
 def _lib():
     """Build script of the shared component library: it inlines the stylesheet and module."""
-    for lib in (os.environ.get("ICM_LIB", ""), os.path.join(ROOT, "core/ui")):
+    # installed: <icm>/core/ui; in the kit's own checkout the library is beside core/workflows
+    for lib in (os.environ.get("ICM_LIB", ""), os.path.join(ROOT, "core/ui"), os.path.join(HERE, "../../ui")):
         if lib and os.path.exists(os.path.join(lib, "build.py")):
             break
     else:
@@ -197,11 +202,54 @@ def main():
     print("wrote %s, %d KB" % (os.path.relpath(OUT, ROOT), os.path.getsize(OUT) // 1024))
 
 
+def demo():
+    import random, shutil, subprocess
+    kit = os.path.abspath(os.path.join(HERE, "../../.."))
+    out = os.path.join(kit if os.path.exists(os.path.join(kit, "install.sh")) else os.path.join(ROOT, "pages"), "previews")
+    root = os.path.join(out, ".graph-root")
+    shutil.rmtree(root, ignore_errors=True)
+    rnd = random.Random(11)
+    areas = {"travel": ["lisbon", "kyoto-2027", "packing-list", "rail-passes", "visa-notes", "travel-budget"],
+             "health": ["knee-rehab", "physio-visits", "sleep-log", "blood-tests", "running-plan"],
+             "money": ["budget", "tax-deadlines", "insurance", "savings-goal", "subscriptions", "receipts-2026"],
+             "home": ["bathroom", "tiles", "plumber", "garden-beds", "tool-list"],
+             "learning": ["bread", "starter-notes", "spanish", "reading-list", "course-notes"],
+             "people": ["family", "friends", "gift-ideas", "birthdays"]}
+    types, statuses = ["Reference", "Output", "Decision", "Tracking", "Research"], ["active", "active", "active", "draft", "paused"]
+    files = {}
+    for a, names in areas.items():
+        files["domains/%s/CONTEXT.md" % a] = "# %s\n\n%s\n" % (a.capitalize(), "\n".join("- `domains/%s/%s.md`" % (a, n) for n in names))
+        for n in names:
+            others = rnd.sample(names, min(2, len(names)))
+            far = rnd.choice(list(areas))
+            body = " ".join("See [%s](%s.md)." % (o, o) for o in others if o != n) + " Also `domains/%s/%s.md`." % (far, rnd.choice(areas[far]))
+            files["domains/%s/%s.md" % (a, n)] = ("---\ntype: %s\ntitle: %s\ndescription: A mock record about %s.\nstatus: %s\ntrust_tier: verified\ntags: [%s]\n---\n\n# %s\n\n%s\n"
+                                                  % (rnd.choice(types), n.replace("-", " ").capitalize(), n.replace("-", " "), rnd.choice(statuses), a, n.replace("-", " ").capitalize(), body))
+    for sk in ["morning-review", "trip-planner", "monthly-close"]:
+        files["skills/%s/SKILL.md" % sk] = "---\ntype: Skill\ntitle: %s\nstatus: active\n---\n\n# %s\n\nReads `domains/money/budget.md` and `domains/travel/lisbon.md`.\n" % (sk, sk)
+    for old in ["old-flat", "2019-trip", "former-job"]:
+        files["archive/%s.md" % old] = "---\ntype: Reference\ntitle: %s\nstatus: archived\n---\n\n# %s\n\nKept for the record.\n" % (old, old)
+    for lone in ["loose-idea", "unfiled-note"]:
+        files["%s.md" % lone] = "# %s\n\nNothing points here yet.\n" % lone
+    files["_config/graph.json"] = '{"nested": ["domains"]}\n'   # one group, and so one color, per area
+    files["CLAUDE.md"] = "# Router\n\n%s\n" % "\n".join("- `domains/%s/CONTEXT.md`" % a for a in areas)
+    for rel, text in files.items():
+        os.makedirs(os.path.dirname(os.path.join(root, rel)) or root, exist_ok=True)
+        open(os.path.join(root, rel), "w", encoding="utf-8").write(text)
+    lib = next(p for p in (os.environ.get("ICM_LIB", ""), os.path.join(ROOT, "core/ui"), os.path.join(HERE, "../../ui")) if p and os.path.exists(os.path.join(p, "build.py")))
+    r = subprocess.run([sys.executable, os.path.abspath(__file__)], env={**os.environ, "ICM_ROOT": root, "ICM_LIB": lib})
+    if r.returncode == 0:
+        shutil.copy(os.path.join(root, "pages/graph.html"), os.path.join(out, "graph.html"))
+        print("wrote %s, %d mock records" % (os.path.join(out, "graph.html"), len(files)))
+    shutil.rmtree(root, ignore_errors=True)
+    return r.returncode
+
+
 if __name__ == "__main__":
     # invariant: an unknown flag stops the run. This script writes files, and a flag that is silently
     # ignored (`--help` did this) writes them for someone who only asked a question.
-    unknown = [a for a in sys.argv[1:] if a.startswith("-") and a != "--check"]
+    unknown = [a for a in sys.argv[1:] if a.startswith("-") and a not in ("--check", "--demo")]
     if unknown:
-        print(__doc__ if unknown == ["--help"] else "unknown flag: %s; known: --check" % " ".join(unknown))
+        print(__doc__ if unknown == ["--help"] else "unknown flag: %s; known: --check, --demo" % " ".join(unknown))
         sys.exit(0 if unknown == ["--help"] else 2)
-    main()
+    sys.exit(demo()) if "--demo" in sys.argv else main()
