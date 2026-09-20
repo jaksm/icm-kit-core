@@ -26,7 +26,7 @@ from collections import Counter, defaultdict
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True,
                       cwd=HERE).stdout.strip() or os.getcwd()
-SKIP = {".git", "_import", "node_modules", ".claude"}
+SKIP = {"_import", "node_modules"}   # plus every dot folder
 TEMPLATE = os.path.join(HERE, "template/graph-template.html")
 
 LABELS = {
@@ -51,14 +51,14 @@ OUT = os.path.join(ROOT, LABELS["out"])
 
 MD_LINK = re.compile(r"\]\(([^)\s]+?\.md)(?:#[^)]*)?\)")
 BACKTICK = re.compile(r"`([^`\s<>]+?\.md)`")
-TOPS = [d for d in sorted(os.listdir(ROOT)) if os.path.isdir(os.path.join(ROOT, d)) and d not in SKIP]
+TOPS = [d for d in sorted(os.listdir(ROOT)) if os.path.isdir(os.path.join(ROOT, d)) and d not in SKIP and not d.startswith(".")]
 # a folder in backticks points at its entry file: a skill at SKILL.md, an area at CONTEXT.md
 FOLDER = re.compile(r"`((?:%s)/[^`\s<>.]+?)/?`" % "|".join(map(re.escape, TOPS)))
 
 
 def files():
     for d, dirs, fs in os.walk(ROOT):
-        dirs[:] = [x for x in dirs if x not in SKIP]
+        dirs[:] = [x for x in dirs if x not in SKIP and not x.startswith(".")]
         for f in fs:
             if f.endswith(".md"):
                 yield os.path.relpath(os.path.join(d, f), ROOT)
@@ -149,7 +149,7 @@ def main():
         text = open(os.path.join(ROOT, p), encoding="utf-8", errors="replace").read()
         fm = frontmatter(text)
         name = os.path.basename(p)
-        kind = fm.get("type", "").capitalize() or ("Context" if name in ("CONTEXT.md", "CLAUDE.md") else "Untyped")
+        kind = fm.get("type", "").capitalize() or ("Context" if name == "CONTEXT.md" or (p == name and name[:-3].isupper() and name != "README.md") else "Untyped")
         title = fm.get("title")
         if not title:
             m = re.search(r"^# (.+)$", text, re.M)
