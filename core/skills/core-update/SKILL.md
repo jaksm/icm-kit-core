@@ -21,17 +21,30 @@ never touches it.
    releases are tags, and `CHANGELOG.md` lists them. Without `--branch` you get the latest. Read
    `CHANGELOG.md` from the installed version up: when a release in between says something is
    required outside `core/`, update **one release at a time**, finishing steps 1 to 6 for each.
-1. `<release>/install.sh <this ICM> --status`. It prints the installed and the available version
-   and every file in `core/` whose hash no longer matches the lock.
+1. `<release>/install.sh <this ICM> --status`. It prints the installed and the available version,
+   every file in `core/` whose hash no longer matches the lock, and `.local` copies left by an earlier update.
 2. Read the migrations between the two versions, oldest first. A migration says what moved, what
    key in `_config/` changed, and what the ICM must change outside `core/`.
-3. **Checkpoint.** For each locally edited file, show the owner the diff against the new release
-   and decide together: the edit belongs in `_config/`, upstream (it is a contribution), or it is
-   obsolete. Never decide this silently.
-4. `<release>/install.sh <this ICM>`, or `--force` once step 3 is settled; edited files are kept
-   beside the new ones as `<file>.local`.
-5. Apply what each migration lists for outside `core/`: hook paths, keys in `_config/`, renamed scripts.
-6. Audit: run the pre-commit hook and build every page once.
+3. **Checkpoint.** For each locally edited file, find **the owner's edit alone**: get the installed
+   version too (`git clone --branch v<installed>`), and diff *that* against the owner's file. A diff
+   against the new release mixes their lines with everything upstream changed. Show it and decide
+   together, never silently, where it goes:
+   - a page template or an adapter hook: a changed copy in `_config/overrides/<same path>`, made from
+     the **new** release's file plus their lines. `_config/README.md` lists what is read from there;
+   - a rule of their own in a check: its own script in `_config/checks/`, which the pre-commit hook
+     runs after the core checks. Copying a core script into overrides would freeze it;
+   - a value: a key in `_config/` or an environment variable in their hook, if the file reads one;
+   - useful to everyone: an issue or a pull request on icm-kit-core, and until it lands, one of the above;
+   - obsolete: dropped, on their word.
+4. Move every edit to its new home **first**, prove it takes effect there, and only then run
+   `<release>/install.sh <this ICM> --force`. With edits present a plain install refuses; `--force`
+   keeps each edited file beside the new one as `<file>.local` and prints which.
+5. Apply what each migration lists for outside `core/`: hook paths, keys in `_config/`, renamed
+   scripts. Search the owner's files for every old path the migration names: `grep -rn "<old path>" --exclude-dir=core .`
+6. **Resolve every `.local`**: it is resolved when its content lives in one of the homes above or the
+   owner dropped it; then delete it. `.local` files are ignored by git, so one that is left is invisible.
+7. Audit: `git config core.hooksPath` answers `.githooks` (set it if not, or the hook never ran);
+   commit and watch the hook pass; build every page listed in `domains/system/output/pages.md` once.
 
 ## Outputs
 

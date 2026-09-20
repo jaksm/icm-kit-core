@@ -18,6 +18,8 @@ Where the ICM should live and what to call the folder. Suggest `~/<firstname>-ic
 ```bash
 git clone https://github.com/jaksm/icm-kit <folder> && cd <folder>
 rm -rf .git && git init -b main && git config core.hooksPath .githooks
+# what belongs to the kit and not to an ICM: its landing page, its docs, its notes for contributors
+rm -rf site docs CONTRIBUTING.md README.md setup-prompt.md
 git config user.name "<their name>" && git config user.email "<their email>"
 git add -A && git commit -m "Start"
 ```

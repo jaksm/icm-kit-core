@@ -39,7 +39,9 @@ if [ "$mode" = --status ]; then
   echo "workflows installed from the catalog: ${modules[*]:-none}"
   echo "in the catalog: $(ls "$here/catalog" 2>/dev/null | grep -v '^index.md$' | tr '\n' ' ')"
   echo "locally edited files: ${#edited[@]}"; [ ${#edited[@]} -eq 0 ] || printf '  %s\n' "${edited[@]}"
-  exit 0
+  left="$(cd "$repo" && find core -name '*.local' 2>/dev/null | LC_ALL=C sort)"
+  [ -z "$left" ] || { echo "copies kept by an earlier --force, not yet resolved (git ignores them):"; echo "$left" | sed 's/^/  /'; }
+  exit 0   # always 0: read the counts, this is a report and not a gate
 fi
 for m in ${add[@]+"${add[@]}"}; do
   [ -f "$here/catalog/$m/SKILL.md" ] || { echo "install: no workflow '$m' in the catalog; see catalog/index.md"; exit 1; }
@@ -51,10 +53,10 @@ for m in ${remove[@]+"${remove[@]}"}; do
 done
 if [ ${#edited[@]} -gt 0 ] && [ "$mode" != --force ]; then
   echo "install: ${#edited[@]} files in core/ were edited since the last install:"; printf '  %s\n' "${edited[@]}"
-  echo "install: read MIGRATIONS/, move what should stay into _config/overrides/, then rerun with --force (edited files are kept as <file>.local)"
+  echo "install: give each edit a home outside core/ first (core/skills/core-update/SKILL.md, step 3), then rerun with --force; edited files are kept as <file>.local"
   exit 1
 fi
-for e in ${edited[@]+"${edited[@]}"}; do [ -f "$repo/$e" ] && cp "$repo/$e" "$repo/$e.local"; done
+for e in ${edited[@]+"${edited[@]}"}; do [ -f "$repo/$e" ] && cp "$repo/$e" "$repo/$e.local" && echo "install: kept $e.local"; done
 # invariant: nothing is deleted before the check above. A removal used to run first, so taking out a
 # workflow whose file the owner had edited destroyed the edit and then refused the install.
 # With --force the whole folder is kept beside it as <name>.local, which an update never touches.
