@@ -19,13 +19,13 @@ import importlib.util
 import json
 import os
 import re
-import subprocess
 import sys
 from collections import Counter, defaultdict
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ROOT = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True,
-                      cwd=HERE).stdout.strip() or os.getcwd()
+# invariant: this file lives at <repo>/core/workflows/graph/scripts/, so the root is four folders up.
+# Not asked of git: inside a commit hook GIT_DIR is set and rev-parse can answer with another checkout.
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
 SKIP = {"_import", "node_modules"}   # plus dot folders at the root
 TEMPLATE = os.path.join(HERE, "template/graph-template.html")
 

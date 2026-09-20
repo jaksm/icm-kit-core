@@ -32,7 +32,11 @@ VENDOR = os.path.join(LIB, "vendor/lit.js")
 
 
 def _labels_path():
-    root = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True).stdout.strip()
+    # invariant: vendored as <repo>/core/ui, the repo root is two folders up. Not asked of git: inside a
+    # commit hook GIT_DIR is set and rev-parse can answer with another checkout (seen in a worktree).
+    core = os.path.dirname(LIB)
+    root = os.path.dirname(core) if os.path.basename(core) == "core" else subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True).stdout.strip()
     for p in (os.environ.get("ICM_LABELS", ""), os.path.join(root, "config/labels.json") if root else "",
               os.path.join(os.path.dirname(LIB), "labels.json")):
         if p and os.path.exists(p):
