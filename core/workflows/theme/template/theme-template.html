@@ -5,7 +5,11 @@
 <style>/*ICM-CSS*/
 /* Theme editor: the editor beside the whole design system, so a choice is judged on everything at once, not on a swatch.
    Wide: the editor is a sticky column. Narrow: it is a sheet behind the Theme button. No color or font is written here. */
-html,body{margin:0}body{background:var(--page-bg);background-attachment:fixed;color:var(--ink);font:var(--w-body) var(--t-3)/var(--lh-body) var(--font-sans)}
+/* the ground is a fixed layer painted once (background-attachment:fixed repaints the screen per scroll frame); parts off screen
+   are skipped by the browser, so a change costs what is visible */
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:var(--page-bg)}
+.sink>section,.spec>*{content-visibility:auto;contain-intrinsic-size:auto 320px}
+html,body{margin:0}body{background:var(--paper);color:var(--ink);font:var(--w-body) var(--t-3)/var(--lh-body) var(--font-sans)}
 .shell{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:var(--s-6);max-width:1240px;margin:0 auto;padding:var(--s-5) var(--gutter) var(--s-8)}
 .side{position:sticky;top:var(--s-4);align-self:start;max-height:calc(100vh - 2*var(--s-4));overflow:auto}
 .sink{min-width:0}.sink>section+section{margin-top:var(--s-7)}

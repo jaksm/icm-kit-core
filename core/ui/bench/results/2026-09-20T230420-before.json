@@ -1,0 +1,192 @@
+{
+ "docs / plain": {
+  "load": {
+   "dom": 2290,
+   "html_kb": 309,
+   "font_kb": 0,
+   "fcp": 168
+  },
+  "scroll ledger": {
+   "fps": 30.1,
+   "UpdateLayoutTree": 0,
+   "Layout": 0,
+   "PrePaint": 8,
+   "Paint": 1,
+   "Layerize": 1,
+   "Commit": 0,
+   "RasterTask": 13,
+   "GPUTask": 0,
+   "ms": 3993
+  },
+  "palette tween ledger": {
+   "fps": 13.3,
+   "UpdateLayoutTree": 11,
+   "Layout": 1,
+   "PrePaint": 11,
+   "Paint": 9,
+   "Layerize": 2,
+   "Commit": 0,
+   "RasterTask": 6,
+   "GPUTask": 0,
+   "ms": 902,
+   "click_ms": 29
+  },
+  "scroll aquarium": {
+   "fps": 30,
+   "UpdateLayoutTree": 0,
+   "Layout": 0,
+   "PrePaint": 13,
+   "Paint": 3,
+   "Layerize": 1,
+   "Commit": 0,
+   "RasterTask": 19,
+   "GPUTask": 0,
+   "ms": 3995
+  },
+  "palette tween aquarium": {
+   "fps": 12.2,
+   "UpdateLayoutTree": 11,
+   "Layout": 2,
+   "PrePaint": 13,
+   "Paint": 8,
+   "Layerize": 2,
+   "Commit": 0,
+   "RasterTask": 2,
+   "GPUTask": 0,
+   "ms": 902,
+   "click_ms": 34
+  },
+  "type tween ledger": {
+   "fps": 1.1,
+   "UpdateLayoutTree": 19,
+   "Layout": 5,
+   "PrePaint": 6,
+   "Paint": 10,
+   "Layerize": 1,
+   "Commit": 0,
+   "RasterTask": 0,
+   "GPUTask": 0,
+   "ms": 901
+  },
+  "theme switch x4 (ripple)": {
+   "fps": 23.7,
+   "UpdateLayoutTree": 137,
+   "Layout": 78,
+   "PrePaint": 52,
+   "Paint": 136,
+   "Layerize": 24,
+   "Commit": 0,
+   "RasterTask": 27,
+   "GPUTask": 0,
+   "ms": 3201,
+   "click_ms": 26.5
+  },
+  "pad drag 2s": {
+   "fps": 28.3,
+   "UpdateLayoutTree": 1016,
+   "Layout": 41,
+   "PrePaint": 104,
+   "Paint": 132,
+   "Layerize": 20,
+   "Commit": 0,
+   "RasterTask": 33,
+   "GPUTask": 0,
+   "ms": 3919
+  }
+ },
+ "docs / cpu4x": {
+  "load": {
+   "dom": 2290,
+   "html_kb": 309,
+   "font_kb": 0,
+   "fcp": 52
+  },
+  "scroll ledger": {
+   "fps": 30,
+   "UpdateLayoutTree": 0,
+   "Layout": 0,
+   "PrePaint": 5,
+   "Paint": 3,
+   "Layerize": 1,
+   "Commit": 0,
+   "RasterTask": 3,
+   "GPUTask": 0,
+   "ms": 4002
+  },
+  "palette tween ledger": {
+   "fps": 13.3,
+   "UpdateLayoutTree": 42,
+   "Layout": 6,
+   "PrePaint": 15,
+   "Paint": 17,
+   "Layerize": 3,
+   "Commit": 0,
+   "RasterTask": 5,
+   "GPUTask": 0,
+   "ms": 900,
+   "click_ms": 49
+  },
+  "scroll aquarium": {
+   "fps": 30,
+   "UpdateLayoutTree": 0,
+   "Layout": 0,
+   "PrePaint": 4,
+   "Paint": 2,
+   "Layerize": 1,
+   "Commit": 0,
+   "RasterTask": 4,
+   "GPUTask": 0,
+   "ms": 4001
+  },
+  "palette tween aquarium": {
+   "fps": 13.3,
+   "UpdateLayoutTree": 40,
+   "Layout": 4,
+   "PrePaint": 13,
+   "Paint": 13,
+   "Layerize": 4,
+   "Commit": 0,
+   "RasterTask": 2,
+   "GPUTask": 0,
+   "ms": 900,
+   "click_ms": 49.3
+  },
+  "type tween ledger": {
+   "fps": 1.1,
+   "UpdateLayoutTree": 29,
+   "Layout": 9,
+   "PrePaint": 6,
+   "Paint": 11,
+   "Layerize": 1,
+   "Commit": 0,
+   "RasterTask": 0,
+   "GPUTask": 0,
+   "ms": 899
+  },
+  "theme switch x4 (ripple)": {
+   "fps": 19.7,
+   "UpdateLayoutTree": 316,
+   "Layout": 250,
+   "PrePaint": 120,
+   "Paint": 322,
+   "Layerize": 61,
+   "Commit": 0,
+   "RasterTask": 16,
+   "GPUTask": 0,
+   "ms": 3201,
+   "click_ms": 31.8
+  },
+  "pad drag 2s": {
+   "fps": 21.5,
+   "UpdateLayoutTree": 3541,
+   "Layout": 162,
+   "PrePaint": 384,
+   "Paint": 506,
+   "Layerize": 77,
+   "Commit": 0,
+   "RasterTask": 33,
+   "GPUTask": 0,
+   "ms": 5251
+  }
+ }
+}

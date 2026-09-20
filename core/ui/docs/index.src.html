@@ -9,7 +9,11 @@
 <style>/*ICM-CSS*/
 html{scroll-behavior:smooth;scroll-padding-top:var(--s-5)}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-body{margin:0;background:var(--page-bg);background-attachment:fixed;color:var(--ink);font:var(--w-body) var(--t-3)/1.55 var(--font-sans)}
+/* the page ground is a fixed layer of its own, painted once; background-attachment:fixed would repaint the screen on every scroll frame.
+   Sections off screen are skipped entirely (style, layout, paint): a theme change or a drag then costs what is visible, not 2000 nodes. */
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:var(--page-bg)}
+.d-part>*{content-visibility:auto;contain-intrinsic-size:auto 600px}
+body{margin:0;background:var(--paper);color:var(--ink);font:var(--w-body) var(--t-3)/1.55 var(--font-sans)}
 .d-shell{display:grid;grid-template-columns:240px minmax(0,1fr);max-width:1320px;margin:0 auto}
 .d-nav{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;padding:var(--s-5) var(--s-4);border-right:var(--border) solid var(--line);font-size:var(--t-2)}
 .d-nav b{display:block;font-size:var(--t-4);font-weight:var(--w-loud);font-stretch:85%;letter-spacing:-.03em}

@@ -25,12 +25,18 @@ icm-theme-editor{display:block;color:var(--c-fg)}
 .te-range input{width:100%;accent-color:var(--c-accent)}
 .te-code{width:100%;min-height:160px;font:400 var(--t-1)/1.5 var(--font-mono);max-width:none}
 .te-bad{color:var(--state-bad)}
-/* inside a theme everything that can interpolate does, in plain CSS: colors, corners, shadows, and (variable fonts only) weight and width.
-   A change of theme swaps font families, which cannot interpolate, so that one goes through the ripple instead. */
-:root.icm-theming *,:root.icm-theming *::before,:root.icm-theming *::after{transition:background-color .45s var(--ease),color .45s var(--ease),border-color .45s var(--ease),border-radius .45s var(--ease),box-shadow .45s var(--ease),font-weight .45s var(--ease),font-stretch .45s var(--ease),letter-spacing .45s var(--ease),fill .45s var(--ease),stroke .45s var(--ease)!important}
-::view-transition-old(root){animation:none}
-::view-transition-new(root){animation:icm-te-ripple .55s cubic-bezier(.3,.7,.2,1) both}
-@keyframes icm-te-ripple{from{clip-path:circle(0 at var(--te-x,50%) var(--te-y,50%))}to{clip-path:circle(150vmax at var(--te-x,50%) var(--te-y,50%))}}
+/* Every discrete change is a view transition: the browser styles the page ONCE, takes two snapshots and the compositor animates
+   between them, so the cost does not grow with the page. (A transition rule on every element cost 125 ms of style per change on a
+   400-node page, 450 ms on a slow CPU: bench/.) A change inside a theme cross-fades, which for colors is what a tween looks like;
+   a change of theme spreads like water from where the hand was: a soft-edged circle, fast out of the gate. */
+::view-transition-group(root){animation-duration:.24s}
+/* the wave: clip-path on the new snapshot. A basic-shape clip-path animation runs on the compositor (no paint per frame), which a
+   mask driven by a custom property does not; the water feel comes from the curve (bursts out, glides to the edges) and from the old
+   page sinking a little under it, not from a blurred edge. */
+:root.te-wave::view-transition-old(root){animation:icm-te-sink .5s cubic-bezier(.2,.7,.2,1) both}
+:root.te-wave::view-transition-new(root){animation:icm-te-wave .5s cubic-bezier(.12,.82,.26,1) both}
+@keyframes icm-te-wave{from{clip-path:circle(0 at var(--te-x,50%) var(--te-y,50%))}to{clip-path:circle(150vmax at var(--te-x,50%) var(--te-y,50%))}}
+@keyframes icm-te-sink{to{filter:brightness(.92)}}
 `;
 const PAIRS = [['ink', 7], ['ink-2', 4.5], ['ink-muted', 4.5], ['accent', 4.5]];
 const isHex = v => /^#[0-9a-f]{6}$/i.test(v || '');
@@ -63,21 +69,32 @@ class IcmThemeEditor extends HTMLElement {
     if (isHex(t['on-mark']) && isHex(t.mark) && contrast(t['on-mark'], t.mark) < 4.5) bad.push('on-mark on mark');
     if (isHex(t['on-accent']) && isHex(t['accent-fill']) && contrast(t['on-accent'], t['accent-fill']) < 4.5) bad.push('on-accent on accent-fill');
     return bad }
+  // resolves when the type set's families are usable, or after 700 ms, whichever is first
+  fontsReady(google) { let ln = document.getElementById('icm-theme-fonts'); if (!ln) { ln = document.createElement('link'); ln.id = 'icm-theme-fonts'; ln.rel = 'stylesheet'; document.head.append(ln) }
+    if (!google) { ln.removeAttribute('href'); return Promise.resolve() }
+    const href = `https://fonts.googleapis.com/css2?${google}&display=swap`; if (ln.href === href) return Promise.resolve();
+    const fams = google.split('&').map(f => decodeURIComponent(f.replace(/^family=/, '').split(':')[0]).replace(/\+/g, ' '));
+    const css = new Promise(r => { ln.onload = ln.onerror = r; ln.href = href });
+    return Promise.race([css.then(() => Promise.all(fams.map(f => document.fonts.load(`16px "${f}"`)))), new Promise(r => setTimeout(r, 700))]) }
   apply(ev) {
-    const go = () => { const { light, dark, google } = this.tokens(), body = t => Object.entries(t).map(([k, v]) => `--${k}:${v};`).join('');
+    const go = async () => { await this.fontsReady(this.tokens().google); const { light, dark } = this.tokens(), body = t => Object.entries(t).map(([k, v]) => `--${k}:${v};`).join('');
       let st = document.getElementById('icm-theme'); if (!st) { st = document.createElement('style'); st.id = 'icm-theme'; document.head.append(st) }
       st.textContent = `:root{${body(light)}}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){${body(dark)}}}:root[data-theme="dark"]{${body(dark)}}`;
-      let ln = document.getElementById('icm-theme-fonts'); if (!ln) { ln = document.createElement('link'); ln.id = 'icm-theme-fonts'; ln.rel = 'stylesheet'; document.head.append(ln) }
-      if (google) ln.href = `https://fonts.googleapis.com/css2?${google}&display=swap`; else ln.removeAttribute('href');
       this.state.scheme === 'auto' ? document.documentElement.removeAttribute('data-theme') : document.documentElement.dataset.theme = this.state.scheme;
       try { localStorage.setItem('icm-theme', JSON.stringify(this.state)) } catch {}
       this.dispatchEvent(new CustomEvent('icm-theme-change', { detail: this.choice(), bubbles: true })) };
-    // a flat ripple from where the hand was; still when the platform or the person says so
-    const calm = matchMedia('(prefers-reduced-motion:reduce)').matches;
-    const swap = ev && ev.target.closest && ev.target.closest('[data-theme],[data-zap]');   // only a whole-theme change ripples
-    if (!swap && !calm) { const c = document.documentElement.classList; c.add('icm-theming'); clearTimeout(this._tw); this._tw = setTimeout(() => c.remove('icm-theming'), 650) }
-    if (swap && document.startViewTransition && !calm) { const r = document.documentElement.style; r.setProperty('--te-x', ev.clientX + 'px'); r.setProperty('--te-y', ev.clientY + 'px'); document.startViewTransition(go) } else go();
+    const calm = matchMedia('(prefers-reduced-motion:reduce)').matches, root = document.documentElement;
+    if (!ev || !document.startViewTransition || calm) return go();
+    const wave = !!(ev.target.closest && ev.target.closest('[data-theme],[data-zap]'));
+    root.classList.toggle('te-wave', wave); root.style.setProperty('--te-x', ev.clientX + 'px'); root.style.setProperty('--te-y', ev.clientY + 'px');
+    document.startViewTransition(go).finished.finally(() => root.classList.remove('te-wave'));
   }
+  // continuous input (the color pad, a slider): only the tokens that changed, written on :root once per frame. No stylesheet swap
+  // (that invalidates the whole document), no storage, no event; apply() runs once when the hand lets go.
+  live() { if (this._raf) return; this._raf = requestAnimationFrame(() => { this._raf = 0; const { light, dark } = this.tokens(), r = document.documentElement;
+      const isDark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme:dark)').matches, t = isDark ? dark : light;
+      this._live = this._live || {}; for (const k in t) if (this._live[k] !== t[k]) { r.style.setProperty('--' + k, t[k]); this._live[k] = t[k] } }) }
+  settle() { const r = document.documentElement; for (const k in this._live || {}) r.style.removeProperty('--' + k); this._live = null; this.apply(); this.render() }
   choice() { const s = this.state, o = { theme: s.theme, palette: s.palette || this.theme.palettes[0].id, type: s.type || this.theme.type[0].id, overrides: {} };
     if (s.custom) { o.palette = 'custom'; o.custom = { id: 'custom', name: 'Custom', seeds: s.custom, ...palette(s.custom) } }
     if (s.radius != null) o.overrides.radius = s.radius + 'px'; if (s.size != null) o.overrides.size = s.size; return o }
@@ -117,12 +134,13 @@ class IcmThemeEditor extends HTMLElement {
       else if ('save' in d) { this.dispatchEvent(new CustomEvent('icm-theme-save', { detail: this.choice(), bubbles: true })); b.textContent = 'Saved'; setTimeout(() => b.textContent = 'Save theme', 1400) } };
     this.oninput = e => { const k = e.target.dataset?.k; if (!k) return; const v = +e.target.value;
       if (k === 'tint') Object.assign(this.state, { custom: { ...(this.state.custom || { hue: 265, chroma: .7 }), tint: v } }); else this.state[k] = v;
-      this.apply(); clearTimeout(this._t); this._t = setTimeout(() => this.render(), 250) };   // sliders apply at once, the panel redraws when the hand rests
+      this.live() };
+    this.onchange = e => { if (e.target.dataset?.k) this.settle() };   // the slider was let go
     const pad = this.querySelector('.te-pad'), move = e => { const r = pad.getBoundingClientRect(), x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), y = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
-      this.state.custom = { tint: .25, ...(this.state.custom || {}), hue: Math.round(x * 360), chroma: +(1 - y).toFixed(2) }; this.apply();
+      this.state.custom = { tint: .25, ...(this.state.custom || {}), hue: Math.round(x * 360), chroma: +(1 - y).toFixed(2) }; this.live();
       const k = pad.firstElementChild; k.hidden = false; k.style.left = x * 100 + '%'; k.style.top = y * 100 + '%'; k.style.background = `hsl(${x * 360} ${(1 - y) * 100}% 50%)` };
     pad.onpointerdown = e => { pad.setPointerCapture(e.pointerId); move(e); pad.onpointermove = move };
-    pad.onpointerup = pad.onpointercancel = () => { pad.onpointermove = null; this.render() };
+    pad.onpointerup = pad.onpointercancel = () => { pad.onpointermove = null; this.settle() };
   }
 }
 customElements.get('icm-theme-editor') || customElements.define('icm-theme-editor', IcmThemeEditor);
