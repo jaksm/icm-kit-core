@@ -12,17 +12,23 @@ router at the top. No vector database, no server, nothing to keep running. Start
 
 | Folder | What it holds |
 | --- | --- |
-| `core/scripts/` | Three commit checks with no dependencies: `leak-check.sh` (secrets), `link-check.sh` (pointers to files that do not exist), `style-check.sh` (rules a machine can enforce). Repo specifics come in through environment variables set in the repo's own hook. |
-| `core/adapters/` | Everything that depends on one harness. `claude/` today; the contract for the next one is `adapters/README.md`. |
+| `core/scripts/` | Commit checks with no dependencies: `leak-check.sh` (secrets), `link-check.sh` (pointers to files that do not exist), `style-check.sh` (rules a machine can enforce, line limits included). Also `check-feed.py` and `remind.sh`. Repo specifics come in through environment variables set in the repo's own hook. |
+| `core/adapters/` | Everything that depends on one harness. `claude/` today; the contract for the next one is `adapters/README.md`. Nothing outside this folder names a harness. |
+| `core/skills/setup/` | Setup of a new ICM, or adoption of an existing one, in fourteen resumable steps with proof per step. |
+| `core/skills/core-update/` | How an agent updates `core/` without overwriting the owner's customizations. |
+| `core/backup/` | The recovery USB: key, restore scripts, and instructions for an agent on a bare computer. |
 | `core/ui/` | A vendored release of [icm-ui](https://github.com/jaksm/icm-ui), the web components pages are built from. |
-| `core/workflows/graph/` | Builds a searchable graph page of the whole repo. |
-| `core/skills/` | Skills that operate the system itself, starting with `core-update`. |
+| `core/workflows/graph/` | Builds a searchable graph page of the whole repo. Part of every ICM. |
+| `core/RECIPES.md` | Ready code covers the common case; a recipe tells the agent how to build what can only be the owner's, and says whether anyone has run it. |
+| `catalog/` | Optional workflows, installed only on request: `sources`, `morning-review`, `feed`, `expenses`, `import`. See `catalog/index.md`. |
+| `MIGRATIONS/` | One note per release: what moved, and what has to be done outside `core/`. |
 
 ## Install and update
 
 ```bash
 ./install.sh <repo>            # copies core/ and writes core.lock
 ./install.sh <repo> --status   # what the owner edited since, and which version is installed
+./install.sh <repo> --add feed # install a workflow from the catalog; --remove takes it out
 ```
 
 `core.lock` holds the version and a hash per file, so an update can tell a local edit from an old
