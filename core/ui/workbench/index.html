@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>icm-ui workbench</title>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>/* Color tokens. Matched to the Claude host UI so an artifact reads as part of the app. */
+:root{
+  --paper:#f0eee6; --card:#faf9f5;
+  --ink:#141413; --ink-2:#3d3d3a; --ink-muted:#87867f;
+  --line:#cccbc8; --line-soft:#e3dacc;
+  --accent:#b4532a;
+  --mark:#f2cb4e;   /* the highlighter: the one thing on a page that is being read or followed right now */
+
+  /* Over a photo the colors are FIXED, not themed: the text has to read on a light and on
+     a dark image alike, so the scrim does the work instead of the theme. */
+  --over:#fff; --over-2:#e8e5dd; --over-muted:#bdb9b0; --over-accent:#ffb08d;
+
+  /* Scrim stops, shared by every surface that puts text over an image. Changing the ramp
+     here changes it in every artifact at once; it was measured, not guessed. */
+  --scrim-ink:20,19,17;
+  --scrim-floor:#141311;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#262624; --card:#30302e;
+  --ink:#faf9f5; --ink-2:#c2c0b6; --ink-muted:#9c9a92;
+  --line:#4a4945; --line-soft:#3d3d3a;
+  --accent:#f0a27f;
+}}
+:root[data-theme="dark"]{
+  --paper:#262624; --card:#30302e;
+  --ink:#faf9f5; --ink-2:#c2c0b6; --ink-muted:#9c9a92;
+  --line:#4a4945; --line-soft:#3d3d3a;
+  --accent:#f0a27f;
+}
+
+/* Type tokens. Serif for anything that is read, sans for anything that is operated. */
+:root{
+  --font-sans:"Anthropic Sans",ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --font-serif:"Anthropic Serif",ui-serif,Georgia,Cambria,"Times New Roman",serif;
+  --font-mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+html{-webkit-font-smoothing:antialiased}
+
+/* Motion tokens. Motion is justified by what it tells you, never by liveliness:
+   it is added only where its absence would leave a change unexplained. */
+:root{
+  --ease:cubic-bezier(.2,.7,.3,1);
+  /* A panel pulls out like a drawer: slight overshoot, because motion has momentum. */
+  --ease-drawer:cubic-bezier(.22,1.08,.36,1);
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important}
+}
+
+/* Layout tokens and the page reset every artifact starts from. */
+:root{
+  --gutter:20px;
+  --radius:16px;
+  --radius-pill:999px;
+  --tap:48px;       /* minimum touch target, Apple HIG */
+}
+*{box-sizing:border-box}
+/* invariant: the host wrapper sets :root padding from the safe-area insets, so a page that
+   wants the full screen uses height:100%, never 100vh or 100dvh. Both ignore that padding
+   and make the card taller than the frame. */
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+
+/* Surface tokens: the one indirection that lets the SAME component sit on paper and on a
+   photo. A component never reads --ink or --over directly; it reads --c-*, and the surface
+   class decides what those mean. Without this, every artifact would need its own copy of
+   every component, which is the duplication this library exists to remove. */
+.on-paper{
+  --c-fg:var(--ink); --c-fg-2:var(--ink-2); --c-muted:var(--ink-muted);
+  --c-accent:var(--accent);
+  --c-hairline:var(--line); --c-fill:rgba(20,19,17,.06); --c-border:var(--line);
+}
+.on-photo{
+  --c-fg:var(--over); --c-fg-2:var(--over-2); --c-muted:var(--over-muted);
+  --c-accent:var(--over-accent);
+  --c-hairline:rgba(250,249,245,.11); --c-fill:rgba(250,249,245,.12);
+  --c-border:rgba(250,249,245,.3);
+  text-shadow:0 1px 14px rgba(var(--scrim-ink),.55),0 1px 2px rgba(var(--scrim-ink),.4);
+}
+/* State colors are the same on both surfaces: they mean "this changes what you do". */
+:root{
+  --state-good:#7a8c46; --state-warn:#9a6b1f; --state-bad:#b4532a;
+}
+.on-photo{
+  --state-good:#cfe0a8; --state-warn:#f0cf95; --state-bad:#f2a68c;
+}
+
+/* Palette "archive": the direction of the icm-kit landing page, as tokens, so pages and the site can
+   share one language. A filing system made of plain files: cold paper, blue-black ink, archive blue
+   for what can be followed, one highlighter for what is being read. A page opts in with
+   <html data-palette="archive">; without it the host-matched palette in colors.css applies.
+   DRAFT: values are the landing page's first pass, to be refined on the workbench. */
+:root[data-palette="archive"]{
+  --paper:#EEF1F4; --card:#FBFCFD;
+  --ink:#16202B; --ink-2:#33404E; --ink-muted:#566373;
+  --line:#C5CDD6; --line-soft:#DDE3E9;
+  --accent:#2F5D8C;
+  --mark:#F2CB4E;
+  --over-accent:#9CC4EE;
+  --font-sans:"Hanken Grotesk",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-serif:"Hanken Grotesk",ui-sans-serif,system-ui,sans-serif;   /* one family: reading and operating look alike here */
+  --font-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --radius:10px;
+}
+@media (prefers-color-scheme:dark){:root[data-palette="archive"]:not([data-theme="light"]){
+  --paper:#121920; --card:#1A232D;
+  --ink:#EAF0F5; --ink-2:#BCC7D2; --ink-muted:#8696A6;
+  --line:#2F3C49; --line-soft:#232E39;
+  --accent:#8DB9E6;
+}}
+:root[data-palette="archive"][data-theme="dark"]{
+  --paper:#121920; --card:#1A232D;
+  --ink:#EAF0F5; --ink-2:#BCC7D2; --ink-muted:#8696A6;
+  --line:#2F3C49; --line-soft:#232E39;
+  --accent:#8DB9E6;
+}
+
+/* invariant: the host is `display:contents`, so the real <button> is the flex item of
+   whatever laid it out. Without this every wrapper becomes a block and rails, toolbars and
+   inline rows all lay out one element too deep. */
+icm-button{display:contents}
+.icm-button{font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:8px;
+  min-height:var(--tap);color:var(--c-fg);background:none;border:0;
+  transition:transform .1s ease-out,background-color .16s var(--ease),color .16s var(--ease)}
+.icm-button:active{transform:scale(.97)}
+.icm-button:disabled{opacity:.35;cursor:default}
+.icm-button:focus-visible{outline:2px solid var(--c-fg);outline-offset:3px;border-radius:12px}
+.icm-button.is-pill{background:var(--c-fill);border:1px solid var(--c-border);
+  border-radius:var(--radius-pill);padding:13px 24px;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.icm-button.is-quiet{padding:13px 14px;color:var(--c-muted)}
+.icm-button.is-quiet:hover{color:var(--c-fg)}
+/* rail: a stacked icon+caption action, as in the feed's right-hand rail */
+.icm-button.is-rail{flex-direction:column;gap:3px;font-size:10.5px;min-width:46px;
+  justify-content:center;color:var(--c-fg-2)}
+.icm-button.is-rail icm-icon{font-size:23px}
+.icm-button.is-rail[aria-pressed="true"]{color:var(--c-accent)}
+
+icm-icon{display:contents}
+.icm-icon{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.6;
+  stroke-linecap:round;stroke-linejoin:round;display:block}
+.icm-icon.is-filled{fill:currentColor}
+
+icm-link{display:contents}
+.icm-link{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);
+  font-size:15px;color:var(--c-fg);background:var(--c-fill);border:1px solid var(--c-border);
+  border-radius:var(--radius-pill);padding:13px 20px;min-height:var(--tap);text-decoration:none;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  transition:transform .1s ease-out,background-color .16s var(--ease)}
+.icm-link:hover{background:var(--c-border)}
+.icm-link:active{transform:scale(.975)}
+.icm-link:focus-visible{outline:2px solid var(--c-fg);outline-offset:3px}
+.icm-link icm-icon{font-size:15px}
+
+icm-action{display:contents}
+.icm-action{font:inherit;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;
+  gap:8px;min-height:var(--tap);padding:13px 20px;color:var(--c-fg);background:var(--c-fill);
+  border:1px solid var(--c-border);border-radius:var(--radius-pill);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  transition:transform .1s ease-out,background-color .16s var(--ease),color .16s var(--ease)}
+.icm-action:active{transform:scale(.975)}
+.icm-action.is-link{text-decoration:none}
+.icm-action:focus-visible{outline:2px solid var(--c-fg);outline-offset:3px}
+.icm-action icm-icon{font-size:16px}
+.icm-action-mark{width:16px;height:16px;stroke:currentColor;stroke-width:1.6;
+  stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+/* asking: the second tap is the real one, so it has to look different from the first */
+.icm-action.is-asking{color:var(--state-bad);border-color:currentColor}
+.icm-action.is-running{opacity:.6;cursor:default}
+.icm-action.is-done{color:var(--state-good);border-color:currentColor;opacity:1;cursor:default}
+.icm-action.is-error{color:var(--state-bad);border-color:currentColor}
+.icm-action-error{font-size:12px;color:var(--c-muted);margin-top:6px;max-width:28ch}
+
+.icm-choice{margin-top:16px}
+.icm-choice-q{font-family:var(--font-serif);font-size:16.5px;line-height:1.4;color:var(--c-fg);
+  margin-bottom:10px;text-wrap:pretty}
+.icm-choice-row{display:flex;flex-wrap:wrap;gap:8px}
+.icm-choice-row button{font:inherit;font-size:15px;cursor:pointer;min-height:var(--tap);
+  padding:11px 18px;color:var(--c-fg-2);background:none;border:1px solid var(--c-border);
+  border-radius:var(--radius-pill);transition:transform .1s ease-out,color .16s var(--ease),
+  background-color .16s var(--ease)}
+.icm-choice-row button:active{transform:scale(.97)}
+.icm-choice-row button.is-on{color:var(--c-fg);background:var(--c-fill);border-color:var(--c-fg)}
+.icm-choice-row button:focus-visible{outline:2px solid var(--c-fg);outline-offset:2px}
+
+.icm-confirm{margin-top:16px}
+.icm-confirm-q{font-family:var(--font-serif);font-size:16.5px;line-height:1.4;color:var(--c-fg);
+  margin-bottom:10px;text-wrap:pretty}
+.icm-confirm-row{display:flex;gap:8px}
+.icm-confirm-row button{font:inherit;font-size:15px;cursor:pointer;min-height:var(--tap);
+  padding:11px 24px;color:var(--c-fg-2);background:none;border:1px solid var(--c-border);
+  border-radius:var(--radius-pill);transition:transform .1s ease-out,color .16s var(--ease)}
+.icm-confirm-row button:active{transform:scale(.97)}
+.icm-confirm-row button.is-on{color:var(--c-fg);background:var(--c-fill);border-color:var(--c-fg)}
+.icm-confirm-row button:focus-visible{outline:2px solid var(--c-fg);outline-offset:2px}
+
+.icm-deadline{display:inline-flex;align-items:baseline;gap:8px;margin-bottom:12px;
+  font-size:13px;color:var(--c-fg-2)}
+.icm-deadline b{font-weight:400;font-size:15px;color:var(--c-fg)}
+.icm-deadline.is-near b{color:var(--state-warn)}
+.icm-deadline.is-now b{color:var(--state-bad)}
+
+.icm-delta{display:inline-flex;align-items:center;gap:5px;font-size:13px;
+  color:var(--c-fg-2);margin-top:2px}
+.icm-delta i{font-style:normal;font-size:11px}
+.icm-delta.is-up i{color:var(--state-bad)}
+.icm-delta.is-down i{color:var(--state-good)}
+
+.icm-facts{margin:18px 0 0;display:flex;flex-direction:column;width:100%}
+/* invariant: the hairline sits on the ROW, not on the cells. In a two-column grid it breaks
+   at the column seam and leaves a gap in the middle of every row. */
+.icm-facts-row{display:flex;align-items:baseline;gap:16px;justify-content:space-between;
+  padding:9px 0;border-top:1px solid var(--c-hairline)}
+.icm-facts-row:first-child{border-top:0}
+.icm-facts dt{font-size:12.5px;color:var(--c-muted);flex:0 0 auto}
+.icm-facts dd{margin:0;font-size:14px;color:var(--c-fg);text-align:right;
+  font-variant-numeric:tabular-nums lining-nums;min-width:0}
+.icm-facts-row.is-long{flex-direction:column;align-items:flex-start;gap:3px}
+.icm-facts-row.is-long dd{text-align:left;font-family:var(--font-serif);font-size:16px;
+  line-height:1.45;color:var(--c-fg-2);text-wrap:pretty}
+
+.icm-gauge{width:min(100%,260px);margin:10px 0 4px}
+.icm-gauge-bar{position:relative;height:6px;background:var(--c-fill);overflow:hidden}
+.icm-gauge-bar i{display:block;height:100%;background:var(--c-accent);width:0;
+  transition:width .6s var(--ease)}
+.icm-gauge-bar b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--c-fg)}
+.icm-gauge-label{font-size:11.5px;color:var(--c-muted);margin-top:6px}
+
+.icm-input{margin-top:16px}
+.icm-input-q{font-family:var(--font-serif);font-size:16.5px;line-height:1.4;color:var(--c-fg);
+  margin-bottom:8px;text-wrap:pretty}
+.icm-input input{font-family:var(--font-serif);font-size:20px;color:var(--c-fg);
+  background:none;border:0;border-bottom:1px solid var(--c-border);border-radius:0;
+  padding:6px 2px;width:min(100%,320px);min-height:var(--tap);-webkit-appearance:none}
+.icm-input input:focus{outline:0;border-bottom-color:var(--c-accent);border-bottom-width:2px}
+.icm-input input::placeholder{color:var(--c-muted)}
+
+.icm-list{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.icm-list li{display:flex;align-items:flex-start;gap:10px;font-family:var(--font-serif);
+  font-size:16px;line-height:1.4;color:var(--c-fg-2)}
+/* checks: state per item, for what gets worked off */
+.icm-list li::before{content:"";flex:0 0 auto;width:15px;height:15px;border-radius:var(--radius-pill);
+  border:1.5px solid var(--c-border);margin-top:.22em}
+.icm-list li.is-done{color:var(--c-muted)}
+.icm-list li.is-done::before{background:var(--c-border);border-color:transparent}
+/* dots: plain enumeration, no state */
+.icm-list.is-dots li::before{width:5px;height:5px;margin-top:.55em;border:0;
+  background:var(--c-muted)}
+/* steps: the order carries the meaning */
+.icm-list.is-steps{counter-reset:icm-step}
+.icm-list.is-steps li{counter-increment:icm-step}
+.icm-list.is-steps li::before{content:counter(icm-step);width:auto;height:auto;border:0;
+  background:none;font-family:var(--font-sans);font-size:12px;color:var(--c-muted);
+  min-width:15px;margin-top:.28em}
+
+.icm-metric{display:flex;align-items:baseline;gap:6px;margin-bottom:1px}
+.icm-metric b{font-family:var(--font-serif);font-weight:400;font-size:clamp(50px,15vw,74px);
+  line-height:1.08;letter-spacing:-.035em;font-variant-numeric:tabular-nums lining-nums;
+  color:var(--c-accent);padding-bottom:.04em}
+.icm-metric small{font-family:var(--font-sans);font-size:clamp(14px,3.8vw,18px);color:var(--c-fg-2)}
+/* quiet: the number follows the story instead of leading it */
+.icm-metric.is-quiet b{font-size:clamp(28px,8vw,38px);color:var(--c-fg)}
+.icm-metric-label{font-size:12.5px;line-height:1.5;color:var(--c-muted);margin-bottom:18px}
+.icm-metric.is-quiet + .icm-metric-label{margin-bottom:14px}
+/* state: the number is read against a threshold, so the threshold colors it */
+.icm-metric.is-good b{color:var(--state-good)}
+.icm-metric.is-warn b{color:var(--state-warn)}
+.icm-metric.is-bad b{color:var(--state-bad)}
+
+.icm-next{margin-top:18px;display:flex;align-items:flex-start;gap:10px;font-size:14.5px;
+  line-height:1.45;color:var(--c-fg);background:var(--c-fill);
+  border:1px solid var(--c-border);border-radius:var(--radius);padding:12px 15px}
+.icm-next::before{content:"";width:6px;height:6px;border-radius:var(--radius-pill);flex:0 0 auto;
+  background:var(--c-accent);margin-top:.5em}
+
+.icm-quote{margin:16px 0 0;padding-left:14px;border-left:2px solid var(--c-border)}
+.icm-quote p{font-family:var(--font-serif);font-style:italic;font-size:16.5px;line-height:1.45;
+  color:var(--c-fg);margin:0;text-wrap:pretty}
+.icm-quote cite{display:block;font-style:normal;font-size:12px;color:var(--c-muted);margin-top:7px}
+
+.icm-series{margin:10px 0 2px}
+.icm-series svg{display:block;overflow:visible}
+.icm-series path{stroke:var(--c-fg-2)}
+.icm-series rect{fill:var(--c-fg-2);opacity:.55}
+.icm-series .is-last{fill:var(--c-accent);opacity:1}
+.icm-series-label{font-size:11.5px;color:var(--c-muted);margin-top:5px}
+
+.icm-slider{margin-top:16px}
+.icm-slider-q{font-family:var(--font-serif);font-size:16.5px;line-height:1.4;color:var(--c-fg);
+  margin-bottom:8px;text-wrap:pretty}
+.icm-slider-v{font-family:var(--font-serif);font-size:28px;line-height:1.1;color:var(--c-accent);
+  font-variant-numeric:tabular-nums lining-nums}
+.icm-slider-v small{font-family:var(--font-sans);font-size:14px;color:var(--c-fg-2);margin-left:4px}
+.icm-slider input{width:min(100%,280px);margin-top:8px;accent-color:var(--c-accent);
+  height:var(--tap);background:none}
+
+.icm-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.icm-tags span{font-size:11.5px;line-height:1.5;padding:3px 10px;border-radius:var(--radius-pill);
+  color:var(--c-fg-2);border:1px solid var(--c-border)}
+.icm-tags span.is-good{color:var(--state-good);border-color:currentColor}
+.icm-tags span.is-warn{color:var(--state-warn);border-color:currentColor}
+.icm-tags span.is-bad{color:var(--state-bad);border-color:currentColor}
+
+/* The workbench is the one place where the whole language is on screen at once: every token, every
+   component on both surfaces, under every palette and theme. Refine here, then the pages follow. */
+body{margin:0;background:var(--paper);color:var(--ink);font:400 16px/1.5 var(--font-sans)}
+.bar{position:sticky;top:0;z-index:5;display:flex;gap:18px;flex-wrap:wrap;align-items:center;padding:12px 20px;
+  background:var(--card);border-bottom:1px solid var(--line)}
+.bar b{margin-right:auto}
+.bar fieldset{border:0;margin:0;padding:0;display:flex;gap:4px;align-items:center}
+.bar legend{float:left;margin-right:8px;color:var(--ink-muted);font-size:13px}
+.bar label{font-size:13px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;cursor:pointer}
+.bar input{position:absolute;opacity:0}
+.bar input:checked + span{font-weight:700}
+.bar label:has(input:checked){border-color:var(--ink);background:var(--paper)}
+.bar label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+main{max-width:1180px;margin:0 auto;padding:28px 20px 80px}
+h2{font:700 13px/1 var(--font-sans);letter-spacing:.02em;color:var(--ink-muted);margin:44px 0 14px}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.sw{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--card);font:400 12px/1.3 var(--font-mono)}
+.sw i{display:block;height:54px;border-bottom:1px solid var(--line)}
+.sw span{display:block;padding:7px 9px}
+.type p{margin:0 0 10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.cell{border-radius:var(--radius);padding:18px;min-height:150px;display:flex;flex-direction:column;gap:10px;justify-content:flex-end}
+.cell.on-paper{background:var(--card);border:1px solid var(--line)}
+.cell.on-photo{background:linear-gradient(160deg,#5b6a4a,#23291f 70%);color:var(--over)}
+.cell > code{order:-1;margin-bottom:auto;font:400 12px var(--font-mono);color:var(--c-muted)}
+</style>
+
+<div class="bar">
+  <b>icm-ui workbench</b>
+  <fieldset><legend>palette</legend>
+    <label><input type="radio" name="palette" value="" checked><span>host</span></label>
+    <label><input type="radio" name="palette" value="archive"><span>archive</span></label>
+  </fieldset>
+  <fieldset><legend>theme</legend>
+    <label><input type="radio" name="theme" value="" checked><span>system</span></label>
+    <label><input type="radio" name="theme" value="light"><span>light</span></label>
+    <label><input type="radio" name="theme" value="dark"><span>dark</span></label>
+  </fieldset>
+</div>
+
+<main>
+  <h2>Color tokens</h2>
+  <div class="swatches" id="swatches"></div>
+
+  <h2>Type</h2>
+  <div class="type">
+    <p style="font:400 44px/1.1 var(--font-serif);letter-spacing:-.03em">A row of cards, read on a phone</p>
+    <p style="font:400 26px/1.3 var(--font-serif)">The hook: one sentence of at most eighty characters.</p>
+    <p style="font:400 16.5px/1.5 var(--font-serif);max-width:60ch;color:var(--ink-2)">Body, serif token. Anything that is read. The foundation is poured; what is missing is the choice of panel, and the order follows from it.</p>
+    <p style="font:400 14px/1.5 var(--font-sans);color:var(--ink-muted)">Sans token. Anything that is operated: labels, buttons, the header of a page.</p>
+    <p style="font:400 13px/1.5 var(--font-mono)">domains/garden/output/greenhouse-plan.md</p>
+  </div>
+
+  <h2>Components, on paper and on a photo</h2>
+  <div class="grid" id="grid"></div>
+</main>
+
+<script type="module">var L=globalThis,ut=L.ShadowRoot&&(L.ShadyCSS===void 0||L.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,zt=Symbol(),Ct=new WeakMap,ee=class{constructor(t,e,s){if(this._$cssResult$=!0,s!==zt)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=t,this.t=e}get styleSheet(){let t=this.o,e=this.t;if(ut&&t===void 0){let s=e!==void 0&&e.length===1;s&&(t=Ct.get(e)),t===void 0&&((this.o=t=new CSSStyleSheet).replaceSync(this.cssText),s&&Ct.set(e,t))}return t}toString(){return this.cssText}},se=t=>new ee(typeof t=="string"?t:t+"",void 0,zt);var ie=(t,e)=>{if(ut)t.adoptedStyleSheets=e.map(s=>s instanceof CSSStyleSheet?s:s.styleSheet);else for(let s of e){let i=document.createElement("style"),r=L.litNonce;r!==void 0&&i.setAttribute("nonce",r),i.textContent=s.cssText,t.appendChild(i)}},Pt=ut?t=>t:t=>t instanceof CSSStyleSheet?(e=>{let s="";for(let i of e.cssRules)s+=i.cssText;return se(s)})(t):t,{is:re,defineProperty:ne,getOwnPropertyDescriptor:oe,getOwnPropertyNames:le,getOwnPropertySymbols:ae,getPrototypeOf:he}=Object,D=globalThis,kt=D.trustedTypes,ce=kt?kt.emptyScript:"",de=D.reactiveElementPolyfillSupport,R=(t,e)=>t,ct={toAttribute(t,e){switch(e){case Boolean:t=t?ce:null;break;case Object:case Array:t=t==null?t:JSON.stringify(t)}return t},fromAttribute(t,e){let s=t;switch(e){case Boolean:s=t!==null;break;case Number:s=t===null?null:Number(t);break;case Object:case Array:try{s=JSON.parse(t)}catch{s=null}}return s}},jt=(t,e)=>!re(t,e),Nt={attribute:!0,type:String,converter:ct,reflect:!1,useDefault:!1,hasChanged:jt};Symbol.metadata??=Symbol("metadata"),D.litPropertyMetadata??=new WeakMap;var C=class extends HTMLElement{static addInitializer(t){this._$Ei(),(this.l??=[]).push(t)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(t,e=Nt){if(e.state&&(e.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(t)&&((e=Object.create(e)).wrapped=!0),this.elementProperties.set(t,e),!e.noAccessor){let s=Symbol(),i=this.getPropertyDescriptor(t,s,e);i!==void 0&&ne(this.prototype,t,i)}}static getPropertyDescriptor(t,e,s){let{get:i,set:r}=oe(this.prototype,t)??{get(){return this[e]},set(n){this[e]=n}};return{get:i,set(n){let o=i?.call(this);r?.call(this,n),this.requestUpdate(t,o,s)},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)??Nt}static _$Ei(){if(this.hasOwnProperty(R("elementProperties")))return;let t=he(this);t.finalize(),t.l!==void 0&&(this.l=[...t.l]),this.elementProperties=new Map(t.elementProperties)}static finalize(){if(this.hasOwnProperty(R("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(R("properties"))){let e=this.properties,s=[...le(e),...ae(e)];for(let i of s)this.createProperty(i,e[i])}let t=this[Symbol.metadata];if(t!==null){let e=litPropertyMetadata.get(t);if(e!==void 0)for(let[s,i]of e)this.elementProperties.set(s,i)}this._$Eh=new Map;for(let[e,s]of this.elementProperties){let i=this._$Eu(e,s);i!==void 0&&this._$Eh.set(i,e)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(t){let e=[];if(Array.isArray(t)){let s=new Set(t.flat(1/0).reverse());for(let i of s)e.unshift(Pt(i))}else t!==void 0&&e.push(Pt(t));return e}static _$Eu(t,e){let s=e.attribute;return s===!1?void 0:typeof s=="string"?s:typeof t=="string"?t.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise(t=>this.enableUpdating=t),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(t=>t(this))}addController(t){(this._$EO??=new Set).add(t),this.renderRoot!==void 0&&this.isConnected&&t.hostConnected?.()}removeController(t){this._$EO?.delete(t)}_$E_(){let t=new Map,e=this.constructor.elementProperties;for(let s of e.keys())this.hasOwnProperty(s)&&(t.set(s,this[s]),delete this[s]);t.size>0&&(this._$Ep=t)}createRenderRoot(){let t=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return ie(t,this.constructor.elementStyles),t}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach(t=>t.hostConnected?.())}enableUpdating(t){}disconnectedCallback(){this._$EO?.forEach(t=>t.hostDisconnected?.())}attributeChangedCallback(t,e,s){this._$AK(t,s)}_$ET(t,e){let s=this.constructor.elementProperties.get(t),i=this.constructor._$Eu(t,s);if(i!==void 0&&s.reflect===!0){let r=(s.converter?.toAttribute!==void 0?s.converter:ct).toAttribute(e,s.type);this._$Em=t,r==null?this.removeAttribute(i):this.setAttribute(i,r),this._$Em=null}}_$AK(t,e){let s=this.constructor,i=s._$Eh.get(t);if(i!==void 0&&this._$Em!==i){let r=s.getPropertyOptions(i),n=typeof r.converter=="function"?{fromAttribute:r.converter}:r.converter?.fromAttribute!==void 0?r.converter:ct;this._$Em=i;let o=n.fromAttribute(e,r.type);this[i]=o??this._$Ej?.get(i)??o,this._$Em=null}}requestUpdate(t,e,s,i=!1,r){if(t!==void 0){let n=this.constructor;if(i===!1&&(r=this[t]),s??=n.getPropertyOptions(t),!((s.hasChanged??jt)(r,e)||s.useDefault&&s.reflect&&r===this._$Ej?.get(t)&&!this.hasAttribute(n._$Eu(t,s))))return;this.C(t,e,s)}this.isUpdatePending===!1&&(this._$ES=this._$EP())}C(t,e,{useDefault:s,reflect:i,wrapped:r},n){s&&!(this._$Ej??=new Map).has(t)&&(this._$Ej.set(t,n??e??this[t]),r!==!0||n!==void 0)||(this._$AL.has(t)||(this.hasUpdated||s||(e=void 0),this._$AL.set(t,e)),i===!0&&this._$Em!==t&&(this._$Eq??=new Set).add(t))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(e){Promise.reject(e)}let t=this.scheduleUpdate();return t!=null&&await t,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(let[i,r]of this._$Ep)this[i]=r;this._$Ep=void 0}let s=this.constructor.elementProperties;if(s.size>0)for(let[i,r]of s){let{wrapped:n}=r,o=this[i];n!==!0||this._$AL.has(i)||o===void 0||this.C(i,void 0,r,o)}}let t=!1,e=this._$AL;try{t=this.shouldUpdate(e),t?(this.willUpdate(e),this._$EO?.forEach(s=>s.hostUpdate?.()),this.update(e)):this._$EM()}catch(s){throw t=!1,this._$EM(),s}t&&this._$AE(e)}willUpdate(t){}_$AE(t){this._$EO?.forEach(e=>e.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(t){return!0}update(t){this._$Eq&&=this._$Eq.forEach(e=>this._$ET(e,this[e])),this._$EM()}updated(t){}firstUpdated(t){}};C.elementStyles=[],C.shadowRootOptions={mode:"open"},C[R("elementProperties")]=new Map,C[R("finalized")]=new Map,de?.({ReactiveElement:C}),(D.reactiveElementVersions??=[]).push("2.1.2");var mt=globalThis,Tt=t=>t,B=mt.trustedTypes,Rt=B?B.createPolicy("lit-html",{createHTML:t=>t}):void 0,$t="$lit$",A=`lit$${Math.random().toFixed(9).slice(2)}$`,ft="?"+A,pe=`<${ft}>`,S=document,I=()=>S.createComment(""),U=t=>t===null||typeof t!="object"&&typeof t!="function",vt=Array.isArray,Vt=t=>vt(t)||typeof t?.[Symbol.iterator]=="function",at=`[ 	
+\f\r]`,N=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,It=/-->/g,Ut=/>/g,E=RegExp(`>|${at}(?:([^\\s"'>=/]+)(${at}*=${at}*(?:[^ 	
+\f\r"'\`<>=]|("|')|))|$)`,"g"),Ot=/'/g,Ht=/"/g,Ft=/^(?:script|style|textarea|title)$/i,_t=t=>(e,...s)=>({_$litType$:t,strings:e,values:s}),l=_t(1),$=_t(2),Ee=_t(3),b=Symbol.for("lit-noChange"),f=Symbol.for("lit-nothing"),Lt=new WeakMap,w=S.createTreeWalker(S,129);function Wt(t,e){if(!vt(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return Rt!==void 0?Rt.createHTML(e):e}var Kt=(t,e)=>{let s=t.length-1,i=[],r,n=e===2?"<svg>":e===3?"<math>":"",o=N;for(let h=0;h<s;h++){let a=t[h],_,u,c=-1,m=0;for(;m<a.length&&(o.lastIndex=m,u=o.exec(a),u!==null);)m=o.lastIndex,o===N?u[1]==="!--"?o=It:u[1]!==void 0?o=Ut:u[2]!==void 0?(Ft.test(u[2])&&(r=RegExp("<\/"+u[2],"g")),o=E):u[3]!==void 0&&(o=E):o===E?u[0]===">"?(o=r??N,c=-1):u[1]===void 0?c=-2:(c=o.lastIndex-u[2].length,_=u[1],o=u[3]===void 0?E:u[3]==='"'?Ht:Ot):o===Ht||o===Ot?o=E:o===It||o===Ut?o=N:(o=E,r=void 0);let p=o===E&&t[h+1].startsWith("/>")?" ":"";n+=o===N?a+pe:c>=0?(i.push(_),a.slice(0,c)+$t+a.slice(c)+A+p):a+A+(c===-2?h:p)}return[Wt(t,n+(t[s]||"<?>")+(e===2?"<\/svg>":e===3?"<\/math>":"")),i]},dt=class Gt{constructor({strings:e,_$litType$:s},i){let r;this.parts=[];let n=0,o=0,h=e.length-1,a=this.parts,[_,u]=Kt(e,s);if(this.el=Gt.createElement(_,i),w.currentNode=this.el.content,s===2||s===3){let c=this.el.content.firstChild;c.replaceWith(...c.childNodes)}for(;(r=w.nextNode())!==null&&a.length<h;){if(r.nodeType===1){if(r.hasAttributes())for(let c of r.getAttributeNames())if(c.endsWith($t)){let m=u[o++],p=r.getAttribute(c).split(A),v=/([.?@])?(.*)/.exec(m);a.push({type:1,index:n,name:v[2],strings:p,ctor:v[1]==="."?Qt:v[1]==="?"?Xt:v[1]==="@"?Yt:O}),r.removeAttribute(c)}else c.startsWith(A)&&(a.push({type:6,index:n}),r.removeAttribute(c));if(Ft.test(r.tagName)){let c=r.textContent.split(A),m=c.length-1;if(m>0){r.textContent=B?B.emptyScript:"";for(let p=0;p<m;p++)r.append(c[p],I()),w.nextNode(),a.push({type:2,index:++n});r.append(c[m],I())}}}else if(r.nodeType===8)if(r.data===ft)a.push({type:2,index:n});else{let c=-1;for(;(c=r.data.indexOf(A,c+1))!==-1;)a.push({type:7,index:n}),c+=A.length-1}n++}}static createElement(e,s){let i=S.createElement("template");return i.innerHTML=e,i}};function M(t,e,s=t,i){if(e===b)return e;let r=i!==void 0?s._$Co?.[i]:s._$Cl,n=U(e)?void 0:e._$litDirective$;return r?.constructor!==n&&(r?._$AO?.(!1),n===void 0?r=void 0:(r=new n(t),r._$AT(t,s,i)),i!==void 0?(s._$Co??=[])[i]=r:s._$Cl=r),r!==void 0&&(e=M(t,r._$AS(t,e.values),r,i)),e}var Zt=class{constructor(t,e){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=e}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){let{el:{content:e},parts:s}=this._$AD,i=(t?.creationScope??S).importNode(e,!0);w.currentNode=i;let r=w.nextNode(),n=0,o=0,h=s[0];for(;h!==void 0;){if(n===h.index){let a;h.type===2?a=new q(r,r.nextSibling,this,t):h.type===1?a=new h.ctor(r,h.name,h.strings,this,t):h.type===6&&(a=new te(r,this,t)),this._$AV.push(a),h=s[++o]}n!==h?.index&&(r=w.nextNode(),n++)}return w.currentNode=S,i}p(t){let e=0;for(let s of this._$AV)s!==void 0&&(s.strings!==void 0?(s._$AI(t,s,e),e+=s.strings.length-2):s._$AI(t[e])),e++}},q=class Jt{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(e,s,i,r){this.type=2,this._$AH=f,this._$AN=void 0,this._$AA=e,this._$AB=s,this._$AM=i,this.options=r,this._$Cv=r?.isConnected??!0}get parentNode(){let e=this._$AA.parentNode,s=this._$AM;return s!==void 0&&e?.nodeType===11&&(e=s.parentNode),e}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(e,s=this){e=M(this,e,s),U(e)?e===f||e==null||e===""?(this._$AH!==f&&this._$AR(),this._$AH=f):e!==this._$AH&&e!==b&&this._(e):e._$litType$!==void 0?this.$(e):e.nodeType!==void 0?this.T(e):Vt(e)?this.k(e):this._(e)}O(e){return this._$AA.parentNode.insertBefore(e,this._$AB)}T(e){this._$AH!==e&&(this._$AR(),this._$AH=this.O(e))}_(e){this._$AH!==f&&U(this._$AH)?this._$AA.nextSibling.data=e:this.T(S.createTextNode(e)),this._$AH=e}$(e){let{values:s,_$litType$:i}=e,r=typeof i=="number"?this._$AC(e):(i.el===void 0&&(i.el=dt.createElement(Wt(i.h,i.h[0]),this.options)),i);if(this._$AH?._$AD===r)this._$AH.p(s);else{let n=new Zt(r,this),o=n.u(this.options);n.p(s),this.T(o),this._$AH=n}}_$AC(e){let s=Lt.get(e.strings);return s===void 0&&Lt.set(e.strings,s=new dt(e)),s}k(e){vt(this._$AH)||(this._$AH=[],this._$AR());let s=this._$AH,i,r=0;for(let n of e)r===s.length?s.push(i=new Jt(this.O(I()),this.O(I()),this,this.options)):i=s[r],i._$AI(n),r++;r<s.length&&(this._$AR(i&&i._$AB.nextSibling,r),s.length=r)}_$AR(e=this._$AA.nextSibling,s){for(this._$AP?.(!1,!0,s);e!==this._$AB;){let i=Tt(e).nextSibling;Tt(e).remove(),e=i}}setConnected(e){this._$AM===void 0&&(this._$Cv=e,this._$AP?.(e))}},O=class{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(t,e,s,i,r){this.type=1,this._$AH=f,this._$AN=void 0,this.element=t,this.name=e,this._$AM=i,this.options=r,s.length>2||s[0]!==""||s[1]!==""?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=f}_$AI(t,e=this,s,i){let r=this.strings,n=!1;if(r===void 0)t=M(this,t,e,0),n=!U(t)||t!==this._$AH&&t!==b,n&&(this._$AH=t);else{let o=t,h,a;for(t=r[0],h=0;h<r.length-1;h++)a=M(this,o[s+h],e,h),a===b&&(a=this._$AH[h]),n||=!U(a)||a!==this._$AH[h],a===f?t=f:t!==f&&(t+=(a??"")+r[h+1]),this._$AH[h]=a}n&&!i&&this.j(t)}j(t){t===f?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,t??"")}},Qt=class extends O{constructor(){super(...arguments),this.type=3}j(t){this.element[this.name]=t===f?void 0:t}},Xt=class extends O{constructor(){super(...arguments),this.type=4}j(t){this.element.toggleAttribute(this.name,!!t&&t!==f)}},Yt=class extends O{constructor(t,e,s,i,r){super(t,e,s,i,r),this.type=5}_$AI(t,e=this){if((t=M(this,t,e,0)??f)===b)return;let s=this._$AH,i=t===f&&s!==f||t.capture!==s.capture||t.once!==s.once||t.passive!==s.passive,r=t!==f&&(s===f||i);i&&this.element.removeEventListener(this.name,this,s),r&&this.element.addEventListener(this.name,this,t),this._$AH=t}handleEvent(t){typeof this._$AH=="function"?this._$AH.call(this.options?.host??this.element,t):this._$AH.handleEvent(t)}},te=class{constructor(t,e,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=e,this.options=s}get _$AU(){return this._$AM._$AU}_$AI(t){M(this,t)}},ue={M:$t,P:A,A:ft,C:1,L:Kt,R:Zt,D:Vt,V:M,I:q,H:O,N:Xt,U:Yt,B:Qt,F:te},me=mt.litHtmlPolyfillSupport;me?.(dt,q),(mt.litHtmlVersions??=[]).push("3.3.3");var $e=(t,e,s)=>{let i=s?.renderBefore??e,r=i._$litPart$;if(r===void 0){let n=s?.renderBefore??null;i._$litPart$=r=new q(e.insertBefore(I(),n),n,void 0,s??{})}return r._$AI(t),r},gt=globalThis,P=class extends C{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){let t=super.createRenderRoot();return this.renderOptions.renderBefore??=t.firstChild,t}update(t){let e=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=$e(e,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return b}};P._$litElement$=!0,P.finalized=!0,gt.litElementHydrateSupport?.({LitElement:P});var fe=gt.litElementPolyfillSupport;fe?.({LitElement:P});(gt.litElementVersions??=[]).push("4.2.2");var yt={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},At=t=>(...e)=>({_$litDirective$:t,values:e}),bt=class{constructor(t){}get _$AU(){return this._$AM._$AU}_$AT(t,e,s){this._$Ct=t,this._$AM=e,this._$Ci=s}_$AS(t,e){return this.update(t,e)}update(t,e){return this.render(...e)}},xe=At(class extends bt{constructor(t){if(super(t),t.type!==yt.ATTRIBUTE||t.name!=="class"||t.strings?.length>2)throw Error("`classMap()` can only be used in the `class` attribute and must be the only part in the attribute.")}render(t){return" "+Object.keys(t).filter(e=>t[e]).join(" ")+" "}update(t,[e]){if(this.st===void 0){this.st=new Set,t.strings!==void 0&&(this.nt=new Set(t.strings.join(" ").split(/\s/).filter(i=>i!=="")));for(let i in e)e[i]&&!this.nt?.has(i)&&this.st.add(i);return this.render(e)}let s=t.element.classList;for(let i of this.st)i in e||(s.remove(i),this.st.delete(i));for(let i in e){let r=!!e[i];r===this.st.has(i)||this.nt?.has(i)||(r?(s.add(i),this.st.add(i)):(s.remove(i),this.st.delete(i)))}return b}}),{I:ve}=ue,Bt=t=>t,Dt=()=>document.createComment(""),T=(t,e,s)=>{let i=t._$AA.parentNode,r=e===void 0?t._$AB:e._$AA;if(s===void 0){let n=i.insertBefore(Dt(),r),o=i.insertBefore(Dt(),r);s=new ve(n,o,t,t.options)}else{let n=s._$AB.nextSibling,o=s._$AM,h=o!==t;if(h){let a;s._$AQ?.(t),s._$AM=t,s._$AP!==void 0&&(a=t._$AU)!==o._$AU&&s._$AP(a)}if(n!==r||h){let a=s._$AA;for(;a!==n;){let _=Bt(a).nextSibling;Bt(i).insertBefore(a,r),a=_}}}return s},x=(t,e,s=t)=>(t._$AI(e,s),t),_e={},ge=(t,e=_e)=>t._$AH=e,ye=t=>t._$AH,ht=t=>{t._$AR(),t._$AA.remove()},qt=(t,e,s)=>{let i=new Map;for(let r=e;r<=s;r++)i.set(t[r],r);return i},we=At(class extends bt{constructor(t){if(super(t),t.type!==yt.CHILD)throw Error("repeat() can only be used in text expressions")}dt(t,e,s){let i;s===void 0?s=e:e!==void 0&&(i=e);let r=[],n=[],o=0;for(let h of t)r[o]=i?i(h,o):o,n[o]=s(h,o),o++;return{values:n,keys:r}}render(t,e,s){return this.dt(t,e,s).values}update(t,[e,s,i]){let r=ye(t),{values:n,keys:o}=this.dt(e,s,i);if(!Array.isArray(r))return this.ut=o,n;let h=this.ut??=[],a=[],_,u,c=0,m=r.length-1,p=0,v=n.length-1;for(;c<=m&&p<=v;)if(r[c]===null)c++;else if(r[m]===null)m--;else if(h[c]===o[p])a[p]=x(r[c],n[p]),c++,p++;else if(h[m]===o[v])a[v]=x(r[m],n[v]),m--,v--;else if(h[c]===o[v])a[v]=x(r[c],n[v]),T(t,a[v+1],r[c]),c++,v--;else if(h[m]===o[p])a[p]=x(r[m],n[p]),T(t,r[c],r[m]),m--,p++;else if(_===void 0&&(_=qt(o,p,v),u=qt(h,c,m)),_.has(h[c]))if(_.has(h[m])){let y=u.get(o[p]),lt=y!==void 0?r[y]:null;if(lt===null){let Mt=T(t,r[c]);x(Mt,n[p]),a[p]=Mt}else a[p]=x(lt,n[p]),T(t,r[c],lt),r[y]=null;p++}else ht(r[m]),m--;else ht(r[c]),c++;for(;p<=v;){let y=T(t,a[v+1]);x(y,n[p]),a[p++]=y}for(;c<=m;){let y=r[c++];y!==null&&ht(y)}return this.ut=o,ge(t,a),b}}),pt=class extends bt{constructor(t){if(super(t),this.it=f,t.type!==yt.CHILD)throw Error(this.constructor.directiveName+"() can only be used in child bindings")}render(t){if(t===f||t==null)return this._t=void 0,this.it=t;if(t===b)return t;if(typeof t!="string")throw Error(this.constructor.directiveName+"() called with a non-string value");if(t===this.it)return this._t;this.it=t;let e=[t];return e.raw=e,this._t={_$litType$:this.constructor.resultType,strings:e,values:[]}}};pt.directiveName="unsafeHTML",pt.resultType=1;var Se=At(pt);var d=class extends P{createRenderRoot(){return this}};var g={locale:"en",yes:"yes",no:"no",asking:"sure?",running:"working\u2026",done:"done",failed:"did not go through",today:"today",dueIn:"in {n} {days}",dueAgo:"{n} {days} ago",days:{one:"day",other:"days"},fixes:{needs_reauth:"reconnect the account in Settings",server_not_connected:"add the connector in Settings",selection_required:"choose which account, in Settings",not_in_manifest:"this page has no permission for that",blocked_by_policy:"an organization policy blocks this",approval_required:"needs approval",server_unavailable:"the service is not responding, try again",rate_limited:"too many requests, wait a moment",tool_error:"the service refused the action",cancelled:"interrupted, outcome unknown"},...globalThis.ICM_LABELS||{}},Et=(t,e)=>{let s=g.days,i=s[new Intl.PluralRules(g.locale).select(t)]||s.other;return e.replace("{n}",t).replace("{days}",i)};var xt={heart:$`<path d="M12 20s-7-4.6-7-9.3A3.7 3.7 0 0 1 12 8a3.7 3.7 0 0 1 7 2.7C19 15.4 12 20 12 20z"/>`,details:$`<path d="M4 7h16M4 12h16M4 17h9"/>`,external:$`<path d="M7 17L17 7M9 7h8v8"/>`,source:$`<path d="M4 5h7l2 2h7v12H4z"/>`,next:$`<path d="M9 6l6 6-6 6"/>`,up:$`<path d="M5 15l7-7 7 7"/>`,call:$`<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/>`,sms:$`<path d="M4 5h16v11H9l-5 4z"/>`,mail:$`<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>`,map:$`<path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>`,down:$`<path d="M5 9l7 7 7-7"/>`,comment:$`<path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-5 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/><path d="M8 10h8M8 13h5"/>`};var z=class extends d{static properties={name:{},filled:{type:Boolean}};render(){let e=xt[this.name];return e?l`<svg class="icm-icon ${this.filled?"is-filled":""}" viewBox="0 0 24 24"
+      aria-hidden="true">${e}<\/svg>`:null}};customElements.define("icm-icon",z);var j=class extends d{static properties={href:{},label:{}};render(){return this.href?l`<a class="icm-link" href=${this.href} target="_blank" rel="noopener"
+      >${this.label||"Otvori"}<icm-icon name="external"><\/icm-icon><\/a>`:null}};customElements.define("icm-link",j);var V=class extends d{static properties={label:{},icon:{},variant:{},pressed:{type:Boolean},disabled:{type:Boolean}};render(){return l`<button class="icm-button is-${this.variant||"quiet"}" type="button"
+      aria-pressed=${this.pressed==null?void 0:String(!!this.pressed)}
+      ?disabled=${this.disabled}
+      @click=${()=>this.dispatchEvent(new CustomEvent("icm-press",{bubbles:!0}))}>
+      ${this.icon?l`<icm-icon name=${this.icon} ?filled=${this.pressed}><\/icm-icon>`:null}
+      ${this.label?l`<span>${this.label}<\/span>`:null}
+    <\/button>`}};customElements.define("icm-button",V);var F=class extends d{static properties={value:{},unit:{},label:{},variant:{},state:{}};render(){return this.value==null||this.value===""?null:l`
+      <div class="icm-metric ${this.variant==="quiet"?"is-quiet":""} ${["good","warn","bad"].includes(this.state)?"is-"+this.state:""}">
+        <b>${this.value}<\/b>${this.unit?l`<small>${this.unit}<\/small>`:null}
+      <\/div>
+      ${this.label?l`<div class="icm-metric-label">${this.label}<\/div>`:null}`}};customElements.define("icm-metric",F);var Ae=["neutral","good","warn","bad"],W=class extends d{static properties={items:{type:Array}};render(){let e=(this.items||[]).slice(0,3);return e.length?l`<div class="icm-tags">${e.map(s=>l`
+      <span class="is-${Ae.includes(s.kind)?s.kind:"neutral"}">${s.text}<\/span>`)}<\/div>`:null}};customElements.define("icm-tags",W);var K=class extends d{static properties={date:{},label:{}};render(){if(!this.date)return null;let e=new Date(this.date+"T12:00:00");if(isNaN(e))return null;let s=Math.round((e-new Date)/864e5),i=s<=0?"is-now":s<=3?"is-near":"",r=s<0?Et(-s,g.dueAgo):s===0?g.today:Et(s,g.dueIn);return l`<div class="icm-deadline ${i}"><b>${r}<\/b>${this.label?l`<span>${this.label}<\/span>`:null}<\/div>`}};customElements.define("icm-deadline",K);var G=class extends d{static properties={value:{},direction:{},label:{}};render(){if(this.value==null||this.value==="")return null;let e=this.direction!=="down";return l`<div class="icm-delta ${e?"is-up":"is-down"}">
+      <i>${e?"\u25B2":"\u25BC"}<\/i>${this.value}${this.label?l` ${this.label}`:null}<\/div>`}};customElements.define("icm-delta",G);var Z=class extends d{static properties={value:{type:Number},target:{type:Number},label:{}};render(){let e=Number(this.value),s=Number(this.target);if(!isFinite(e)||!e)return null;let i=Math.max(e,isFinite(s)?s:0)*1.06||1;return l`<div class="icm-gauge">
+      <div class="icm-gauge-bar">
+        <i style="width:${(e/i*100).toFixed(1)}%"><\/i>
+        ${isFinite(s)&&s?l`<b style="left:${(s/i*100).toFixed(1)}%"><\/b>`:null}
+      <\/div>
+      ${this.label?l`<div class="icm-gauge-label">${this.label}<\/div>`:null}
+    <\/div>`}};customElements.define("icm-gauge",Z);var J=210,H=34,k=3,Q=class extends d{static properties={values:{type:Array},label:{},variant:{}};render(){let e=(this.values||[]).map(Number).filter(isFinite).slice(0,24);if(e.length<2)return null;let s=Math.max(...e,1),i=Math.min(...e,0),r=e.length-1,n=a=>k+a*(J-2*k)/Math.max(r,1),o=a=>H-k-(a-i)*(H-2*k)/(s-i||1),h;if(this.variant==="bars"){let a=(J-2*k)/e.length*.62;h=e.map((_,u)=>$`<rect x=${n(u)-a/2} y=${o(_)} width=${a}
+        height=${Math.max(1,H-k-o(_))}
+        class=${u===r?"is-last":""}/>`)}else{let a=e.map((_,u)=>(u?"L":"M")+n(u).toFixed(1)+" "+o(_).toFixed(1)).join(" ");h=[$`<path d=${a} fill="none" stroke-width="1.5" stroke-linejoin="round"/>`,$`<circle cx=${n(r)} cy=${o(e[r])} r="2.8" class="is-last"/>`]}return l`<div class="icm-series">
+      <svg width=${J} height=${H} viewBox="0 0 ${J} ${H}" aria-hidden="true">${h}<\/svg>
+      ${this.label?l`<div class="icm-series-label">${this.label}<\/div>`:null}
+    <\/div>`}};customElements.define("icm-series",Q);var X=class extends d{static properties={items:{type:Array},variant:{}};render(){let e=(this.items||[]).slice(0,7).map(i=>Array.isArray(i)?{text:i[0],done:!!i[1]}:typeof i=="string"?{text:i}:i);if(!e.length)return null;let s=["dots","steps"].includes(this.variant)?this.variant:"checks";return l`<ul class="icm-list is-${s}">${e.map(i=>l`<li class=${i.done?"is-done":""}>${i.text}<\/li>`)}<\/ul>`}};customElements.define("icm-list",X);var be=34,Y=class extends d{static properties={rows:{type:Array}};render(){let e=(this.rows||[]).filter(s=>s&&s.length);return e.length?l`<dl class="icm-facts">${e.map(([s,i])=>l`
+      <div class="icm-facts-row ${String(i).length>be?"is-long":""}">
+        <dt>${s}<\/dt><dd>${i}<\/dd>
+      <\/div>`)}<\/dl>`:null}};customElements.define("icm-facts",Y);var tt=class extends d{static properties={text:{},from:{}};render(){return this.text?l`<blockquote class="icm-quote"><p>${this.text}<\/p>
+      ${this.from?l`<cite>${this.from}<\/cite>`:null}<\/blockquote>`:null}};customElements.define("icm-quote",tt);var et=class extends d{static properties={text:{}};render(){return this.text?l`<div class="icm-next">${this.text}<\/div>`:null}};customElements.define("icm-next",et);var wt={gmail:$`<path d="M3 6.5 12 13l9-6.5" fill="none"/><rect x="3" y="5" width="18" height="14" rx="2" fill="none"/>`,calendar:$`<rect x="3" y="5" width="18" height="16" rx="2" fill="none"/><path d="M3 10h18M8 3v4M16 3v4" fill="none"/>`,notion:$`<rect x="4" y="3" width="16" height="18" rx="2" fill="none"/><path d="M8 8v8l8-8v8" fill="none"/>`,drive:$`<path d="M9 3h6l6 11H3z" fill="none"/><path d="M3 14h18l-3 6H6z" fill="none"/>`,local:$`<rect x="3" y="4" width="18" height="12" rx="2" fill="none"/><path d="M8 20h8" fill="none"/>`},St={Gmail:"gmail","Google Calendar":"calendar",Notion:"notion","Google Drive":"drive"};var st=class extends d{static properties={label:{},done:{},icon:{},server:{},href:{},sameTab:{type:Boolean},confirm:{type:Boolean},state:{},error:{}};_press(){let e=this.state||"idle";if(!(e==="running"||e==="done")){if(this.confirm&&e!=="asking"){this.state="asking";return}this.state="running",this.dispatchEvent(new CustomEvent("icm-action",{bubbles:!0,composed:!0}))}}_mark(){let e=wt[St[this.server]||(this.server?"local":"")];return e?l`<svg class="icm-action-mark" viewBox="0 0 24 24" aria-hidden="true">${e}<\/svg>`:this.icon?l`<icm-icon name=${this.icon}><\/icm-icon>`:null}render(){if(this.href){let i=/^https?:/i.test(this.href)&&!this.sameTab;return l`<a class="icm-action is-link" href=${this.href}
+        target=${i?"_blank":"_self"} rel="noopener"
+        @click=${()=>this.dispatchEvent(new CustomEvent("icm-action",{bubbles:!0,composed:!0,detail:{link:!0}}))}
+        >${this._mark()}<span>${this.label}<\/span><\/a>`}let e=this.state||"idle",s=e==="asking"?g.asking:e==="running"?g.running:e==="done"?this.done||g.done:this.label;return l`
+      <button class="icm-action is-${e}" type="button" ?disabled=${e==="running"||e==="done"}
+              @click=${this._press}>${this._mark()}<span>${s}<\/span><\/button>
+      ${e==="error"?l`<div class="icm-action-error">${g.fixes[this.error]||g.failed}<\/div>`:null}`}};customElements.define("icm-action",st);var it=class extends d{static properties={question:{},options:{type:Array},multi:{type:Boolean},value:{type:Array}};_pick(e){let s=this.value||[];this.value=this.multi?s.includes(e)?s.filter(i=>i!==e):[...s,e]:[e],this.dispatchEvent(new CustomEvent("icm-answer",{bubbles:!0,composed:!0,detail:{value:this.multi?this.value:this.value[0]}}))}render(){let e=(this.options||[]).map(i=>typeof i=="string"?{value:i,label:i}:i);if(!e.length)return null;let s=this.value||[];return l`<div class="icm-choice">
+      ${this.question?l`<div class="icm-choice-q">${this.question}<\/div>`:null}
+      <div class="icm-choice-row">${e.map(i=>l`
+        <button type="button" class=${s.includes(i.value)?"is-on":""}
+          aria-pressed=${String(s.includes(i.value))}
+          @click=${()=>this._pick(i.value)}>${i.label}<\/button>`)}
+      <\/div>
+    <\/div>`}};customElements.define("icm-choice",it);var rt=class extends d{static properties={question:{},min:{type:Number},max:{type:Number},step:{type:Number},unit:{},value:{type:Number}};_move(e){this.value=Number(e.target.value),this.dispatchEvent(new CustomEvent("icm-answer",{bubbles:!0,composed:!0,detail:{value:this.value}}))}render(){let e=this.min??0,s=this.max??100,i=this.value??Math.round((e+s)/2);return l`<div class="icm-slider">
+      ${this.question?l`<div class="icm-slider-q">${this.question}<\/div>`:null}
+      <div class="icm-slider-v">${i}${this.unit?l`<small>${this.unit}<\/small>`:null}<\/div>
+      <input type="range" min=${e} max=${s} step=${this.step??1} .value=${String(i)}
+             @input=${this._move}>
+    <\/div>`}};customElements.define("icm-slider",rt);var nt=class extends d{static properties={question:{},placeholder:{},mode:{},value:{}};_type(e){this.value=e.target.value,this.dispatchEvent(new CustomEvent("icm-answer",{bubbles:!0,composed:!0,detail:{value:this.value}}))}render(){return l`<div class="icm-input">
+      ${this.question?l`<div class="icm-input-q">${this.question}<\/div>`:null}
+      <input type="text" inputmode=${this.mode||"text"} placeholder=${this.placeholder||""}
+             .value=${this.value||""} @input=${this._type}>
+    <\/div>`}};customElements.define("icm-input",nt);var ot=class extends d{static properties={question:{},yes:{},no:{},value:{}};_pick(e){this.value=e,this.dispatchEvent(new CustomEvent("icm-answer",{bubbles:!0,composed:!0,detail:{value:e}}))}render(){return l`<div class="icm-confirm">
+      ${this.question?l`<div class="icm-confirm-q">${this.question}<\/div>`:null}
+      <div class="icm-confirm-row">
+        <button type="button" class=${this.value==="yes"?"is-on":""}
+          @click=${()=>this._pick("yes")}>${this.yes||g.yes}<\/button>
+        <button type="button" class=${this.value==="no"?"is-on":""}
+          @click=${()=>this._pick("no")}>${this.no||g.no}<\/button>
+      <\/div>
+    <\/div>`}};customElements.define("icm-confirm",ot);export{st as IcmAction,V as IcmButton,it as IcmChoice,ot as IcmConfirm,K as IcmDeadline,G as IcmDelta,d as IcmElement,Y as IcmFacts,Z as IcmGauge,z as IcmIcon,nt as IcmInput,j as IcmLink,X as IcmList,F as IcmMetric,et as IcmNext,tt as IcmQuote,Q as IcmSeries,rt as IcmSlider,W as IcmTags,g as LABELS,wt as PROVIDERS,St as PROVIDER_OF,xt as UI};
+/*! Bundled license information:
+
+@lit/reactive-element/css-tag.js:
+  (**
+   * @license
+   * Copyright 2019 Google LLC
+   * SPDX-License-Identifier: BSD-3-Clause
+   *)
+
+@lit/reactive-element/reactive-element.js:
+lit-html/lit-html.js:
+lit-element/lit-element.js:
+lit-html/directive.js:
+lit-html/directives/repeat.js:
+lit-html/directives/unsafe-html.js:
+  (**
+   * @license
+   * Copyright 2017 Google LLC
+   * SPDX-License-Identifier: BSD-3-Clause
+   *)
+
+lit-html/is-server.js:
+  (**
+   * @license
+   * Copyright 2022 Google LLC
+   * SPDX-License-Identifier: BSD-3-Clause
+   *)
+
+lit-html/directives/class-map.js:
+  (**
+   * @license
+   * Copyright 2018 Google LLC
+   * SPDX-License-Identifier: BSD-3-Clause
+   *)
+
+lit-html/directive-helpers.js:
+  (**
+   * @license
+   * Copyright 2020 Google LLC
+   * SPDX-License-Identifier: BSD-3-Clause
+   *)
+*/
+</script>
+<script>
+const TOKENS = ['--paper','--card','--ink','--ink-2','--ink-muted','--line','--line-soft','--accent','--mark','--state-good','--state-warn','--state-bad','--over','--over-2','--over-muted','--over-accent'];
+const attr = o => JSON.stringify(o).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+// One sample per component, the same data on both surfaces.
+const SAMPLES = [
+  ['icm-metric loud', '<icm-metric value="1,240" unit="EUR" label="quote for 10 mm panels"></icm-metric>'],
+  ['icm-metric quiet', '<icm-metric value="42" unit="%" label="of the month" variant="quiet"></icm-metric>'],
+  ['icm-tags', '<icm-tags items="' + attr([{text:'open'},{text:'on track',kind:'good'},{text:'no written rule',kind:'warn'},{text:'late',kind:'bad'}]) + '"></icm-tags>'],
+  ['icm-deadline', '<icm-deadline date="' + new Date(Date.now()+6*864e5).toISOString().slice(0,10) + '" label="order the panels"></icm-deadline>'],
+  ['icm-delta', '<icm-delta value="12 %" direction="up" label="against last month"></icm-delta><icm-delta value="8 %" direction="down" label="against plan"></icm-delta>'],
+  ['icm-gauge', '<icm-gauge value="64" target="80" label="of the savings goal"></icm-gauge>'],
+  ['icm-series line', '<icm-series values="' + attr([3,5,4,7,6,9,8,11]) + '" variant="line" label="weekly"></icm-series>'],
+  ['icm-series bars', '<icm-series values="' + attr([3,5,4,7,6,9]) + '" variant="bars" label="per month"></icm-series>'],
+  ['icm-list checks', '<icm-list items="' + attr([['foundation poured',true],['choose the panel',false],['send the order',false]]) + '" variant="checks"></icm-list>'],
+  ['icm-list steps', '<icm-list items="' + attr([['measure',false],['cut',false],['mount',false]]) + '" variant="steps"></icm-list>'],
+  ['icm-facts', '<icm-facts rows="' + attr([['10 mm','1,240 EUR'],['6 mm','890 EUR'],['Deadline','15 October']]) + '"></icm-facts>'],
+  ['icm-quote', '<icm-quote text="The order must go out before frost." from="greenhouse-plan.md"></icm-quote>'],
+  ['icm-next', '<icm-next text="Decide on the panel thickness."></icm-next>'],
+  ['icm-link', '<icm-link href="https://example.com" label="Read the announcement"></icm-link>'],
+  ['icm-button', '<icm-button variant="pill" label="Save"></icm-button> <icm-button variant="quiet" label="Cancel"></icm-button>'],
+  ['icm-action', '<icm-action label="Open the thread" href="https://example.com" icon="mail"></icm-action>'],
+  ['icm-choice', '<icm-choice question="Which way are you leaning?" options="' + attr(['6 mm','10 mm','need more facts']) + '"></icm-choice>'],
+  ['icm-slider', '<icm-slider question="How sure are you?" min="0" max="10" value="6"></icm-slider>'],
+  ['icm-input', '<icm-input question="What did the meter show?" unit="kWh"></icm-input>'],
+  ['icm-confirm', '<icm-confirm question="Is the quote still valid?"></icm-confirm>'],
+];
+document.getElementById('grid').innerHTML = SAMPLES.map(([name, html]) =>
+  ['on-paper', 'on-photo'].map(s => '<div class="cell ' + s + '"><code>' + name + ', ' + s + '</code>' + html + '</div>').join('')).join('');
+
+function swatches() {
+  const cs = getComputedStyle(document.documentElement);
+  document.getElementById('swatches').innerHTML = TOKENS.map(t =>
+    '<div class="sw"><i style="background:var(' + t + ')"></i><span>' + t + '<br>' + cs.getPropertyValue(t).trim() + '</span></div>').join('');
+}
+for (const el of document.querySelectorAll('.bar input')) el.addEventListener('change', () => {
+  const root = document.documentElement;
+  el.value ? root.setAttribute('data-' + el.name, el.value) : root.removeAttribute('data-' + el.name);
+  swatches();
+});
+swatches();
+</script>
+</html>

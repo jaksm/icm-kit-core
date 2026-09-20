@@ -69,6 +69,12 @@ The library speaks English. Put a `labels.json` **beside** the library folder (n
 `actions.json` is the catalog of what `icm-action` may do. It names connectors, so a repo usually
 keeps its own copy.
 
+## Design language
+
+`DESIGN.md` is the working record: what exists, where each page leaves the language, and what is still
+to be decided. `python3 build.py --workbench` builds one page with every token and component on both
+surfaces, under every palette and theme.
+
 ## Develop
 
 ```bash

@@ -4,6 +4,7 @@
   --ink:#141413; --ink-2:#3d3d3a; --ink-muted:#87867f;
   --line:#cccbc8; --line-soft:#e3dacc;
   --accent:#b4532a;
+  --mark:#f2cb4e;   /* the highlighter: the one thing on a page that is being read or followed right now */
 
   /* Over a photo the colors are FIXED, not themed: the text has to read on a light and on
      a dark image alike, so the scrim does the work instead of the theme. */

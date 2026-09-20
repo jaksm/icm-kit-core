@@ -45,7 +45,8 @@ def _labels_path():
 
 # invariant: tokens load in this order and nothing else may come before them. Every component
 # reads --c-* from a surface class, and the surface classes are defined in surface.css.
-TOKENS = ["colors.css", "typography.css", "motion.css", "layout.css", "surface.css"]
+# Palettes come last among the tokens: each is scoped to [data-palette], so it only overrides on a page that asks.
+TOKENS = ["colors.css", "typography.css", "motion.css", "layout.css", "surface.css", "palettes/archive.css"]
 
 
 def stylesheet():
@@ -141,5 +142,10 @@ if __name__ == "__main__":
         _check()
     elif "--bundle" in sys.argv:
         print("wrote " + bundle())
+    elif "--workbench" in sys.argv:
+        # every token and component on one page, under every palette and theme; not committed
+        out = os.path.join(LIB, "workbench/index.html")
+        open(out, "w", encoding="utf-8").write(inline(open(os.path.join(LIB, "workbench/index.src.html"), encoding="utf-8").read()))
+        print("wrote workbench/index.html, %d B; serve the folder and open it" % os.path.getsize(out))
     else:
         print("%d B of style, %d B of module" % (len(stylesheet()), len(module())))

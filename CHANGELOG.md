@@ -3,6 +3,10 @@
 One entry per release, newest first. Every entry ends with **Outside core**: `nothing`, or `required`, which
 means the migration note lists work in your own files and `core-update` must stop at that release before going on.
 
+## 0.5.2
+New: icm-ui 0.2.0 in `core/ui`: an opt-in palette (`data-palette="archive"`) and the `--mark` token. Pages look the same unless they ask for the palette. A new ICM no longer inherits the kit's landing page, which moved to its own repo.
+**Outside core**: nothing. [MIGRATIONS/0.5.1-0.5.2.md](MIGRATIONS/0.5.1-0.5.2.md)
+
 ## 0.5.1
 New: tests for `install.sh` (`tests/run.sh`), release tags, `RELEASING.md`. Fixed: `--remove` deleted a workflow before checking for the owner's edits in it; it is now refused without `--force`, and with it the folder is kept as `<name>.local`. `core-update` says how to get a release and was run against a real conflict; setup step 14 was run to the end.
 **Outside core**: nothing. [MIGRATIONS/0.5.0-0.5.1.md](MIGRATIONS/0.5.0-0.5.1.md)
