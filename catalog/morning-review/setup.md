@@ -15,6 +15,7 @@ whether there is something they want asked every day for a while (a measurement,
 ```json
 {
   "time": "07:30", "language": "en",
+  "records": "domains/system/data/morning-review",
   "needs_owner_labels": ["State", "Money"],
   "questions": [{"ask": "...", "until": "the owner says it is over", "answer_goes_to": "domains/<area>/output/<record>.md"}]
 }

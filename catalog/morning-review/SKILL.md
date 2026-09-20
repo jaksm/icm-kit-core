@@ -15,7 +15,7 @@ The owner's rule this serves: **unread in the inbox means it needs me.** Nothing
   Never send, never delete, never mark as spam.
 - `_config/sources/senders.csv`: who is filed where, and who stays in the inbox.
 - `_config/morning-review.json`: see `setup.md`.
-- Yesterday's record in `domains/system/data/morning-review/`, so nothing is reported twice.
+- Yesterday's record in the folder `records` names (default `domains/system/data/morning-review/`), so nothing is reported twice.
 
 ## Process
 
@@ -30,13 +30,14 @@ The owner's rule this serves: **unread in the inbox means it needs me.** Nothing
    known and proposes a label. Quietly filing into the wrong label is worse than one message too many
    in the inbox, because nobody sees it happen. When unsure whether something needs the owner, it
    stays: a miss on that side costs a glance, on the other a missed deadline.
-3. **Write the record** `domains/system/data/morning-review/<date>.md`, frontmatter
+3. **Write the record** `<records>/<date>.md`, frontmatter
    `type: Tracking`, `status: active`, `trust_tier: machine-confirmed`, first line "N messages, M
    need you". Sections, in the owner's language:
    - needs you: every item, with why
    - signals: what touches something that is open in the ICM, with the path it touches
    - news: grouped by topic, one line each; news is not retold
    - could go into the ICM: proposals with the path; written only when the owner says so
+   - senders without a place: each stays in the inbox, with a proposed label
    - filed: one line per label with a count
    - questions this routine is asking (from the config), each until its end condition
 4. Money appears as a fact and an aggregate ("a statement arrived"), never as amounts per transaction.
