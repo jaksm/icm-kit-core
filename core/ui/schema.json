@@ -1,5 +1,5 @@
 {
- "_": "Schema of the ICM component library. SINGLE SOURCE OF TRUTH: build.py checks that every component here has a custom element in components/, and every artifact build validates its data against this file, so the schema and the code cannot drift. The agent that writes content reads this file and the skill's SKILL.md, nothing else. Keys are English, every value the user sees is Serbian.",
+ "_": "Schema of the ICM component library. SINGLE SOURCE OF TRUTH: build.py checks that every component here has a custom element in components/, and every artifact build validates its data against this file, so the schema and the code cannot drift. The agent that writes content reads this file and the skill's SKILL.md, nothing else. Keys are English; every value the user sees is in the owner's language.",
  "version": 2,
  "where": {
   "cover": "first screen of a reel: the topic's name and its aggregate. Takes `title`, `subtitle`, `media`, `video`, `tone`, and everything a story takes.",
@@ -227,7 +227,7 @@
    "layer": "details",
    "element": "icm-choice",
    "props": {
-    "question": "asked in Serbian, second person"
+    "question": "asked in the owner's language, second person"
    },
    "when": "When the feed needs to ask him something: one or more of the offered answers. The answer lands in db under answers/<day>/<key>."
   },
@@ -235,7 +235,7 @@
    "layer": "details",
    "element": "icm-slider",
    "props": {
-    "question": "asked in Serbian, second person"
+    "question": "asked in the owner's language, second person"
    },
    "when": "When the feed needs to ask him something: a number in a range. The answer lands in db under answers/<day>/<key>."
   },
@@ -243,7 +243,7 @@
    "layer": "details",
    "element": "icm-input",
    "props": {
-    "question": "asked in Serbian, second person"
+    "question": "asked in the owner's language, second person"
    },
    "when": "When the feed needs to ask him something: one short line of text. The answer lands in db under answers/<day>/<key>."
   },
@@ -251,7 +251,7 @@
    "layer": "details",
    "element": "icm-confirm",
    "props": {
-    "question": "asked in Serbian, second person"
+    "question": "asked in the owner's language, second person"
    },
    "when": "When the feed needs to ask him something: yes or no. The answer lands in db under answers/<day>/<key>."
   }

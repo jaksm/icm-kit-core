@@ -21,7 +21,7 @@ description: Add, check and retire the outside sources of an ICM (newsletters, f
    the state) comes by mail. Bulk signal (news, releases, videos) is better read as a feed by a
    script, because turning a feed into mail destroys its ids and dates, and with them deduplication.
    `recipes/rss-to-mail.md` is for the few feeds worth a mail each.
-3. **Check a feed before trusting it**: `python3 core/workflows/sources/scripts/check-feed.py <url>`.
+3. **Check a feed before trusting it**: `python3 core/scripts/check-feed.py <url>`.
    The verdict comes from the body, never from the HTTP code.
 4. **Read the existing rules at the provider first.** A rule that deletes beats a rule that labels,
    silently; two old delete rules once ate senders that had just been added as sources.

@@ -17,5 +17,5 @@ so deduplication and parsing stop working. One owner moved about a hundred feeds
 a script that reads feeds directly, and kept mail for what is addressed to a person. Use this for the
 handful of feeds where each item deserves to be seen as a message.
 
-Check the feed first with `scripts/check-feed.py`. A feed returns its whole window on every read,
+Check the feed first with `core/scripts/check-feed.py`. A feed returns its whole window on every read,
 so a new subscription may deliver a burst of old items on day one.

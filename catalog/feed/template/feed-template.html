@@ -1,0 +1,997 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>{{title}}</title>
+<style>/*ICM-CSS*/
+
+/* One card per screen, vertical flicking with snap, a segmented progress bar on top, actions
+   in a rail on the right. A card has TWO states: the front, with media and one sentence, and
+   the details that replace it. Everything over media sits on a dark ground, because reading
+   over a photograph is the one case where paper does not work. */
+html,body{margin:0;height:100%;overflow:hidden;background:#1a1917;color:var(--over);
+  font-family:var(--font-sans);-webkit-text-size-adjust:100%;overscroll-behavior:none}
+/* A page served on its own has no wrapper around it, so it pads for the safe area itself.
+   With --publish this block goes away together with the doctype head (build-feed-page.py). */
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+
+/* invariant: height:100%, not 100vh or 100dvh. Both mean the full screen and know nothing
+   about the padding on :root, so the card comes out taller than the frame and the snap stops
+   between two. */
+#feed{height:100%;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;
+  overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+#feed::-webkit-scrollbar{display:none}
+
+/* Vocabulary:
+     reel   = what scrolls TOP TO BOTTOM, one topic
+     cover  = the first screen of a reel, the name of the topic and its aggregate
+     story  = a screen inside a reel, flicked LEFT AND RIGHT */
+.reel{position:relative;height:100%;scroll-snap-align:start;scroll-snap-stop:always;
+  overflow:hidden;background:#1a1917}
+/* invariant: overflow-y is `clip`, not `hidden`. `hidden` makes a scroll port on the Y axis
+   too, so the track swallows the vertical scroll and the feed stops flicking; `clip` only
+   cuts and hands the up and down movement to the parent. */
+.track{display:flex;height:100%;overflow-x:auto;overflow-y:hidden;
+  scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch}
+@supports (overflow-y:clip){.track{overflow-y:clip}}
+.track::-webkit-scrollbar{display:none}
+.story{position:relative;isolation:isolate;flex:0 0 100%;width:100%;height:100%;
+  scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;clip-path:inset(0);
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding:52px 86px 58px 20px}
+
+/* invariant: every layer has an EXPLICIT z-index, and content is promoted to its own
+   compositing layer. On iOS an animated transform lifts the image into a layer of its own,
+   and it then covers text that has none: the text shows for a moment and vanishes.
+   `z-index:auto` is not enough, compositing layers are not sorted by document order. */
+/* invariant: `clip-path:inset(0)`, not only `overflow:hidden`. iOS does NOT cut a compositing
+   layer by the parent's overflow, so a scaled image leaks under the card, below the curtain
+   that was cut correctly. clip-path cuts compositing layers too. */
+.media{position:absolute;inset:0;z-index:0;overflow:hidden;clip-path:inset(0);
+  transform:translateZ(0);background:#1a1917}
+/* Without media, or when it fails to load, the card must not be a black hole: the tone of
+   the topic stays in a soft gradient, so it reads as a choice and not as a fault. */
+.media.none{background:
+  radial-gradient(120% 90% at 20% 0%,color-mix(in srgb,var(--tone,#3d3a35) 55%,#1a1917) 0%,
+  #1a1917 70%)}
+@supports not (background:color-mix(in srgb,red 50%,blue)){
+  .media.none{background:radial-gradient(120% 90% at 20% 0%,#3d3a35 0%,#1a1917 70%)}
+}
+/* Upright media covers the screen. Wide media does not: stretched over an upright card it
+   loses both the sky and the foreground. It goes into a frame on top, at its own ratio, with
+   a blurred copy behind so the bands do not look like an error. The ratio comes from the
+   data, computed at build time, so the card does not jump after loading. */
+/* invariant: NO transform on the image. A scale is an overhang below the frame, and iOS does
+   not cut it (see above). object-fit:cover at 100 percent has nothing to spill. */
+.media img,.media video{width:100%;height:100%;object-fit:cover;display:block}
+.media.wide{display:grid;place-items:start center}
+.media.wide .backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  filter:blur(30px) saturate(.85) brightness(.78);transform:scale(1.25)}
+.media.wide .main{position:relative;width:100%;height:auto;max-height:62%;
+  object-fit:contain;transform:none;margin-top:14%}
+/* The curtain: text over a photograph reads only if the ground is darkened from below.
+   The tone of the topic comes in thinly, so the card belongs to its area. */
+/* invariant: the tone must be TRANSPARENT. A full hex as the bottom background layer covers
+   the photograph and only a flat color is left. */
+.media::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(20,19,17,.74) 0%,rgba(20,19,17,.36) 9%,
+             rgba(20,19,17,.14) 20%,rgba(20,19,17,.34) 38%,rgba(20,19,17,.72) 55%,
+             rgba(20,19,17,.9) 70%,rgba(20,19,17,.99) 86%,#141311 96%)}
+@supports (background:color-mix(in srgb,red 20%,transparent)){
+  .media::after{background:linear-gradient(to bottom,rgba(20,19,17,.74) 0%,
+             rgba(20,19,17,.36) 9%,rgba(20,19,17,.14) 20%,rgba(20,19,17,.34) 38%,
+             rgba(20,19,17,.72) 55%,rgba(20,19,17,.9) 70%,rgba(20,19,17,.99) 86%,#141311 96%),
+             linear-gradient(color-mix(in srgb,var(--tone,#1a1917) 20%,transparent),
+                             color-mix(in srgb,var(--tone,#1a1917) 20%,transparent))}
+}
+.media.wide::after{background:linear-gradient(to bottom,rgba(20,19,17,.7) 0%,
+  rgba(20,19,17,.2) 10%,rgba(20,19,17,.1) 26%,rgba(20,19,17,.42) 52%,
+  rgba(20,19,17,.88) 74%,rgba(20,19,17,.99) 88%,#141311 97%)}
+/* invariant: only the FRONT state is in the flow. A blanket `.reel > *{position:relative}`
+   once beat `position:absolute` on the details, the curtain and the rail by specificity, and
+   all three fell into the flow. */
+.front{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;
+  transform:translateZ(0)}
+
+/* Two indicators, each measuring its own axis.
+   #steps, upright dots on the right edge: how many reels are left DOWNWARD.
+   #bar, the segmented bar on top: where you are among the STORIES of the current reel. */
+#steps{position:fixed;right:7px;top:50%;translate:0 -50%;z-index:6;
+  display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none}
+#steps i{width:4px;height:4px;border-radius:999px;background:rgba(250,249,245,.3);
+  transition:height .28s var(--ease),background-color .28s var(--ease)}
+#steps i.past{background:rgba(250,249,245,.5)}
+/* A reel is seen when all its stories are seen: the dot takes the accent color, so what is
+   still unopened shows from above. */
+#steps i.seen{background:var(--over-accent)}
+#steps i.here{height:17px;background:var(--over)}
+
+#bar{position:fixed;top:0;left:0;right:0;z-index:6;display:flex;gap:3px;
+  padding:calc(env(safe-area-inset-top) + 12px) 20px 0;pointer-events:none}
+#bar i{flex:1;height:2.5px;border-radius:999px;background:rgba(250,249,245,.26);
+  overflow:hidden}
+#bar i::after{content:"";display:block;height:100%;width:0;background:var(--over);
+  transition:width .3s var(--ease)}
+#bar i.past::after,#bar i.here::after{width:100%}
+/* A seen story: the ground of the segment is lighter. Read from the diary, so it survives a
+   refresh of the page. */
+#bar i.seen{background:rgba(250,249,245,.5)}
+#bar[hidden]{display:none}
+#header{position:fixed;top:0;left:0;right:0;z-index:6;display:flex;align-items:center;
+  gap:9px;padding:calc(env(safe-area-inset-top) + 27px) 26px 0 20px;
+  font-size:12.5px;color:var(--over-muted);pointer-events:none;
+  text-shadow:0 1px 8px rgba(20,19,17,.6)}
+#header b{font-weight:500;color:var(--over-2)}
+#header .position{margin-left:auto;font-variant-numeric:tabular-nums}
+
+/* THE FRONT STATE: a number, a label, one sentence. Nothing else; actions are in the rail. */
+/* A soft ground exactly under the text. The curtain over the whole card is not enough on a
+   light photograph (measured contrast 1.6 to 2.4 where large text needs 3), and a stronger
+   curtain over everything would kill dark images, so only the band around the text is
+   darkened, radially and without an edge, so it does not read as a box. */
+.front{text-shadow:0 1px 14px rgba(20,19,17,.55),0 1px 2px rgba(20,19,17,.4)}
+.front::before{content:"";position:absolute;inset:-34px -100px -46px -30px;z-index:-1;
+  pointer-events:none;
+  background:radial-gradient(130% 105% at 0% 100%,rgba(20,19,17,.88) 0%,
+             rgba(20,19,17,.72) 34%,rgba(20,19,17,.4) 62%,rgba(20,19,17,0) 84%)}
+.hook{font-family:var(--font-serif);font-weight:400;font-size:clamp(23px,6.2vw,29px);
+  line-height:1.34;letter-spacing:-.016em;margin:0;padding-bottom:.08em;
+  text-wrap:balance;max-width:19ch;color:var(--over)}
+
+/* THE DETAILS STATE: the content of the story is REPLACED by the details, in place. A bottom
+   sheet would promise a swipe down to dismiss, and a swipe down is the navigation of the
+   feed. Replacing in place promises nothing and has no gesture to steal. */
+/* invariant: the two layers alternate, they do not overlap. With the same duration both are
+   seen at half opacity in the middle and the text mixes; so one leaves fast and the other
+   enters only when the first is gone. */
+.layer{position:absolute;left:20px;right:86px;bottom:58px;z-index:2;
+  display:flex;flex-direction:column;align-items:flex-start;transform:translateZ(0)}
+.details{opacity:0;visibility:hidden;
+  max-height:calc(100% - 96px);overflow-y:auto;overscroll-behavior:contain}
+.story.open .details{right:20px}
+/* invariant: both layers stay composited even when the motion library rewrites `transform`.
+   Without this the iOS fault returns: text vanishes under a photograph that has a layer. */
+.front,.details{will-change:transform,opacity}
+/* The rail steps aside while the details are open: every action is within reach there, and
+   the gutter kept for it squeezed the table of facts. */
+.story.open .rail{opacity:0;visibility:hidden;pointer-events:none}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.rail{transition:opacity .24s var(--ease),visibility .24s}
+/* invariant: this curtain is on the STORY and promoted to its own compositing layer. As
+   `.media::before` it sat under the image's layer on iOS and the details were read over the
+   full photograph (measured contrast 2.2, below 3).
+   invariant: z-index 1, between the media (0) and the text layers (2). */
+.story::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(20,19,17,.93),rgba(20,19,17,.97));
+  opacity:0;visibility:hidden;transform:translateZ(0);
+  transition:opacity .3s var(--ease),visibility .3s}
+.story.open::after{opacity:1;visibility:visible}
+
+.details h3{font-family:var(--font-serif);font-weight:400;font-size:clamp(21px,5.6vw,25px);
+  line-height:1.24;letter-spacing:-.016em;margin:0;color:var(--over);text-wrap:balance}
+/* One meta line under the title keeps the numbers the front state carried, so the details
+   do not start from zero. */
+.meta{font-size:13.5px;color:var(--over-2);margin-top:7px;
+  font-variant-numeric:tabular-nums lining-nums}
+.meta b{font-weight:400;color:var(--over-accent)}
+.details .body{font-family:var(--font-serif);font-size:16.5px;line-height:1.5;
+  color:var(--over-2);margin:14px 0 0;text-wrap:pretty}
+
+/* The path is shown on one line, clipped from the left so the file name stays visible.
+   It appears only here, inside the details. */
+.source{margin-top:16px;font-size:11.5px;color:var(--over-muted);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;max-width:100%;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:rtl;text-align:left}
+
+/* COVER: the first screen of a reel. */
+.story.cover{padding-right:20px}
+.cover h2{font-family:var(--font-serif);font-weight:400;font-size:clamp(40px,12vw,58px);
+  line-height:1.1;letter-spacing:-.03em;margin:0;padding-bottom:.05em;
+  color:var(--over);text-wrap:balance}
+.cover .subtitle{font-family:var(--font-serif);font-size:18px;line-height:1.45;
+  color:var(--over-2);margin:10px 0 0;max-width:24ch}
+.cover icm-metric{margin-top:22px}
+
+/* Text is PLAIN WHITE and takes no color from the image. `mix-blend-mode:difference` gives
+   grey over a mid tone, which is the most common photograph: forest, grass, stone. White
+   plus a strong enough curtain is boring and reliable. */
+.story.cover .media::after{
+  background:linear-gradient(to bottom,rgba(20,19,17,.72) 0%,rgba(20,19,17,.34) 10%,
+             rgba(20,19,17,.22) 26%,rgba(20,19,17,.56) 50%,rgba(20,19,17,.88) 72%,
+             rgba(20,19,17,.99) 90%,#141311 98%)}
+.cover .eyebrow{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--over-muted);margin-bottom:10px}
+
+/* The rail: actions live here, not in the front state, so text keeps the width.
+   Everything about how the buttons look comes from the library's rail variant. */
+.rail{position:absolute;right:16px;bottom:34px;z-index:2;transform:translateZ(0);
+  display:flex;flex-direction:column;gap:20px;align-items:center}
+.rail .icm-button{filter:drop-shadow(0 1px 6px rgba(20,19,17,.7))}
+
+/* COMMENT: a bottom sheet with a large writing surface. The strongest feedback there is,
+   because writing costs, so it opens from the rail and not from inside the details. */
+#comment{position:fixed;inset:0;z-index:9;display:none}
+#comment.open{display:block}
+#comment .shade{position:absolute;inset:0;background:rgba(20,19,17,.66);
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+#comment .sheet{position:absolute;left:0;right:0;bottom:0;background:var(--paper);
+  color:var(--ink);border-radius:20px 20px 0 0;padding:18px 20px calc(20px + env(safe-area-inset-bottom));
+  max-height:88%;overflow-y:auto;transform:translateY(100%);
+  transition:transform .3s var(--ease-drawer)}
+#comment.open .sheet{transform:translateY(0)}
+@media (min-width:700px){#comment .sheet{max-width:460px;left:50%;translate:-50% 0}}
+#comment .heading{font-family:var(--font-serif);font-size:21px;line-height:1.25;margin:0 0 4px;
+  color:var(--ink);text-wrap:balance}
+#comment .sub{font-size:12.5px;color:var(--ink-muted);margin:0 0 14px}
+#comment textarea{width:100%;min-height:9.5em;font-family:var(--font-serif);font-size:16.5px;
+  line-height:1.5;color:var(--ink);background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius);padding:12px 14px;resize:vertical;-webkit-appearance:none;box-sizing:border-box}
+#comment textarea:focus{outline:0;border-color:var(--accent)}
+#comment .thumbs{display:flex;gap:8px;margin-top:12px}
+#comment .thumbs button{font:inherit;font-size:20px;cursor:pointer;min-height:var(--tap);
+  min-width:58px;border:1px solid var(--line);border-radius:var(--radius-pill);
+  background:none;color:var(--ink-2);transition:transform .1s ease-out,color .16s var(--ease)}
+#comment .thumbs button:active{transform:scale(.95)}
+#comment .thumbs button.is-on{color:var(--accent);border-color:currentColor}
+#comment .foot{display:flex;gap:8px;margin-top:16px;align-items:center}
+#comment .foot .status{font-size:12px;color:var(--ink-muted);margin-left:auto}
+
+/* Bottom left keeps only a hint that this also flicks sideways. It goes out as soon as the
+   track moves. */
+.hint{position:absolute;left:20px;bottom:22px;z-index:2;pointer-events:none;
+  display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--over-muted);
+  white-space:nowrap;animation:hint 2.6s var(--ease) infinite}
+.hint svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round}
+.reel.touched .hint{display:none}
+@keyframes hint{0%,72%,100%{opacity:.6;transform:translateX(0)}
+               84%{opacity:1;transform:translateX(4px)}}
+
+.eyebrow-s{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--over-muted);margin-bottom:8px}
+
+/* The end screen: how much you went through and what next. Without it the feed just stops. */
+#end .story{justify-content:center;align-items:center;text-align:center;padding:52px 24px;
+  background:var(--paper);color:var(--ink)}
+#end .front{align-items:center;text-shadow:none}
+#end .front::before{content:none}
+#end .date{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-muted);margin-bottom:12px}
+#end h2{font-family:var(--font-serif);font-weight:400;font-size:30px;line-height:1.14;
+  letter-spacing:-.02em;margin:0;color:var(--ink);text-wrap:balance;max-width:16ch}
+#end p{font-family:var(--font-serif);font-size:17px;line-height:1.45;color:var(--ink-2);
+  max-width:28ch;margin:12px 0 0;text-wrap:pretty}
+#end .tally{display:flex;gap:26px;margin-top:26px;justify-content:center}
+#end .tally div{display:flex;flex-direction:column;align-items:center;gap:2px}
+#end .tally b{font-family:var(--font-serif);font-weight:400;font-size:30px;line-height:1;
+  letter-spacing:-.02em;color:var(--accent);font-variant-numeric:tabular-nums lining-nums}
+#end .tally span{font-size:11.5px;color:var(--ink-muted)}
+#end .totop{margin-top:30px}
+
+/* A desktop has no swipe, so the arrows show. */
+#arrows{display:none}
+#arrows button{position:fixed;left:50%;z-index:7;width:44px;height:44px;border-radius:999px;
+  background:var(--card);border:1px solid var(--line);color:var(--ink-2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .12s ease-out,border-color .16s var(--ease),opacity .16s var(--ease)}
+#arrows button:hover{border-color:var(--ink-muted);color:var(--ink)}
+#arrows button:active{transform:translateX(var(--dx)) scale(.93)}
+#arrows button:disabled{opacity:.28;cursor:default}
+#arrows button:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+#arrows svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round}
+#up{--dx:-290px;transform:translateX(-290px);top:calc(50% - 30px)}
+#down{--dx:-290px;transform:translateX(-290px);top:calc(50% + 30px)}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important}
+  #feed{scroll-behavior:auto}
+}
+@media (min-width:700px){
+  #feed{max-width:460px;margin:0 auto}
+  /* Both indicators follow the column, not the window. */
+  #header,#bar{max-width:460px;left:50%;translate:-50% 0;right:auto;width:100%}
+  #steps{left:auto;right:calc(50% - 230px + 7px);translate:0 -50%}
+  #arrows{display:block}
+}
+@media (min-width:700px) and (max-width:880px){
+  #up,#down{--dx:250px;transform:translateX(250px)}
+}
+</style>
+
+<div id="bar"></div>
+<div id="steps"></div>
+<div id="header"><b id="h-topic"></b><span class="position" id="h-position"></span></div>
+<main id="feed"></main>
+<div id="comment" role="dialog" aria-modal="true" aria-labelledby="c-heading">
+  <div class="shade" data-do="comment-close"></div>
+  <div class="sheet">
+    <p class="heading" id="c-heading">{{comment}}</p>
+    <p class="sub" id="c-sub"></p>
+    <textarea id="c-text" rows="8" placeholder="{{commentPlaceholder}}"></textarea>
+    <div class="thumbs">
+      <button type="button" id="c-up" aria-label="{{thumbUp}}">&#128077;</button>
+      <button type="button" id="c-down" aria-label="{{thumbDown}}">&#128078;</button>
+    </div>
+    <div class="foot">
+      <icm-button variant="pill" label="{{save}}" data-do="comment-save"></icm-button>
+      <icm-button variant="quiet" label="{{cancel}}" data-do="comment-close"></icm-button>
+      <span class="status" id="c-status"></span>
+    </div>
+  </div>
+</div>
+<div id="arrows">
+  <button type="button" id="up" aria-label="{{previousCard}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15l7-7 7 7"/></svg></button>
+  <button type="button" id="down" aria-label="{{nextCard}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg></button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.15.0/gsap.min.js"></script>
+<script type="module">/*ICM-JS*/</script>
+<script>/*ICM-HOST*/</script>
+<script id="feed-data" type="application/json">/*FEED-DATA*/</script>
+<script>
+const D = JSON.parse(document.getElementById('feed-data').textContent);
+const feed = document.getElementById('feed');
+// Every string on screen comes from the build: English defaults, the owner's words on top.
+const L = D.labels || {};
+document.documentElement.lang = L.locale || 'en';
+// "32 cards" in any language: Intl knows the plural category, the label holds the forms.
+const plural = (n, forms) => (forms || {})[new Intl.PluralRules(L.locale || 'en').select(n)] || (forms || {}).other || '';
+
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// Motion is GSAP's. Three things here are impossible in CSS: a move that pauses when the card
+// leaves the screen, two layers alternating without overlap in the middle, and details that
+// enter in steps. If GSAP does not load the page works without motion: `settle()` sets the
+// end state at once.
+const G = window.gsap;
+const QUIET = matchMedia('(prefers-reduced-motion:reduce)').matches;
+if (G) G.defaults({duration: .42, ease: 'power2.out'});
+
+function settle(target, v) {
+  for (const el of (target && target.nodeType ? [target] : [...(target || [])])) {
+    if ('autoAlpha' in v) {
+      el.style.opacity = v.autoAlpha;
+      el.style.visibility = v.autoAlpha ? 'visible' : 'hidden';
+    }
+    if ('y' in v) el.style.transform = v.y ? 'translateY(' + v.y + 'px)' : 'translateZ(0)';
+  }
+}
+
+// The attention diary. localStorage does NOT reach the agent: whatever the page writes there
+// stays on the phone. The `db` capability is the only channel back, so everything that
+// changes tomorrow's feed goes here. One document per day, not per event.
+const diary = Object.create(null);    // key -> {topic, hook, ms, detailsMs, liked, links}
+let builds = [];                      // every page the diary measured that day
+// card key -> its actions from the data; a click knows only the index, not the params
+const cardActions = Object.create(null);
+let store = null, writing = Promise.resolve(), timer = 0;
+let nowKey = null, nowSince = 0;      // which card is on screen and since when
+
+const item = k => diary[k] || (diary[k] = {ms: 0, detailsMs: 0, liked: false, links: 0});
+
+// The comment sits on the diary item, not in a document of its own: a comment without the
+// card it is about means nothing.
+let cKey = null, cThumb = 0;
+
+// Debounced, and one write at a time: overlapping writes to one document are slower and the
+// last one wins anyway.
+function save() {
+  if (!store) return;
+  clearTimeout(timer);
+  timer = setTimeout(flush, 3000);
+}
+function flush() {
+  if (!store) return;
+  clearTimeout(timer);
+  const items = JSON.parse(JSON.stringify(diary));
+  // the card being looked at has not closed its interval yet; without this every write
+  // reports zero for what is on screen
+  if (nowKey && nowSince && items[nowKey]) items[nowKey].ms += Date.now() - nowSince;
+  // `build` is the fingerprint of this very page, `reels` its reels. Without them nobody
+  // knows tomorrow which page the diary measured, on a day when the feed was published twice.
+  writing = writing.then(() => store.set({
+    date: D.date, build: D.build || null, builds: builds,
+    reels: (D.reels || []).map(r => r.id), items: items
+  })).catch(() => {});
+}
+
+// The page draws at once; the diary starts when (and if) the capability answers. `use` is
+// never a condition for rendering: without it everything works, it just is not remembered.
+(async () => {
+  const c = window.icmHost ? await window.icmHost.use('db') : null;
+  if (!c) return;
+  store = c.doc('diary/' + (D.day || D.date));
+  // Seed from what is already there: opening the same day again adds, it does not overwrite.
+  try {
+    const snap = await store.get();
+    const old = snap.exists ? (snap.data() || {}) : {};
+    // a day with two publications carries two fingerprints; both stay, so it shows that the
+    // measure is not from one piece
+    builds = (old.builds || []).concat(old.build ? [old.build] : []);
+    for (const k in old.items || {}) {
+      const t = item(k), o = old.items[k] || {};
+      t.ms += o.ms || 0; t.detailsMs += o.detailsMs || 0; t.links += o.links || 0;
+      t.liked = t.liked || !!o.liked;
+      if (o.comment) { t.comment = o.comment; t.thumb = o.thumb || 0; }
+      if (o.actions) t.actions = o.actions.concat(t.actions || []);
+      if (o.answers) t.answers = Object.assign({}, o.answers, t.answers);
+    }
+  } catch (e) {}
+  builds = builds.filter((b, i) => b && b !== D.build && builds.indexOf(b) === i);
+  refreshLikes();
+})();
+
+// ACTIONS. The page runs what the catalog describes and writes into the diary what really
+// happened. A `link` can only say `clicked`: what happens in the new tab the page does not
+// see, so `done` would be a made up claim. `mcp` knows the outcome: `done`, or `error` with a code.
+let connectors = null, connectorsAsked = false;
+async function getConnectors() {
+  if (!connectorsAsked) {
+    connectorsAsked = true;
+    connectors = window.icmHost ? await window.icmHost.use('mcp') : null;
+  }
+  return connectors;
+}
+
+function fillIn(template, params) {
+  return JSON.parse(JSON.stringify(template), (k, v) =>
+    typeof v === 'string' ? v.replace(/\{\{(\w+)\}\}/g, (_, i) => (params || {})[i] ?? '') : v);
+}
+
+async function run(el, key, a, def) {
+  const record = {id: a.id, at: new Date().toISOString()};
+  try {
+    if (def.kind === 'link') {
+      record.outcome = 'clicked';      // the anchor already opened what it should
+    } else {
+      const m = await getConnectors();
+      if (!m) throw {code: 'not_granted'};
+      await m.callTool(def.server, def.tool, fillIn(def.input, a.params));
+      record.outcome = 'done';
+      el.state = 'done';
+    }
+  } catch (e) {
+    record.outcome = 'error';
+    record.code = (e && e.code) || 'upstream_error';
+    el.error = record.code;
+    el.state = 'error';
+  }
+  const t = item(key);
+  (t.actions = t.actions || []).push(record);
+  flush();
+}
+
+feed.addEventListener('icm-action', e => {
+  const el = e.target, st = el.closest('.story');
+  const key = st && st.dataset.key;
+  const a = key && (cardActions[key] || [])[+el.dataset.i];
+  const def = a && (D.actions || {})[a.id];
+  if (!def) { el.state = 'error'; el.error = 'bad_request'; return; }
+  run(el, key, a, def);
+});
+
+// Answers from forms go onto the diary item of the card, under `answers`, by kind of form.
+feed.addEventListener('icm-answer', e => {
+  const st = e.target.closest('.story');
+  if (!st || !st.dataset.key) return;
+  const t = item(st.dataset.key);
+  Object.assign(t, names[st.dataset.key]);
+  (t.answers = t.answers || {})[e.target.dataset.form] = e.detail.value;
+  save();
+});
+
+addEventListener('visibilitychange', () => { if (document.hidden) { closeClock(); flush(); } });
+addEventListener('pagehide', () => { closeClock(); flush(); });
+
+// Media. A video goes in as <video muted loop playsinline>: the only shape a phone starts by
+// itself. Above a ratio of 1.15 an image is wider than nearly square, and cutting it to an
+// upright card takes either the sky or the foreground; it goes into a frame, with a blurred
+// copy behind instead of black bands.
+const WIDE = 1.15;
+
+function media(g) {
+  const path = g && g.media;
+  const tone = g && g.tone ? ' style="--tone:' + esc(g.tone) + '"' : '';
+  // Without media the card stays in the tone of its topic, not black. The same when the file
+  // does not load: `onerror` removes the image and the same ground returns.
+  if (!path) return '<div class="media none"' + tone + '></div>';
+  const fail = "this.closest('.media').classList.add('none');this.remove()";
+  if (/\.(mp4|webm|mov)$/i.test(path)) {
+    // preload="none" and a manual play: otherwise every reel holds a decoder from the start
+    return '<div class="media"' + tone + '><video src="' + esc(path) +
+      '" muted loop playsinline preload="none" disablepictureinpicture' +
+      ' onerror="' + fail + '"></video></div>';
+  }
+  if (((D.ratios || {})[path] || 0) > WIDE) {
+    return '<div class="media wide"' + tone + '>' +
+      '<img class="backdrop" src="' + esc(path) + '" alt="" aria-hidden="true" decoding="async"' +
+      ' onerror="' + fail + '">' +
+      '<img class="main" src="' + esc(path) + '" alt="" decoding="async" onerror="' + fail +
+      '"></div>';
+  }
+  return '<div class="media"' + tone + '><img src="' + esc(path) + '" alt="" decoding="async"' +
+    ' onerror="' + fail + '"></div>';
+}
+
+// Slot renderers. Each one is a tag from the ICM library; the page only decides WHETHER a
+// slot is rendered and hands it its data. Array and object props travel as JSON attributes,
+// which is how Lit reads a `type: Array` property. Each returns '' when the story lacks it.
+const attr = o => esc(JSON.stringify(o));
+
+const tags = a => !a || !a.length ? '' :
+  '<icm-tags items="' + attr(a.map(o => typeof o === 'string' ? {text: o} : {text: o.text, kind: o.kind})) + '"></icm-tags>';
+
+const deadline = r => !r || !r.date ? '' :
+  '<icm-deadline date="' + esc(r.date) + '" label="' + esc(r.label || '') + '"></icm-deadline>';
+
+const delta = u => !u || u.value == null ? '' :
+  '<icm-delta value="' + esc(u.value) + '" direction="' + (u.direction === 'down' ? 'down' : 'up') +
+  '" label="' + esc(u.label || '') + '"></icm-delta>';
+
+const gauge = m => !m || !m.value ? '' :
+  '<icm-gauge value="' + esc(m.value) + '" target="' + esc(m.target == null ? '' : m.target) +
+  '" label="' + esc(m.label || '') + '"></icm-gauge>';
+
+const series = n => !n || (n.values || []).length < 2 ? '' :
+  '<icm-series values="' + attr(n.values.map(Number)) +
+  '" variant="' + (n.kind === 'bars' ? 'bars' : 'line') +
+  '" label="' + esc(n.label || '') + '"></icm-series>';
+
+const list = (a, v) => !a || !a.length ? '' :
+  '<icm-list items="' + attr(a.map(x => Array.isArray(x) ? [x[0], !!x[1]] : [x.text || x, !!x.done])) +
+  '" variant="' + ({dots: 'dots', steps: 'steps'}[v] || 'checks') + '"></icm-list>';
+
+const quote = c => !c || !c.text ? '' :
+  '<icm-quote text="' + esc(c.text) + '" from="' + esc(c.from || '') + '"></icm-quote>';
+
+const facts = a => !a || !a.length ? '' : '<icm-facts rows="' + attr(a) + '"></icm-facts>';
+
+const next = t => !t ? '' : '<icm-next text="' + esc(t) + '"></icm-next>';
+
+const metric = r => r.metric === '' || r.metric == null ? '' :
+  '<icm-metric value="' + esc(r.metric) + '" unit="' + esc(r.unit || '') +
+  '" label="' + esc(r.label || '') + '" variant="' +
+  (r.metricVariant === 'quiet' ? 'quiet' : 'loud') + '"></icm-metric>';
+
+// Actions and forms. The content picks an `id` from the catalog, the page only knows how to run it.
+// invariant: `tel:` and `sms:` do NOT go through encodeURIComponent. It turns `+` into `%2B`
+// and the phone then calls a wrong number or nothing, while the link still looks right.
+const urlFrom = (t, p) => {
+  const raw = /^(tel|sms):/i.test(t);
+  return String(t).replace(/\{\{(\w+)\}\}/g, (_, i) => {
+    const v = (p || {})[i] ?? '';
+    return raw ? String(v) : encodeURIComponent(v);
+  });
+};
+
+const actions = r => (r.actions || []).slice(0, 3).map((a, i) => {
+  const def = (D.actions || {})[a.id];
+  if (!def) return '';
+  // invariant: a link action carries a real href and becomes an <a>. `window.open` is blocked
+  // in a sandboxed page and throws nothing, so buttons built on it do nothing and no check sees it.
+  const href = def.href
+    ? (def.href === '{{url}}' ? (a.params || {}).url : urlFrom(def.href, a.params))
+    : '';
+  return '<icm-action data-action="' + esc(a.id) + '" data-i="' + i + '"' +
+    ' label="' + esc(def.label) + '"' +
+    (href ? ' href="' + esc(href) + '"' : '') +
+    (def.sameTab ? ' sametab' : '') +
+    (def.done ? ' done="' + esc(def.done) + '"' : '') +
+    (def.icon ? ' icon="' + esc(def.icon) + '"' : '') +
+    (def.server ? ' server="' + esc(def.server) + '"' : '') +
+    (def.confirm ? ' confirm' : '') + '></icm-action>';
+}).join('');
+
+const forms = r => ['choice', 'slider', 'input', 'confirm'].map(kind => {
+  const f = r[kind];
+  if (!f) return '';
+  const props = Object.entries(f).map(([k, v]) =>
+    Array.isArray(v) || typeof v === 'object' ? k + '="' + attr(v) + '"'
+      : v === true ? k : k + '="' + esc(v) + '"').join(' ');
+  return '<icm-' + kind + ' data-form="' + kind + '" ' + props + '></icm-' + kind + '>';
+}).join('');
+
+// invariant: the label on a link says WHAT HAPPENS, not who the author is. The owner's table
+// of hosts (_config/feed.json, `hosts`) wins, then the label the card gives, then the host.
+const HOSTS = Object.entries(D.hosts || {}).map(([re, text]) => [new RegExp(re, 'i'), text]);
+function linkLabel(href, given) {
+  for (const [re, text] of HOSTS) if (re.test(href)) return text;
+  if (given) return given;
+  try { return (L.openOn || '').replace('{host}', new URL(href).host.replace(/^www\./, '')); } catch (e) {}
+  return L.open || '';
+}
+
+const links = r => (r.links || []).map(v => '<icm-link href="' + esc(v.href || '') + '" label="' +
+  esc(linkLabel(v.href || '', v.label)) + '"></icm-link>').join('');
+
+// A card from the ICM shows the path of its record; a card that came from the web shows its host.
+const sourceText = src => {
+  if (!src) return '';
+  if (typeof src === 'string') return src;
+  if (src.path) return src.path;
+  if (src.url) { try { return new URL(src.url).host; } catch (e) { return src.url; } }
+  return src.id || src.kind || '';
+};
+
+// One story, the same shape for the cover and for an item: media, the front state, and the
+// layer with details. The cover is a story like any other, only first and with the topic's name.
+function story(reel, r, o) {
+  const hasMetric = r.metric !== '' && r.metric != null;
+  const hasDetails = !!(r.body || (r.facts || []).length || r.next || (r.links || []).length ||
+    r.quote || (r.list || []).length || r.series);
+  // ONLY the cover carries video. A story without media of its own falls back to the still
+  // cover, not to the video: otherwise every story of a reel holds a decoder for the same clip.
+  // invariant: video is checked FIRST. A cover has `media` too (the still), so checking
+  // `r.media` first would never reach the video.
+  const mediaFrom = (o.cover && reel.cover.video)
+    ? {media: reel.cover.video, tone: reel.cover.tone}
+    : (r.media ? r : reel.cover);
+  names[o.key] = {topic: reel.cover.title, hook: r.hook || reel.cover.title};
+  if ((r.actions || []).length) cardActions[o.key] = r.actions.slice(0, 3);
+  return '<div class="story on-photo' + (o.cover ? ' cover' : '') + '" data-key="' + esc(o.key) + '">' +
+    media(mediaFrom) + '<div class="layer front">' +
+    (o.cover ? '<div class="eyebrow">' + esc(D.date) + '</div>' +
+               '<h2>' + esc(reel.cover.title) + '</h2>' +
+               (r.hook ? '' : '<p class="subtitle">' + esc(reel.cover.subtitle) + '</p>') : '') +
+    (r.eyebrow ? '<div class="eyebrow-s">' + esc(r.eyebrow) + '</div>' : '') +
+    tags(r.tags) + deadline(r.deadline) + metric(r) + delta(r.delta) + gauge(r.gauge) +
+    (r.hook ? '<h3 class="hook">' + esc(r.hook) + '</h3>' : '') +
+    '</div>' +
+    (hasDetails ? '<div class="layer details">' +
+      '<h3>' + esc(r.title || r.hook || reel.cover.title) + '</h3>' +
+      (hasMetric ? '<div class="meta"><b>' + esc(r.metric) + (r.unit ? ' ' + esc(r.unit) : '') +
+        '</b>' + (r.label ? ' ' + esc(r.label) : '') + '</div>' : '') +
+      (r.body ? '<p class="body">' + esc(r.body) + '</p>' : '') +
+      quote(r.quote) + list(r.list, r.listVariant) + series(r.series) +
+      facts(r.facts) + next(r.next) + forms(r) +
+      (actions(r) ? '<div class="actions">' + actions(r) + '</div>' : '') +
+      '<div class="links">' + links(r) +
+        '<icm-button variant="quiet" label="' + esc(L.close) + '" data-do="close"></icm-button>' +
+      '</div>' +
+      (sourceText(r.source) ? '<div class="source">' + esc(sourceText(r.source)) + '</div>' : '') +
+      '</div>' : '') +
+    '<div class="rail">' +
+      '<icm-button variant="rail" icon="comment" label="' + esc(L.commentShort) + '" data-do="comment"></icm-button>' +
+      (hasDetails ? '<icm-button variant="rail" icon="details" label="' + esc(L.details) + '" data-do="open"></icm-button>' : '') +
+      '<icm-button variant="rail" icon="heart" label="' + esc(L.like) + '" data-do="like"></icm-button>' +
+      '</div>' +
+    '</div>';
+}
+
+// The feed is a list of reels. Each reel is a track: the cover, then the stories.
+let html = '';
+const meta = [], names = Object.create(null);
+for (const reel of D.reels) {
+  meta.push({topic: reel.cover.title});
+  html += '<section class="reel" data-id="' + esc(reel.id) + '"><div class="track">' +
+    [reel.cover, ...reel.stories].map((x, i) => story(reel, x, {cover: i === 0, key: reel.id + '#' + i})).join('') +
+    '</div>' +
+    (reel.stories.length ? '<div class="hint" aria-hidden="true">' + esc(L.swipe) +
+      '<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></div>' : '') +
+    '</section>';
+}
+meta.push({topic: ''});
+const storyCount = D.reels.reduce((a, r) => a + r.stories.length, 0);
+feed.innerHTML = html +
+  '<section class="reel" id="end"><div class="track"><div class="story on-paper">' +
+  '<div class="front">' +
+  '<div class="date">' + esc(D.date) + '</div>' +
+  '<h2>' + esc(L.endTitle) + '</h2>' +
+  '<p>' + esc(L.endBody) + '</p>' +
+  '<div class="tally">' +
+    '<div><b>' + D.reels.length + '</b><span>' + esc(plural(D.reels.length, L.reels)) + '</span></div>' +
+    '<div><b>' + storyCount + '</b><span>' + esc(plural(storyCount, L.cards)) + '</span></div>' +
+    '<div><b id="n-liked">0</b><span>' + esc(L.liked) + '</span></div>' +
+  '</div>' +
+  '<icm-button class="totop" variant="pill" label="' + esc(L.toTop) + '" id="totop"></icm-button>' +
+  '</div></div></div></section>';
+
+const bar = document.getElementById('bar');
+const steps = document.getElementById('steps');
+steps.innerHTML = '<i></i>'.repeat(meta.length);
+const reels = [...feed.children], dots = [...steps.children];
+
+// invariant: the target is held in a variable, not read from the DOM. `.visible` arrives only
+// when the smooth scroll settles, so three quick presses of an arrow all computed the same
+// starting card and moved the feed by one place in total.
+// invariant: `target` stands BEFORE at(), because at() sets it and at(0) is called at once.
+let target = 0;
+
+// No new observer: the page already knows where it is. `target` is the vertical position,
+// `indexIn` the horizontal one, and the key of the current card follows from the two. A skip
+// is not recorded separately: a card with no record or a small `ms` IS skipped.
+function closeClock() {
+  if (nowKey && nowSince) item(nowKey).ms += Date.now() - nowSince;
+  nowSince = 0;
+}
+function lookAt(k) {
+  if (k === nowKey) return;
+  closeClock();
+  nowKey = k;
+  nowSince = Date.now();
+  if (k && names[k]) Object.assign(item(k), names[k]);
+  save();
+}
+// The two layers ALTERNATE: the front leaves, then the details enter.
+function openDetails(st) {
+  if (!st || st.classList.contains('open')) return;
+  const d = st.querySelector('.details');
+  if (!d) return;
+  st.classList.add('open');
+  st.dataset.opened = Date.now();
+  d.scrollTop = 0;
+  const p = st.querySelector('.front');
+  st._tl && st._tl.kill();
+  if (!G || QUIET) { settle(p, {autoAlpha: 0}); settle(d, {autoAlpha: 1, y: 0}); return; }
+  st._tl = G.timeline()
+    .to(p, {autoAlpha: 0, y: -10, duration: .2})
+    .fromTo(d, {autoAlpha: 0, y: 12}, {autoAlpha: 1, y: 0, duration: .28}, '-=.03');
+}
+
+function closeDetails(st) {
+  if (!st || !st.classList.contains('open')) return;
+  st.classList.remove('open');
+  const k = st.dataset.key, since = +st.dataset.opened || 0;
+  if (k && since) { item(k).detailsMs += Date.now() - since; save(); }
+  st.dataset.opened = '';
+  const p = st.querySelector('.front'), d = st.querySelector('.details');
+  st._tl && st._tl.kill();
+  if (!G || QUIET) { settle(d, {autoAlpha: 0}); settle(p, {autoAlpha: 1, y: 0}); return; }
+  st._tl = G.timeline()
+    .to(d, {autoAlpha: 0, y: 12, duration: .2})
+    .fromTo(p, {autoAlpha: 0, y: -10}, {autoAlpha: 1, y: 0, duration: .3}, '-=.03');
+}
+// invariant: the diary fills ASYNCHRONOUSLY from `db`, after the first draw. Everything that
+// depends on the diary is mapped here, and this is called again after the seed.
+function refreshSeen() {
+  reels.forEach((sec, i) => {
+    const st = [...sec.querySelectorAll('.story[data-key]')];
+    const all = st.length > 0 && st.every(x => isSeen(x.dataset.key));
+    if (steps.children[i]) steps.children[i].classList.toggle('seen', all);
+  });
+  const t = trackOf(reels[target]);
+  if (t) whereAmI(t);
+}
+
+function refreshLikes() {
+  for (const st of feed.querySelectorAll('.story[data-key]')) {
+    const b = st.querySelector('[data-do="like"]');
+    if (b) b.pressed = !!(diary[st.dataset.key] || {}).liked;
+  }
+  const el = document.getElementById('n-liked');
+  if (el) el.textContent = Object.values(diary).filter(x => x.liked).length;
+  refreshSeen();
+}
+
+function trackOf(r) { return r && r.querySelector('.track'); }
+function indexIn(t) { return t && t.clientWidth ? Math.round(t.scrollLeft / t.clientWidth) : 0; }
+function currentStory() {
+  const t = trackOf(reels[target]);
+  return t ? t.children[indexIn(t)] : null;
+}
+function barFor(i) {
+  // The bar on top measures the stories of the CURRENT reel, so it is rewritten on every change.
+  const t = trackOf(reels[i]);
+  const n = t ? t.children.length : 0;
+  bar.hidden = n < 2;
+  if (n < 2) return;
+  if (bar.children.length !== n) bar.innerHTML = '<i></i>'.repeat(n);
+  whereAmI(t);
+}
+
+// invariant: seen is read from the DIARY, not from the position in the session. After a
+// refresh the position is zero and the diary still knows what was looked at.
+const SEEN_MS = D.seenMs || 1200;
+function isSeen(key) {
+  const t = diary[key];
+  return !!t && ((t.ms || 0) >= SEEN_MS || t.detailsMs > 0 || t.liked || !!t.comment);
+}
+function whereAmI(t) {
+  const j = indexIn(t);
+  const st = [...t.querySelectorAll('.story')];
+  [...bar.children].forEach((x, k) => {
+    x.classList.toggle('here', k === j);
+    x.classList.toggle('past', k < j);
+    const key = st[k] && st[k].dataset.key;
+    x.classList.toggle('seen', !!key && isSeen(key));
+  });
+}
+
+// How far the reader got. localStorage is per viewer and can be forbidden, so every access is
+// guarded: without it the feed works, it just always starts from the top.
+const PLACE = 'icm-feed-place-' + (D.day || D.date);
+let restoring = false;
+function rememberPlace(i, j) {
+  // invariant: nothing is remembered while restoring. at() calls this with story 0 before the
+  // horizontal scroll runs, so restoring overwrote exactly what it was about to read.
+  if (restoring) return;
+  try { localStorage.setItem(PLACE, JSON.stringify({i: i, j: j || 0})); } catch (e) {}
+}
+function readPlace() {
+  try { return JSON.parse(localStorage.getItem(PLACE) || 'null'); } catch (e) { return null; }
+}
+
+function at(i) {
+  target = i;
+  dots.forEach((s, j) => { s.classList.toggle('here', j === i); s.classList.toggle('past', j < i); });
+  barFor(i);
+  document.getElementById('h-topic').textContent = (meta[i] || {}).topic || '';
+  document.getElementById('h-position').textContent = (i + 1) + '/' + reels.length;
+  document.getElementById('up').disabled = i <= 0;
+  document.getElementById('down').disabled = i >= reels.length - 1;
+  rememberPlace(i, indexIn(trackOf(reels[i])));
+  lookAt(currentKey());
+}
+
+function currentKey() { const st = currentStory(); return st ? (st.dataset.key || null) : null; }
+
+// IntersectionObserver, not a scroll handler: nothing is computed until something moves.
+// invariant: only the visible reel plays. A phone refuses too many decoders at once, and
+// part of the cards would stay on a black first frame.
+function video(reel, play) {
+  for (const v of reel.querySelectorAll('video')) {
+    if (play) { const p = v.play(); p && p.catch(() => {}); }
+    else v.pause();
+  }
+}
+
+// No zoom. A slow zoom was the one source of overhang past the frame, and overhang is what
+// iOS let through under the curtain. The image stands, a wide one only fades in.
+function frame(reel, play) {
+  if (!G || QUIET || !play) return;
+  for (const im of reel.querySelectorAll('.media.wide .main')) {
+    if (im._in) continue;
+    im._in = 1;
+    G.from(im, {autoAlpha: 0, duration: .45});
+  }
+}
+
+const io = new IntersectionObserver(entries => {
+  for (const u of entries) {
+    u.target.classList.toggle('visible', u.isIntersecting);
+    video(u.target, u.isIntersecting);
+    frame(u.target, u.isIntersecting);
+    if (u.isIntersecting) { at(reels.indexOf(u.target)); refreshLikes(); }
+    // a card that leaves the screen folds everything it opened
+    else u.target.querySelectorAll('.open').forEach(closeDetails);
+  }
+}, {root: feed, threshold: 0.55});
+reels.forEach(r => io.observe(r));
+at(0);
+reels[0].classList.add('visible');
+video(reels[0], true);
+frame(reels[0], true);
+
+const go = k => {
+  target = Math.max(0, Math.min(reels.length - 1, k));
+  reels[target].scrollIntoView({behavior: QUIET ? 'auto' : 'smooth'});
+};
+
+feed.addEventListener('click', e => {
+  const v = e.target.closest('a.link');
+  if (v) { const st = v.closest('.story');
+    if (st && st.dataset.key) { item(st.dataset.key).links++; flush(); } }
+  const b = e.target.closest('[data-do]');
+  if (!b) return;
+  const st = b.closest('.story');
+  const what = b.dataset.do;
+  if (what === 'open') { openDetails(st); return; }
+  if (what === 'close') { closeDetails(st); return; }
+  if (what === 'comment') { openComment(st); return; }
+  if (what === 'like') {
+    const t = item(st.dataset.key);
+    Object.assign(t, names[st.dataset.key]);
+    t.liked = !t.liked;
+    refreshLikes();
+    flush();   // a like is intent, not a passing measurement: written at once
+    return;
+  }
+});
+
+const cEl = () => document.getElementById('comment');
+function openComment(st) {
+  if (!st || !st.dataset.key) return;
+  cKey = st.dataset.key;
+  const t = item(cKey);
+  cThumb = t.thumb || 0;
+  const n = names[cKey] || {};
+  document.getElementById('c-sub').textContent = [n.topic, n.hook].filter(Boolean).join(', ');
+  document.getElementById('c-text').value = t.comment || '';
+  document.getElementById('c-status').textContent = '';
+  refreshThumbs();
+  cEl().classList.add('open');
+  setTimeout(() => document.getElementById('c-text').focus(), 120);
+}
+function closeComment() { cEl().classList.remove('open'); cKey = null; }
+function refreshThumbs() {
+  document.getElementById('c-up').classList.toggle('is-on', cThumb === 1);
+  document.getElementById('c-down').classList.toggle('is-on', cThumb === -1);
+}
+function saveComment() {
+  if (!cKey) return;
+  const t = item(cKey);
+  Object.assign(t, names[cKey]);
+  const text = document.getElementById('c-text').value.trim();
+  // invariant: an empty comment DELETES the field instead of writing an empty string, which
+  // tomorrow would look like a comment without content and ask for a reading it does not have.
+  if (text) { t.comment = text; } else { delete t.comment; }
+  t.thumb = cThumb;
+  t.commentedAt = new Date().toISOString();
+  flush();   // a comment is the strongest signal: it does not wait for the debounce
+  document.getElementById('c-status').textContent = L.saved || '';
+  setTimeout(closeComment, 550);
+}
+// invariant: clicks in the bottom sheet are listened for HERE, not on #feed. The rail is inside
+// the feed so the sheet opened, but Save and Cancel sit outside it and never reached the
+// delegate: the button looked dead, with no error in the console.
+cEl().addEventListener('click', e => {
+  const b = e.target.closest('[data-do]');
+  if (!b) return;
+  if (b.dataset.do === 'comment-close') closeComment();
+  if (b.dataset.do === 'comment-save') saveComment();
+});
+
+document.getElementById('c-up').addEventListener('click', () => { cThumb = cThumb === 1 ? 0 : 1; refreshThumbs(); });
+document.getElementById('c-down').addEventListener('click', () => { cThumb = cThumb === -1 ? 0 : -1; refreshThumbs(); });
+
+addEventListener('keydown', e => {
+  if (e.key === 'Escape' && cEl().classList.contains('open')) { e.preventDefault(); closeComment(); return; }
+  if (cEl().classList.contains('open')) return;   // while writing, the keyboard is the textarea's
+  const open = document.querySelector('.story.open');
+  if (e.key === 'Escape' && open) { e.preventDefault(); closeDetails(open); return; }
+  if (e.key === 'Enter' && !open) { openDetails(currentStory()); return; }
+  if (open) return;   // while details are open, arrows scroll them, not the feed
+  if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(target + 1); }
+  if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); go(target - 1); }
+  // left and right is inside a topic, up and down between topics
+  if (e.key === 'ArrowRight') { e.preventDefault(); sideways(1); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); sideways(-1); }
+  if (e.key === 'Home') { e.preventDefault(); go(0); }
+  if (e.key === 'End') { e.preventDefault(); go(reels.length - 1); }
+});
+
+// The horizontal track. The position is read from scrollLeft, rounded to the width of a story.
+function sideways(d) {
+  const t = trackOf(reels[target]);
+  if (!t || t.children.length < 2) return;
+  const i = Math.max(0, Math.min(t.children.length - 1, indexIn(t) + d));
+  t.scrollTo({left: i * t.clientWidth, behavior: QUIET ? 'auto' : 'smooth'});
+}
+for (const t of feed.querySelectorAll('.track')) {
+  if (t.children.length < 2) continue;
+  const sec = t.closest('.reel');
+  t.addEventListener('scroll', () => {
+    sec.classList.add('touched');
+    if (reels[target] === sec) {
+      whereAmI(t); lookAt(currentKey());
+      // invariant: the place is remembered on a HORIZONTAL scroll too, not only when the reel changes.
+      rememberPlace(target, indexIn(t));
+    }
+  }, {passive: true});
+}
+
+document.getElementById('totop').addEventListener('click', () => go(0));
+document.getElementById('up').addEventListener('click', () => go(target - 1));
+document.getElementById('down').addEventListener('click', () => go(target + 1));
+
+// Put the reader back where they stopped. Runs after every listener, because a scroll fires
+// whereAmI(), which needs the bar to know its segments.
+// invariant: without `behavior:auto` a jump to the twentieth reel animates through all twenty;
+// this is restoring state, not navigation.
+(function restorePlace() {
+  const m = readPlace();
+  if (!m || !reels[m.i]) return;
+  const sec = reels[m.i];
+  restoring = true;
+  // invariant: wait for the next frame. Right after drawing, `clientWidth` of the track can be
+  // zero, so the horizontal jump went to zero and it looked as if remembering did not work.
+  requestAnimationFrame(() => {
+    sec.scrollIntoView({behavior: 'auto'});
+    target = m.i; at(m.i);
+    const t = trackOf(sec);
+    if (t && m.j && t.clientWidth) t.scrollLeft = m.j * t.clientWidth;
+    requestAnimationFrame(() => { restoring = false; });
+  });
+})();
+</script>
