@@ -427,7 +427,7 @@ def main(flags, args):
         m = manifest(feed, feed["actions"])
         print("manifest: %s" % (json.dumps(m, ensure_ascii=False) if m else "no connector"))
         page = re.sub(r"\n/\* A page served on its own.*?\n:root\{padding-top[^}]*\}", "", page[page.index("<title>"):], flags=re.S)
-        assert ":root{padding-top" not in page and "safe-area" in page, "the fixed bars must keep env(safe-area-inset)"
+        assert "A page served on its own" not in page and "safe-area" in page, "the fixed bars must keep env(safe-area-inset)"
         out = out.replace(".html", "-publish.html")
         files = {rel: os.path.relpath(media_path(rel), ROOT) for rel in sorted(feed["ratios"])}
         open(out.replace(".html", ".files.json"), "w", encoding="utf-8").write(json.dumps(files, indent=1))

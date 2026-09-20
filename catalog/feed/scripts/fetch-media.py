@@ -277,7 +277,9 @@ def fill(path, dry=False):
             if got:
                 report["from_source"] += 1
             src = card.get("source")
-            page = (src.get("url") if isinstance(src, dict) else None) or next((l.get("href") for l in card.get("links") or []), None)
+            # only the page the card was WRITTEN FROM. A link on a card about a record or a message
+            # leads somewhere else: it once put a webmail error screenshot on a card about a plot.
+            page = src.get("url") if isinstance(src, dict) else None
             if not got and not dry and page:          # the page's own image, before any search
                 try:
                     got = fetch(page, name)[0]
