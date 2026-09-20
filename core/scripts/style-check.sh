@@ -1,7 +1,7 @@
 #!/bin/bash
 # Style rules a machine can check, so they are not left as a sentence someone forgets. Run before a commit.
 # STYLE_CHECK_SKIP: space separated path prefixes whose text is not ours to fix (vendored, archived).
-# STYLE_TEMPLATES: git pathspec of artifact templates to check (default: *-template.html).
+# STYLE_TEMPLATES: git pathspec of page templates to check (default: *-template.html).
 # STYLE_NO_CYRILLIC=1: flag a Cyrillic letter inside Latin text.
 cd "$(git rev-parse --show-toplevel)" || exit 1
 python3 - <<'PY'
@@ -35,7 +35,7 @@ for p in ls():
     if not re.fullmatch(r'[a-z0-9._-]+', name):
         bad.append('%s file name is not lowercase ascii with dashes' % p)
 
-# An artifact without a viewport meta renders on a phone as an 800px page; without a charset any
+# A page without a viewport meta renders on a phone as an 800px page; without a charset any
 # non ASCII text comes out as mojibake. Both are invisible on desktop, so the rule is a script.
 for p in (ls(templates) if templates else []):
     t = open(p, encoding='utf-8').read()

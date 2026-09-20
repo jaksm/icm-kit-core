@@ -9,9 +9,9 @@ because a wrong edge lies more than a missing one.
 The body of every record (without frontmatter) goes into the page for full text search.
 invariant: the built page therefore holds the WHOLE repo. It is never committed and never shared.
 
-The page speaks English. config/graph.json at the repo root overrides any label, and sets
+The page speaks English. _config/graph.json at the repo root overrides any label, and sets
 `archive` (prefix of the greyed out groups), `nested` (folders whose children are the groups)
-and `out` (where the page is written, default artifacts/graph.html).
+and `out` (where the page is written, default pages/graph.html).
 
     python3 core/workflows/graph/scripts/build-graph-page.py [--check]
 """
@@ -42,9 +42,9 @@ LABELS = {
     "noStatus": "no status", "legendRecord": "record", "legendUntyped": "untyped",
     "total": "total", "closePanel": "Close panel", "pointsTo": "Points to",
     "pointedBy": "Pointed to by", "morePre": "", "morePost": " more matches in the text",
-    "archive": "archive", "root": "root", "nested": [], "out": "artifacts/graph.html",
+    "archive": "archive", "root": "root", "nested": [], "out": "pages/graph.html",
 }
-_cfg = os.path.join(ROOT, "config/graph.json")
+_cfg = os.path.join(ROOT, "_config/graph.json")
 if os.path.exists(_cfg):
     LABELS.update(json.load(open(_cfg, encoding="utf-8")))
 OUT = os.path.join(ROOT, LABELS["out"])
@@ -183,7 +183,7 @@ def main():
             len(nodes), len(edges), sum(1 for n in nodes if not n["k"]), len(js) // 1024))
         print("types:", dict(Counter(n["ty"] for n in nodes).most_common()))
         print("groups:", dict(Counter(n["g"] for n in nodes).most_common()))
-        assert len(js) < 12_000_000, "JSON too large for a 16 MB artifact"
+        assert len(js) < 12_000_000, "JSON too large for a 16 MB page"
 
     template = open(TEMPLATE, encoding="utf-8").read()
     assert "__DATA__" in template, "the template has no data slot"

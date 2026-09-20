@@ -16,7 +16,7 @@ Used from an artifact's own build script:
 
 The library speaks English. A labels.json is injected as globalThis.ICM_LABELS, so a repo gets
 its own language without touching a component. It is looked for in $ICM_LABELS, then in
-config/labels.json at the root of the repo that runs the build, then beside this folder. Never
+_config/labels.json at the root of the repo that runs the build, then beside this folder. Never
 inside it: this folder is replaced whole on update.
 """
 import glob
@@ -37,7 +37,7 @@ def _labels_path():
     core = os.path.dirname(LIB)
     root = os.path.dirname(core) if os.path.basename(core) == "core" else subprocess.run(
         ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True).stdout.strip()
-    for p in (os.environ.get("ICM_LABELS", ""), os.path.join(root, "config/labels.json") if root else "",
+    for p in (os.environ.get("ICM_LABELS", ""), os.path.join(root, "_config/labels.json") if root else "",
               os.path.join(os.path.dirname(LIB), "labels.json")):
         if p and os.path.exists(p):
             return p
