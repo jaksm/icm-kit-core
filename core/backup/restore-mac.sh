@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Put the ICM from this USB on a Mac. Run:  bash "/Volumes/<USB>/restore-mac.sh"
 # Safe to run twice: every step checks before it acts.
+# trust: unverified. Rewritten from a script that was used for real; this version has not been run on a fresh Mac.
 set -eu
 U="$(cd "$(dirname "$0")" && pwd)"
 . "$U/usb.env"

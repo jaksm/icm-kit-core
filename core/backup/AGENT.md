@@ -19,6 +19,9 @@ pinentry appears, the owner types it.
 
 ## In order
 
+The two restore scripts are unverified in this form: run them, but check each result as you go
+(`core/RECIPES.md` in the ICM says how).
+
 1. Mac: `bash <USB>/restore-mac.sh`. Windows: `restore-windows.ps1`. It installs what is missing,
    imports the key, logs in to the host in the browser, clones, and writes the gcrypt settings.
 2. If the host cannot be reached: `git clone <USB>/icm/<name>.bundle ~/<name>`, then

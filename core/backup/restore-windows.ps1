@@ -1,5 +1,6 @@
 # Put the ICM from this USB on Windows. Run in PowerShell:
 #   powershell -ExecutionPolicy Bypass -File "D:\restore-windows.ps1"      (D: is the USB letter)
+# trust: unverified. Rewritten from a script that was used for real; this version has not been run.
 $ErrorActionPreference = "Stop"
 $U = Split-Path -Parent $MyInvocation.MyCommand.Path
 $cfg = @{}; Get-Content (Join-Path $U "usb.env") | ForEach-Object { $k, $v = $_ -split '=', 2; $cfg[$k] = $v }

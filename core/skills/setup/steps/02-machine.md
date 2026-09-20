@@ -25,9 +25,9 @@ Node is **not** needed to use an ICM.
 
 ## Do
 
-Install only on their word, idempotently (`brew list x || brew install x`; on Linux the distro's
-package manager; on Windows `winget install Git.Git`, which brings git and gpg, and copy
-`git-remote-gcrypt` into a folder on PATH). On a Mac without Homebrew, stop and send them to
+Install only on their word, idempotently, following the recipe for their system:
+`recipes/machine-macos.md` (verified), `recipes/machine-windows.md`, `recipes/machine-linux.md`
+(both unverified: read `core/RECIPES.md` before you run one). On a Mac without Homebrew, stop and send them to
 https://brew.sh: installing it asks for their password, which is theirs to type.
 
 Then make the passphrase prompt work, or signing will hang later:
