@@ -29,7 +29,93 @@ import sys
 
 LIB = os.path.dirname(os.path.abspath(__file__))
 DIST = os.path.join(LIB, "dist/icm.js")
+DIST_CSS = os.path.join(LIB, "dist/icm.css")
+DIST_EDITOR = os.path.join(LIB, "dist/icm-editor.js")   # <icm-theme-editor>, a bundle of its own: only the theme page and the site load it
 VENDOR = os.path.join(LIB, "vendor/lit.js")
+
+
+def _root():
+    core = os.path.dirname(LIB)
+    return os.path.dirname(core) if os.path.basename(core) == "core" else subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True).stdout.strip()
+
+
+def load_theme(tid):
+    """A bundled theme, or the owner's own from <repo>/_config/themes/ (same schema, same checks)."""
+    for d in (os.path.join(LIB, "themes"), os.path.join(_root() or LIB, "_config/themes")):
+        f = os.path.join(d, tid + ".json")
+        if os.path.exists(f):
+            return json.load(open(f, encoding="utf-8"))
+    sys.exit("no such theme: %s (bundled: %s)" % (tid, ", ".join(theme_ids())))
+
+
+def theme_ids():
+    ids = [os.path.basename(f)[:-5] for f in sorted(glob.glob(os.path.join(LIB, "themes", "*.json"))) if not f.endswith("schema.json")]
+    return ["ledger"] + [i for i in ids if i != "ledger"]
+
+
+def theme_choice():
+    """(theme, palette, type, overrides). ICM_THEME=id[:palette[:type]] wins (previews), then <repo>/_config/theme.json, then Ledger."""
+    env = os.environ.get("ICM_THEME", "")
+    if env:
+        a = (env.split(":") + ["", ""])[:3]
+        return a[0], a[1], a[2], {}
+    f = os.path.join(_root() or LIB, "_config/theme.json")
+    if os.path.exists(f):
+        c = json.load(open(f, encoding="utf-8"))
+        return c.get("theme", "ledger"), c.get("palette", ""), c.get("type", ""), c.get("overrides", {})
+    return "ledger", "", "", {}
+
+
+def _pick(items, wanted):
+    return next((x for x in items if x["id"] == wanted), items[0])
+
+
+def theme_tokens(theme, palette="", typ=""):
+    """({light}, {dark}, google): flat token maps without the leading --. A palette with one scheme serves both."""
+    pal, ty = _pick(theme["palettes"], palette), _pick(theme["type"], typ)
+    shared = {**theme.get("shape", {}), **theme.get("effects", {}), **theme.get("motion", {}), **ty["tokens"]}
+    light, dark = pal.get("light") or pal["dark"], pal.get("dark") or pal["light"]
+    return {**shared, **light}, {**shared, **dark}, ty.get("google", "")
+
+
+def theme_css(tid="", palette="", typ="", overrides=None):
+    """The chosen theme as CSS, appended after the token files. invariant: three blocks, the same selectors as tokens/colors.css,
+    because the base dark blocks are more specific than :root and would otherwise win in dark mode."""
+    if not tid:
+        tid, palette, typ, overrides = theme_choice()
+    light, dark, _ = theme_tokens(load_theme(tid), palette, typ)
+    light.update(overrides or {}); dark.update(overrides or {})
+    body = lambda t: "".join("--%s:%s;" % kv for kv in t.items())
+    return ("/* theme: %s */\n:root{%s}\n@media (prefers-color-scheme:dark){:root:not([data-theme=\"light\"]){%s}}\n:root[data-theme=\"dark\"]{%s}\n"
+            % (tid, body(light), body(dark), body(dark)))
+
+
+def themes_data():
+    """What <icm-theme-editor> needs, as a script: every bundled theme (and the owner's own), and Ledger's base colors, which an
+    empty palette stands for."""
+    read = lambda n: open(os.path.join(LIB, "tokens", n), encoding="utf-8").read()
+    block = lambda css, sel: css[css.index(sel):].split("}", 1)[0]
+    strip = lambda d: {k[2:]: v for k, v in d.items()}
+    light = {**_hexes(block(read("colors.css"), ":root{")), **_hexes(block(read("data.css"), ":root{"))}
+    dark = {**light, **_hexes(block(read("colors.css"), ':root[data-theme="dark"]')), **_hexes(block(read("data.css"), ':root[data-theme="dark"]'))}
+    own = sorted(glob.glob(os.path.join(_root() or LIB, "_config/themes/*.json")))
+    themes = [load_theme(i) for i in theme_ids()] + [json.load(open(f, encoding="utf-8")) for f in own]
+    js = json.dumps({"themes": themes, "base": {"light": strip(light), "dark": strip(dark)}}, ensure_ascii=False).replace("</", "<\\/")
+    return "const __T=%s;globalThis.ICM_THEMES=__T.themes;globalThis.ICM_BASE=__T.base;\n" % js
+
+
+def editor_module():
+    if not os.path.exists(DIST_EDITOR):
+        bundle()
+    return open(DIST_EDITOR, encoding="utf-8").read().replace("</", "<\\/")
+
+
+def fonts_link(tid="", typ=""):
+    if not tid:
+        tid, _, typ, _ = theme_choice()
+    g = theme_tokens(load_theme(tid), "", typ)[2]
+    return '<link href="https://fonts.googleapis.com/css2?%s&display=swap" rel="stylesheet">' % g if g else ""
 
 
 def _labels_path():
@@ -46,11 +132,12 @@ def _labels_path():
 
 # invariant: tokens load in this order and nothing else may come before them. Every component
 # reads --c-* from a surface class, and the surface classes are defined in surface.css.
-# invariant: one design system. There are no palettes: a page that wants its own look overrides tokens itself.
+# invariant: one design system, many themes. A theme (themes/<id>.json) is only token VALUES, never a selector of its own, so
+# primitives stay composable under every theme. Ledger is the default and equals the token files as written.
 TOKENS = ["colors.css", "typography.css", "motion.css", "layout.css", "data.css", "surface.css"]
 
 # The fonts the default palette names. A page puts this in its <head>; the library never fetches anything itself.
-FONTS_LINK = '<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">'
+FONTS_LINK = '<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=JetBrains+Mono:wght@400..700&display=swap" rel="stylesheet">'
 
 
 def stylesheet():
@@ -80,6 +167,10 @@ def bundle():
                  "--format=esm --minify --outfile=dist/icm.js")
     except subprocess.CalledProcessError as e:
         sys.exit("esbuild failed:\n" + e.stderr.decode("utf-8", "replace"))
+    subprocess.run(["npx", "--yes", "esbuild", os.path.join(LIB, "editor/icm-theme-editor.js"), "--bundle", "--format=esm", "--minify",
+                    "--outfile=" + DIST_EDITOR], check=True, capture_output=True)
+    # invariant: dist/icm.css is stylesheet() verbatim, so an npm consumer (the site) and inline() ship the same CSS
+    open(DIST_CSS, "w", encoding="utf-8").write(stylesheet())
     return DIST
 
 
@@ -105,7 +196,7 @@ def inline(template):
         labels = json.dumps(json.load(open(LABELS, encoding="utf-8")), ensure_ascii=False)
         js = "globalThis.ICM_LABELS=%s;\n" % labels.replace("</", "<\\/") + js
     # a page that wants the fonts the tokens name puts <!--ICM-FONTS--> in its head; the library itself never fetches anything
-    return template.replace("<!--ICM-FONTS-->", FONTS_LINK).replace("/*ICM-CSS*/", stylesheet()).replace("/*ICM-JS*/", js)
+    return template.replace("<!--ICM-FONTS-->", fonts_link()).replace("/*ICM-CSS*/", stylesheet() + theme_css()).replace("/*ICM-JS*/", js)
 
 
 def schema():
@@ -159,6 +250,19 @@ def check_contrast():
     }
     photo = {**_hexes(block(data, ".on-photo{"))}
     bad = []
+    hexonly = lambda d: {"--" + k: v for k, v in d.items() if re.fullmatch(r"#[0-9a-fA-F]{3,6}", v)}
+    for tid in theme_ids():
+        th = load_theme(tid)
+        assert th["id"] == tid, "themes/%s.json has id %s" % (tid, th["id"])
+        for ty in th["type"]:
+            # invariant: variable fonts only, so weight and width tween in CSS when the theme changes; a static family has no ".." range
+            for fam in filter(None, ty.get("google", "").split("&")):
+                assert ".." in fam, "%s/%s: %s is not a variable font request" % (tid, ty["id"], fam)
+            assert int(ty["tokens"].get("t-1", "13px")[:-2]) >= 13, "%s/%s: nothing under 13px" % (tid, ty["id"])
+        for pal in th["palettes"]:
+            lt, dk, _ = theme_tokens(th, pal["id"])
+            themes["%s/%s light" % (tid, pal["id"])] = {**themes["light"], **hexonly(lt)}
+            themes["%s/%s dark" % (tid, pal["id"])] = {**themes["dark"], **hexonly(dk)}
     for name, t in themes.items():
         pairs = [(fg, bg, 4.5) for fg in ("--ink", "--ink-2", "--ink-muted", "--accent", "--state-good", "--state-warn", "--state-bad") for bg in ("--paper", "--card")]
         pairs += [("--on-accent", "--accent-fill", 4.5), ("--on-mark", "--mark", 4.5), ("--ink", "--paper", 7)]
@@ -178,6 +282,7 @@ def check_contrast():
 
 def _check():
     css = stylesheet()
+    assert os.path.exists(DIST_CSS) and open(DIST_CSS, encoding="utf-8").read() == css, "dist/icm.css is stale: python3 build.py --bundle"
     assert "--c-fg" in css and ".on-photo" in css, "surface tokens are missing"
     js = module()
     assert "customElements.define" in js and len(js) > 20000, len(js)
@@ -206,7 +311,7 @@ if __name__ == "__main__":
         src = open(os.path.join(LIB, "docs/index.src.html"), encoding="utf-8").read()
         assert "/*ICM-DOCS*/" in src and "<!--ICM-FONTS-->" in src
         out = os.path.join(LIB, "docs/index.html")
-        open(out, "w", encoding="utf-8").write(inline(src.replace("/*ICM-DOCS*/", "const DOCS=" + data)))
+        open(out, "w", encoding="utf-8").write(inline(src.replace("/*ICM-DOCS*/", "const DOCS=" + data).replace("/*ICM-EDITOR*/", themes_data() + editor_module())))
         print("wrote " + out)
     else:
         print("%d B of style, %d B of module" % (len(stylesheet()), len(module())))

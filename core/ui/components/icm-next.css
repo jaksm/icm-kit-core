@@ -1,5 +1,5 @@
 /* the next move is the current thing on the card, so it is marked: the marker as ground, ink text, an arrow.
    (A quote is the other "text with a bar"; the two must not look alike when they sit under each other.) */
-.icm-next{display:flex;align-items:flex-start;gap:10px;font-size:var(--t-3);font-weight:600;line-height:1.4;
+.icm-next{display:flex;align-items:flex-start;gap:10px;font-size:var(--t-3);font-weight:var(--w-ui);line-height:1.4;
   background:var(--c-mark);color:var(--c-on-mark);border:var(--border) solid var(--c-on-mark);border-radius:var(--radius);padding:var(--s-3) var(--s-4)}
 .icm-next icm-icon{font-size:18px;margin-top:.1em;flex:none}

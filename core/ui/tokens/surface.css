@@ -5,7 +5,7 @@
 .on-paper{
   --c-fg:var(--ink); --c-fg-2:var(--ink-2); --c-muted:var(--ink-muted);
   --c-accent:var(--accent);
-  --c-hairline:var(--line); --c-fill:var(--card);
+  --c-hairline:var(--line); --c-fill:var(--card-fill,var(--card));   /* --card-fill: a theme's translucent card; --card stays the opaque color contrast is measured on */
   --c-edge:var(--edge); --c-edge-strong:var(--edge-strong); --c-border:var(--edge-strong);   /* --c-border: the old name, kept as the strong edge */
   --c-accent-fill:var(--accent-fill);
   --c-mark:var(--mark); --c-on-mark:var(--on-mark); --c-on-accent:var(--on-accent); --c-press:var(--press-color);

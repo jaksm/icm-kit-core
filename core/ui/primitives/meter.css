@@ -13,7 +13,7 @@
 /* dot: the kind of a thing, by color; always next to its name */
 .icm-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--dot,var(--cat-1));flex:none}
 /* badge: a short state or kind, in words. A state also gets a dot, so it is not told by color alone. */
-.icm-badge{display:inline-flex;align-items:center;gap:6px;font-size:var(--t-1);font-weight:600;line-height:1.5;padding:2px 8px;white-space:nowrap;
+.icm-badge{display:inline-flex;align-items:center;gap:6px;font-size:var(--t-1);font-weight:var(--w-ui);line-height:1.5;padding:2px 8px;white-space:nowrap;
   color:var(--c-fg-2);border:var(--border) solid var(--c-edge);border-radius:var(--radius-s)}
 .icm-badge.is-good,.icm-badge.is-warn,.icm-badge.is-bad{color:var(--c-fg)}
 .icm-badge.is-good::before,.icm-badge.is-warn::before,.icm-badge.is-bad::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}

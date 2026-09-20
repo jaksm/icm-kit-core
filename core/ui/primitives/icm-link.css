@@ -3,10 +3,10 @@ icm-link{display:contents}
 .icm-link{white-space:nowrap;display:inline-flex;align-items:center;gap:8px;font:600 var(--t-3)/1.2 var(--font-sans);
   color:var(--c-fg);background:var(--c-fill);border:var(--border) solid var(--c-border);
   border-radius:var(--radius);padding:12px 18px;min-height:var(--tap);text-decoration:none;
-  box-shadow:var(--press) var(--press) 0 var(--c-press);
+  box-shadow:var(--press-x) var(--press-y) var(--press-blur) var(--c-press);
   transition:translate .08s ease-out,box-shadow .08s ease-out,background-color .16s var(--ease),color .16s var(--ease)}
 .on-photo .icm-link{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .icm-link:hover{background:var(--c-mark);color:var(--c-on-mark)}
-.icm-link:active{translate:var(--press) var(--press);box-shadow:0 0 0 var(--c-press)}
+.icm-link:active{translate:var(--press-x) var(--press-y);box-shadow:0 0 0 var(--c-press)}
 .icm-link:focus-visible{outline:2px solid var(--c-fg);outline-offset:3px}
 .icm-link icm-icon{font-size:15px}

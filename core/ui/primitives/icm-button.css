@@ -9,10 +9,10 @@ icm-button{display:contents}
 .icm-button:disabled{opacity:.35;cursor:default}
 .icm-button:focus-visible{outline:2px solid var(--c-fg);outline-offset:3px}
 .icm-button.is-pill,.icm-button.is-primary{border:var(--border) solid var(--c-border);padding:12px 20px;
-  box-shadow:var(--press) var(--press) 0 var(--c-press)}
+  box-shadow:var(--press-x) var(--press-y) var(--press-blur) var(--c-press)}
 .icm-button.is-pill{background:var(--c-fill)}
 .icm-button.is-primary{background:var(--c-accent-fill);color:var(--c-on-accent)}
-.icm-button.is-pill:active:not(:disabled),.icm-button.is-primary:active:not(:disabled){translate:var(--press) var(--press);box-shadow:0 0 0 var(--c-press)}
+.icm-button.is-pill:active:not(:disabled),.icm-button.is-primary:active:not(:disabled){translate:var(--press-x) var(--press-y);box-shadow:0 0 0 var(--c-press)}
 .on-photo .icm-button.is-pill{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .icm-button.is-quiet{padding:13px 14px;color:var(--c-muted)}
 .icm-button.is-quiet:hover{color:var(--c-fg)}

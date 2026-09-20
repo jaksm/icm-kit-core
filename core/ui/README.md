@@ -71,6 +71,15 @@ from build import inline
 open("page.html", "w").write(inline(open("template.html").read()))
 ```
 
+From a bundler (Astro, Vite) the same two files are a package, no Python involved:
+
+```js
+import "icm-ui/css";   // dist/icm.css: tokens, primitives, components
+import "icm-ui";       // dist/icm.js: registers every <icm-*> element
+```
+
+`dist/` is written by `python3 build.py --bundle`; `--check` fails when `dist/icm.css` is stale.
+
 ## Another language
 
 The library speaks English. Put a `labels.json` **beside** the library folder (not inside it) and

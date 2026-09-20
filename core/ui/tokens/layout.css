@@ -6,6 +6,11 @@
   --border:1.5px;
   /* a hard shadow means "this can be pressed": pressing moves the thing into its shadow. Never blurred. */
   --press:3px;
+  /* the shadow of a pressable thing, in parts a theme can set: offset and blur. Ledger: hard, down-right, no blur. A soft theme
+     sets x 0, a y and a blur; pressing still moves the thing by (x, y) into its shadow. --card-backdrop: blur behind a card (glass). */
+  --press-x:var(--press); --press-y:var(--press); --press-blur:0px;
+  --card-backdrop:none;
+  --page-bg:var(--paper);   /* what a page paints behind everything: a theme may make it a gradient or a grid; text contrast is still measured on --paper */
   --radius-pill:999px;
   --tap:48px;       /* minimum touch target, Apple HIG */
 }

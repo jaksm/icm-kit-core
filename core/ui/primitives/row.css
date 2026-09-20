@@ -15,7 +15,7 @@ button.icm-row,a.icm-row{font:inherit;background:none;border:0;border-bottom:var
 .icm-row.is-current:focus-visible,.icm-row[aria-current="true"]:focus-visible{outline-color:var(--c-on-mark)}
 .icm-table{border-collapse:collapse;width:100%;font-size:var(--t-2);font-variant-numeric:tabular-nums lining-nums;color:var(--c-fg)}
 .icm-table th,.icm-table td{text-align:left;vertical-align:baseline;padding:var(--s-2) var(--s-3) var(--s-2) 0;border-bottom:var(--border) solid var(--c-hairline)}
-.icm-table thead th{font-size:var(--t-1);font-weight:600;color:var(--c-fg-2);border-bottom-color:var(--c-edge-strong)}
+.icm-table thead th{font-size:var(--t-1);font-weight:var(--w-ui);color:var(--c-fg-2);border-bottom-color:var(--c-edge-strong)}
 .icm-table tbody th{font-weight:var(--w-body)}
 .icm-table .is-num{text-align:right;padding-right:0}
 .icm-table tfoot td,.icm-table tfoot th{font-weight:var(--w-strong);border-bottom:0;border-top:var(--border) solid var(--c-edge-strong)}

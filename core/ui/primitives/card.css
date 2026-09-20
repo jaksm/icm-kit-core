@@ -1,14 +1,14 @@
 /* Surfaces above the page. A card is flat when it is only read; .is-pressable adds the hard shadow that means "press me".
    invariant: the marker is never alone (yellow on paper is a weak contrast), so a marked thing also gets an ink bar. */
-.icm-card{background:var(--c-fill);border:var(--border) solid var(--c-edge);border-radius:var(--radius);padding:var(--s-4);color:var(--c-fg);min-width:0}
+.icm-card{background:var(--c-fill);-webkit-backdrop-filter:var(--card-backdrop);backdrop-filter:var(--card-backdrop);border:var(--border) solid var(--c-edge);border-radius:var(--radius);padding:var(--s-4);color:var(--c-fg);min-width:0}
 /* a card that holds rows: no padding and clipped, so a marked row fills the card to its rounded corners and edges always meet */
 .icm-card.is-list{padding:0;overflow:clip}
 /* the first and the last row take the card's inner radius, so a focus ring (which follows border-radius) meets the rounded corner too */
 .icm-card.is-list>:first-child{border-top-left-radius:calc(var(--radius) - var(--border));border-top-right-radius:calc(var(--radius) - var(--border))}
 .icm-card.is-list>:last-child{border-bottom-left-radius:calc(var(--radius) - var(--border));border-bottom-right-radius:calc(var(--radius) - var(--border))}
-.icm-card.is-pressable{cursor:pointer;border-color:var(--c-edge-strong);box-shadow:var(--press) var(--press) 0 var(--c-press);text-align:left;font:inherit;width:100%;
+.icm-card.is-pressable{cursor:pointer;border-color:var(--c-edge-strong);box-shadow:var(--press-x) var(--press-y) var(--press-blur) var(--c-press);text-align:left;font:inherit;width:100%;
   transition:translate .08s ease-out,box-shadow .08s ease-out}
-.icm-card.is-pressable:active{translate:var(--press) var(--press);box-shadow:0 0 0 var(--c-press)}
+.icm-card.is-pressable:active{translate:var(--press-x) var(--press-y);box-shadow:0 0 0 var(--c-press)}
 .icm-card.is-pressable:focus-visible{outline:2px solid var(--c-fg);outline-offset:3px}
 .icm-card.is-marked{background:var(--c-mark);color:var(--c-on-mark);border-color:var(--c-on-mark);box-shadow:inset 4px 0 0 var(--c-on-mark);
   --c-fg:var(--c-on-mark);--c-fg-2:var(--c-on-mark);--c-muted:var(--c-on-mark)}
