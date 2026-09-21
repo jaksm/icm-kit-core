@@ -10,7 +10,7 @@
   transition:translate .08s ease-out,box-shadow .08s ease-out}
 .icm-card.is-pressable:active{translate:var(--press-x) var(--press-y);box-shadow:0 0 0 var(--c-press)}
 .icm-card.is-pressable:focus-visible{outline:2px solid var(--c-accent);outline-offset:2px}
-.icm-card.is-marked{background:var(--c-mark);color:var(--c-on-mark);border-color:var(--c-edge-strong);
+.icm-card.is-marked{background:var(--c-mark);color:var(--c-on-mark);border-color:var(--c-accent);
   --c-fg:var(--c-on-mark);--c-fg-2:var(--c-on-mark);--c-muted:var(--c-on-mark)}
 .icm-card.is-plain{background:none;border-color:var(--c-hairline)}
 /* a sheet pulls up from the bottom like a drawer; --sheet-pos:absolute keeps it inside a framed preview */

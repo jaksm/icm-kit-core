@@ -14,7 +14,7 @@ python3 build.py --docs && python3 -m http.server 8912 --directory .   # then /d
 | --- | --- |
 | Palettes | One: Pearl, light and dark. `themes/aquarium.json` holds the values; the token files are the fallback underneath. |
 | Color | Warm paper and ink over a soft two-color depth (`--page-bg`), a rust accent only for what can be acted on or followed, the marker for current, chosen, changed. Every text token passes WCAG AA on every ground; `build.py --check` enforces it. |
-| The marker | Never decoration. A marked thing is the mark as a fill with its own text color; no ink bar, no ink border. State is also in `aria-pressed` / `aria-current`. |
+| The marker | Never decoration. The mark is the accent washed into the card (so it belongs to the palette in light and dark), text on it is the ink of that scheme, and a marked control also takes the accent as its rim, because the wash alone is a weak contrast against the ground. No ink bar. State is also in `aria-pressed` / `aria-current`. |
 | Type | Manrope variable, JetBrains Mono only for paths, file contents and captions of figures. Six sizes 13 to 28, nothing under 13, body 16. Headings balance, prose is `pretty`, changing numbers are tabular. |
 | Shape | 1px translucent edges, 20px corners, cards are glass (`--card-fill` plus `backdrop-filter`). No shadow anywhere: no glow, no halo. Pressing moves the thing 2px down. |
 | Edges | Two strengths, both white with low alpha so they read as the rim of glass: `--edge` for what is read (a card, a table, a frame), `--edge-strong` for what is pressed or typed into. Focus is a 2px accent ring. Rows live in `icm-card is-list` (no padding, clipped), so a marked row meets the card's corners. |

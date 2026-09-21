@@ -3,6 +3,10 @@
 One entry per release, newest first. Every entry ends with **Outside core**: `nothing`, or `required`, which
 means the migration note lists work in your own files and `core-update` must stop at that release before going on.
 
+## 0.7.2
+`core/ui` is icm-ui 0.6.2: the mark (what is current, chosen, changed) is the accent washed into the card instead of pale blue, with the scheme's ink on it and the accent as the rim of a marked control. Text on the mark is 10.6:1 in light and 8.2:1 in dark.
+**Outside core**: nothing. [MIGRATIONS/0.7.1-0.7.2.md](MIGRATIONS/0.7.1-0.7.2.md)
+
 ## 0.7.1
 `core/ui` is icm-ui 0.6.1: a marked option, tab, row or card is a fill with the glass rim (no ink bar, no ink border), and focus rings are the accent color.
 **Outside core**: nothing. [MIGRATIONS/0.7.0-0.7.1.md](MIGRATIONS/0.7.0-0.7.1.md)
