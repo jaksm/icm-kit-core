@@ -1,3 +1,3 @@
-.icm-quote{margin:0;padding-left:var(--s-4);border-left:3px solid var(--c-fg)}
+.icm-quote{margin:0;padding-left:var(--s-4);border-left:2px solid var(--c-border)}
 .icm-quote p{font-size:var(--t-4);line-height:1.45;color:var(--c-fg);margin:0;text-wrap:pretty}
 .icm-quote cite{display:block;font-style:normal;font-size:var(--t-1);color:var(--c-muted);margin-top:6px}

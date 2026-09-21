@@ -3,6 +3,10 @@
 One entry per release, newest first. Every entry ends with **Outside core**: `nothing`, or `required`, which
 means the migration note lists work in your own files and `core-update` must stop at that release before going on.
 
+## 0.7.1
+`core/ui` is icm-ui 0.6.1: a marked option, tab, row or card is a fill with the glass rim (no ink bar, no ink border), and focus rings are the accent color.
+**Outside core**: nothing. [MIGRATIONS/0.7.0-0.7.1.md](MIGRATIONS/0.7.0-0.7.1.md)
+
 ## 0.7.0
 One theme. `core/ui` is icm-ui 0.6.0: Aquarium, Pearl, Manrope (glass: translucent cards over a soft depth, a faint white rim, 20px corners, no shadow), baked into the library. A page switches light and dark and nothing else. `_config/theme.json`, `_config/themes/` and `ICM_THEME` are no longer read; the theme editor page (added after 0.6.0, never in a release) is gone, and the builder lives in a separate library.
 **Outside core**: nothing; a `_config/theme.json` you may have is ignored and can be deleted. [MIGRATIONS/0.6.0-0.7.0.md](MIGRATIONS/0.6.0-0.7.0.md)

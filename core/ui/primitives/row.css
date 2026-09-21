@@ -7,7 +7,7 @@ button.icm-row,a.icm-row{font:inherit;background:none;border:0;border-bottom:var
 .icm-row:last-child{border-bottom-color:transparent}
 .icm-row>:first-child{min-width:0;overflow-wrap:anywhere}.icm-row>:last-child:not(:first-child){flex:none;text-align:right;white-space:nowrap}
 .icm-row .icm-dot{margin-right:6px}
-.icm-row.is-current,.icm-row[aria-current="true"]{background:var(--c-mark);color:var(--c-on-mark);box-shadow:inset 4px 0 0 var(--c-on-mark);border-bottom-color:var(--c-on-mark);
+.icm-row.is-current,.icm-row[aria-current="true"]{background:var(--c-mark);color:var(--c-on-mark);
   --c-fg-2:var(--c-on-mark);--c-muted:var(--c-on-mark)}
 /* invariant: the focus ring is flush with the row's own box (offset = minus its width). Inset any further and a sliver of the
    marked ground and of the ink bar shows outside the ring, which reads as two misaligned frames. On a marked row the ring is ink. */

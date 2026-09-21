@@ -8,5 +8,5 @@ icm-link{display:contents}
 .on-photo .icm-link{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .icm-link:hover{background:var(--c-mark);color:var(--c-on-mark)}
 .icm-link:active{translate:var(--press-x) var(--press-y);box-shadow:0 0 0 var(--c-press)}
-.icm-link:focus-visible{outline:2px solid var(--c-fg);outline-offset:3px}
+.icm-link:focus-visible{outline:2px solid var(--c-accent);outline-offset:2px}
 .icm-link icm-icon{font-size:15px}

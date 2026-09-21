@@ -170,8 +170,8 @@ p,li,dd,blockquote{text-wrap:pretty}
 .icm-card.is-pressable{cursor:pointer;border-color:var(--c-edge-strong);box-shadow:var(--press-x) var(--press-y) var(--press-blur) var(--c-press);text-align:left;font:inherit;width:100%;
   transition:translate .08s ease-out,box-shadow .08s ease-out}
 .icm-card.is-pressable:active{translate:var(--press-x) var(--press-y);box-shadow:0 0 0 var(--c-press)}
-.icm-card.is-pressable:focus-visible{outline:2px solid var(--c-fg);outline-offset:3px}
-.icm-card.is-marked{background:var(--c-mark);color:var(--c-on-mark);border-color:var(--c-on-mark);box-shadow:inset 4px 0 0 var(--c-on-mark);
+.icm-card.is-pressable:focus-visible{outline:2px solid var(--c-accent);outline-offset:2px}
+.icm-card.is-marked{background:var(--c-mark);color:var(--c-on-mark);border-color:var(--c-edge-strong);
   --c-fg:var(--c-on-mark);--c-fg-2:var(--c-on-mark);--c-muted:var(--c-on-mark)}
 .icm-card.is-plain{background:none;border-color:var(--c-hairline)}
 /* a sheet pulls up from the bottom like a drawer; --sheet-pos:absolute keeps it inside a framed preview */
@@ -189,9 +189,9 @@ p,li,dd,blockquote{text-wrap:pretty}
   color:var(--c-fg);background:var(--c-fill);border:var(--border) solid var(--c-border);border-radius:var(--radius);
   transition:background-color .12s var(--ease)}
 /* the spring plays once, at the moment of choosing; at rest a chosen option is the same size as its neighbors */
-.icm-option.is-on,.icm-option[aria-pressed="true"]{background:var(--c-mark);color:var(--c-on-mark);border-color:var(--c-on-mark);box-shadow:inset 0 -4px 0 var(--c-on-mark);animation:icm-land .4s var(--spring)}
+.icm-option.is-on,.icm-option[aria-pressed="true"]{background:var(--c-mark);color:var(--c-on-mark);border-color:var(--c-edge-strong);animation:icm-land .4s var(--spring)}
 @keyframes icm-land{from{scale:.94}}
-.icm-option:focus-visible{outline:2px solid var(--c-fg);outline-offset:3px}
+.icm-option:focus-visible{outline:2px solid var(--c-accent);outline-offset:2px}
 /* field: 16px so iOS does not zoom the page; focus grows a shadow in the accent: "you are typing here" */
 .icm-field{font:var(--w-body) var(--t-3)/1.3 var(--font-sans);min-height:var(--tap);padding:0 var(--s-3);width:100%;max-width:340px;
   color:var(--c-fg);background:var(--c-fill);border:var(--border) solid var(--c-border);border-radius:var(--radius);-webkit-appearance:none;
@@ -207,7 +207,7 @@ textarea.icm-field{padding:var(--s-3);min-height:96px;max-width:none;resize:vert
 .icm-tabs.is-scroll{display:flex;overflow-x:auto;scrollbar-width:none}.icm-tabs.is-scroll::-webkit-scrollbar{display:none}.icm-tabs input{position:absolute;opacity:0;pointer-events:none}
 .icm-tabs span{display:flex;align-items:center;min-height:calc(var(--tap) - 8px);padding:0 var(--s-4);font-weight:var(--w-ui);font-size:var(--t-2);color:var(--c-fg-2);white-space:nowrap}
 .icm-tabs label+label span{border-left:var(--border) solid var(--c-border)}
-.icm-tabs input:checked+span{background:var(--c-mark);color:var(--c-on-mark);box-shadow:inset 0 -4px 0 var(--c-on-mark)}
+.icm-tabs input:checked+span{background:var(--c-mark);color:var(--c-on-mark)}
 .icm-tabs input:focus-visible+span{outline:2px solid var(--c-accent);outline-offset:-3px}
 
 /* invariant: the host is `display:contents`, so the real <button> is the flex item of
@@ -219,7 +219,7 @@ icm-button{display:contents}
   min-height:var(--tap);color:var(--c-fg);background:none;border:0;border-radius:var(--radius);
   transition:translate .08s ease-out,box-shadow .08s ease-out,background-color .16s var(--ease),color .16s var(--ease)}
 .icm-button:disabled{opacity:.35;cursor:default}
-.icm-button:focus-visible{outline:2px solid var(--c-fg);outline-offset:3px}
+.icm-button:focus-visible{outline:2px solid var(--c-accent);outline-offset:2px}
 .icm-button.is-pill,.icm-button.is-primary{border:var(--border) solid var(--c-border);padding:12px 20px;
   box-shadow:var(--press-x) var(--press-y) var(--press-blur) var(--c-press)}
 .icm-button.is-pill{background:var(--c-fill)}
@@ -251,7 +251,7 @@ icm-link{display:contents}
 .on-photo .icm-link{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .icm-link:hover{background:var(--c-mark);color:var(--c-on-mark)}
 .icm-link:active{translate:var(--press-x) var(--press-y);box-shadow:0 0 0 var(--c-press)}
-.icm-link:focus-visible{outline:2px solid var(--c-fg);outline-offset:3px}
+.icm-link:focus-visible{outline:2px solid var(--c-accent);outline-offset:2px}
 .icm-link icm-icon{font-size:15px}
 
 /* Layout primitives. Plain classes, so anything can be laid out with them: components, other primitives, a page's own markup.
@@ -305,7 +305,7 @@ button.icm-row,a.icm-row{font:inherit;background:none;border:0;border-bottom:var
 .icm-row:last-child{border-bottom-color:transparent}
 .icm-row>:first-child{min-width:0;overflow-wrap:anywhere}.icm-row>:last-child:not(:first-child){flex:none;text-align:right;white-space:nowrap}
 .icm-row .icm-dot{margin-right:6px}
-.icm-row.is-current,.icm-row[aria-current="true"]{background:var(--c-mark);color:var(--c-on-mark);box-shadow:inset 4px 0 0 var(--c-on-mark);border-bottom-color:var(--c-on-mark);
+.icm-row.is-current,.icm-row[aria-current="true"]{background:var(--c-mark);color:var(--c-on-mark);
   --c-fg-2:var(--c-on-mark);--c-muted:var(--c-on-mark)}
 /* invariant: the focus ring is flush with the row's own box (offset = minus its width). Inset any further and a sliver of the
    marked ground and of the ink bar shows outside the ring, which reads as two misaligned frames. On a marked row the ring is ink. */
@@ -350,7 +350,7 @@ icm-action{display:contents}
 .on-photo .icm-action{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .icm-action:active:not(:disabled){translate:var(--press-x) var(--press-y);box-shadow:0 0 0 var(--c-press)}
 .icm-action.is-link{text-decoration:none}
-.icm-action:focus-visible{outline:2px solid var(--c-fg);outline-offset:3px}
+.icm-action:focus-visible{outline:2px solid var(--c-accent);outline-offset:2px}
 .icm-action{justify-content:center}
 .icm-action>*{position:relative}
 .icm-action icm-icon{font-size:16px}
@@ -437,10 +437,10 @@ icm-action{display:contents}
 /* the next move is the current thing on the card, so it is marked: the marker as ground, ink text, an arrow.
    (A quote is the other "text with a bar"; the two must not look alike when they sit under each other.) */
 .icm-next{display:flex;align-items:flex-start;gap:10px;font-size:var(--t-3);font-weight:var(--w-ui);line-height:1.4;
-  background:var(--c-mark);color:var(--c-on-mark);border:var(--border) solid var(--c-on-mark);border-radius:var(--radius);padding:var(--s-3) var(--s-4)}
+  background:var(--c-mark);color:var(--c-on-mark);border:var(--border) solid var(--c-edge-strong);border-radius:var(--radius);padding:var(--s-3) var(--s-4)}
 .icm-next icm-icon{font-size:18px;margin-top:.1em;flex:none}
 
-.icm-quote{margin:0;padding-left:var(--s-4);border-left:3px solid var(--c-fg)}
+.icm-quote{margin:0;padding-left:var(--s-4);border-left:2px solid var(--c-border)}
 .icm-quote p{font-size:var(--t-4);line-height:1.45;color:var(--c-fg);margin:0;text-wrap:pretty}
 .icm-quote cite{display:block;font-style:normal;font-size:var(--t-1);color:var(--c-muted);margin-top:6px}
 
@@ -461,8 +461,8 @@ icm-action{display:contents}
 .icm-slider input::-moz-range-track{height:10px;border:var(--border) solid var(--c-edge-strong);border-radius:var(--radius-s);
   background:linear-gradient(var(--c-accent-fill),var(--c-accent-fill)) 0/var(--p,50%) 100% no-repeat}
 .icm-slider input::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;margin-top:-9px;border-radius:var(--radius-s);
-  background:var(--c-mark);border:var(--border) solid var(--c-on-mark);box-shadow:2px 2px 0 var(--c-press)}
-.icm-slider input::-moz-range-thumb{width:22px;height:22px;border-radius:var(--radius-s);background:var(--c-mark);border:var(--border) solid var(--c-on-mark)}
+  background:var(--c-mark);border:var(--border) solid var(--c-edge-strong)}
+.icm-slider input::-moz-range-thumb{width:22px;height:22px;border-radius:var(--radius-s);background:var(--c-mark);border:var(--border) solid var(--c-edge-strong)}
 .icm-slider input:focus-visible{outline:2px solid var(--c-accent);outline-offset:2px}
 
 .icm-tags{display:flex;flex-wrap:wrap;gap:6px}
