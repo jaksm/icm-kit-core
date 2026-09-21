@@ -11,6 +11,7 @@ to extract what is still in use, with the owner judging, because only they know 
 ## Inputs
 
 - The source, reached the way its recipe in `recipes/` says, or `recipes/any-source.md`.
+- An ICM the owner already has is the exception to everything below: it moves by area, not in groups of five (`recipes/source-existing-icm.md`).
 - The ICM itself: before every group, `rg` for the group's topics, so an existing fact does not get a second home.
 - `how-we-talk.md`, for the language of the tables and the commits.
 

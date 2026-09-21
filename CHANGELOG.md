@@ -3,6 +3,10 @@
 One entry per release, newest first. Every entry ends with **Outside core**: `nothing`, or `required`, which
 means the migration note lists work in your own files and `core-update` must stop at that release before going on.
 
+## 0.7.3
+`import` has a recipe for an ICM the owner already has: it moves by area with one decision table, not in groups of five; identity files are merged, old skills and hooks are not brought.
+**Outside core**: nothing. [MIGRATIONS/0.7.2-0.7.3.md](MIGRATIONS/0.7.2-0.7.3.md)
+
 ## 0.7.2
 `core/ui` is icm-ui 0.6.2: the mark (what is current, chosen, changed) is the accent washed into the card instead of pale blue, with the scheme's ink on it and the accent as the rim of a marked control. Text on the mark is 10.6:1 in light and 8.2:1 in dark.
 **Outside core**: nothing. [MIGRATIONS/0.7.1-0.7.2.md](MIGRATIONS/0.7.1-0.7.2.md)
