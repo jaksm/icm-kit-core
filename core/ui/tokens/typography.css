@@ -1,6 +1,6 @@
 /* Type tokens. One variable grotesque for everything that is read or operated; the mono only for file
    paths, file contents and figure captions. --font-serif is kept as an alias so older page CSS still resolves.
-   The page loads the fonts (build.py FONTS_LINK); without them the system sans stands in.
+   The page loads the fonts (build.py fonts_link()); without them the system sans stands in.
    invariant: variable fonts only (build.py checks every theme's Google list for an axis range): weight and width can then
    tween in plain CSS when a theme or a type set changes. invariant: nothing under --t-1. A hover never changes weight, width or size. */
 :root{

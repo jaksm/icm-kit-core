@@ -51,7 +51,7 @@ carries an outer margin: the container spaces it, which is what lets anything si
 | controls | `<icm-button>`, `<icm-link>`, `<icm-icon>`, `icm-option`, `icm-field`, `icm-question`, `icm-tabs` |
 
 Tokens live in `tokens/`: one design system, light and dark, no host-matched variant. A page loads the fonts itself
-(`build.FONTS_LINK`). `python3 build.py --docs` builds `docs/index.html`, which shows every primitive and component
+(`build.fonts_link()`). `python3 build.py --docs` builds `docs/index.html`, which shows every primitive and component
 live with its markup, the existing pages assembled from them, and five pages that could be built next.
 
 ## Use
@@ -95,8 +95,8 @@ keeps its own copy.
 
 ## Design language
 
-Calm brutal: cold paper, blue-black ink, ultramarine for what can be acted on, one yellow marker for what is current,
-Archivo and IBM Plex Mono, 1.5px borders, 8px corners, a hard shadow only on what can be pressed. `docs/` is the
+Glass, one theme (Aquarium, Pearl, Manrope): warm paper, translucent cards with a blurred backdrop, a faint white rim,
+20px corners, no shadows; only light and dark switch. The theme builder lives in `aura-ui`. `docs/` is the
 concept and the documentation in one page; `DESIGN.md` is the written record and the status. `build.py --check`
 fails when schema and code drift, or when a text token drops under WCAG AA on any ground.
 

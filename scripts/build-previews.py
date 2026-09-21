@@ -10,7 +10,6 @@ import sys
 
 KIT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PAGES = [("expenses", "catalog/expenses/scripts/build-expenses-page.py", "A month of spending: tabs without script, stat cards, the category table, the trend."),
-         ("theme", "core/workflows/theme/scripts/build-theme-page.py", "The theme editor beside one of everything: nine themes, palettes from a color, type sets, live."),
          ("graph", "core/workflows/graph/scripts/build-graph-page.py", "The base as a graph: search, the panel of a record, legend, settings."),
          ("feed", "catalog/feed/scripts/build-feed-page.py", "The daily feed: rows of cards over photos, details, actions, the comment sheet.")]
 

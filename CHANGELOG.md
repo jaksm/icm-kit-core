@@ -3,6 +3,10 @@
 One entry per release, newest first. Every entry ends with **Outside core**: `nothing`, or `required`, which
 means the migration note lists work in your own files and `core-update` must stop at that release before going on.
 
+## 0.7.0
+One theme. `core/ui` is icm-ui 0.6.0: Aquarium, Pearl, Manrope (glass: translucent cards over a soft depth, a faint white rim, 20px corners, no shadow), baked into the library. A page switches light and dark and nothing else. `_config/theme.json`, `_config/themes/` and `ICM_THEME` are no longer read; the theme editor page (added after 0.6.0, never in a release) is gone, and the builder lives in a separate library.
+**Outside core**: nothing; a `_config/theme.json` you may have is ignored and can be deleted. [MIGRATIONS/0.6.0-0.7.0.md](MIGRATIONS/0.6.0-0.7.0.md)
+
 ## 0.6.0
 New look, one design system: `core/ui` is icm-ui 0.3.2 ("calm brutal": cold paper, ink, ultramarine for what can be acted on, one yellow marker, Archivo and IBM Plex Mono, hard edges, no host-matched variant). The feed, expenses and graph templates are rebuilt from the library's primitives and write no color, gradient or font of their own; category and node colors are the `--cat` tokens. Every builder has `--demo` (the page from mock data shipped beside the template, into `previews/`), and `scripts/build-previews.py` builds all of them with an index. `icm-action` with `confirm` is confirmed by holding. `RELEASING.md` step 3 now includes the previews.
 **Outside core**: required only if you keep a changed copy of a page template in `_config/overrides/`. [MIGRATIONS/0.5.2-0.6.0.md](MIGRATIONS/0.5.2-0.6.0.md)

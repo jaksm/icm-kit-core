@@ -4,9 +4,9 @@
   --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:24px; --s-6:36px; --s-7:56px; --s-8:88px; --s-9:136px;
   --radius:8px; --radius-s:4px;
   --border:1.5px;
-  /* a hard shadow means "this can be pressed": pressing moves the thing into its shadow. Never blurred. */
+  /* pressing moves a pressable thing by this much. The theme sets the color of its shadow to transparent: glass has no shadow. */
   --press:3px;
-  /* the shadow of a pressable thing, in parts a theme can set: offset and blur. Ledger: hard, down-right, no blur. A soft theme
+  /* the shadow of a pressable thing, in parts a theme can set: offset and blur. The fallback: hard, down-right, no blur. A soft theme
      sets x 0, a y and a blur; pressing still moves the thing by (x, y) into its shadow. --card-backdrop: blur behind a card (glass). */
   --press-x:var(--press); --press-y:var(--press); --press-blur:0px;
   --card-backdrop:none;

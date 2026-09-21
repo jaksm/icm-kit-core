@@ -22,21 +22,21 @@ body{margin:0;background:var(--paper);color:var(--ink);font:var(--w-body) var(--
 .d-nav a{display:block;color:var(--ink-2);text-decoration:none;padding:5px var(--s-2);border-radius:var(--radius-s)}
 .d-nav a:hover{background:var(--mark);color:var(--on-mark)}.d-nav a.h{font-weight:var(--w-strong);color:var(--ink);margin-top:var(--s-4)}
 .d-sw{display:grid;gap:var(--s-2);margin:var(--s-4) 0;border:0;padding:0}.d-sw legend{font:400 var(--t-1) var(--font-mono);color:var(--ink-muted);padding:0}
-.d-sw div{display:flex;border:var(--border) solid var(--ink);border-radius:var(--radius-s);overflow:hidden}
+.d-sw div{display:flex;border:var(--border) solid var(--edge-strong);border-radius:var(--radius-s);overflow:hidden}
 .d-sw label{flex:1;text-align:center;padding:4px 0;cursor:pointer;font-size:var(--t-1)}.d-sw input{position:absolute;opacity:0}
 .d-sw input:checked+span{background:var(--ink);color:var(--paper)}.d-sw label span{display:block;padding:3px 0}.d-sw input:focus-visible+span{outline:2px solid var(--accent);outline-offset:-2px}
 main{padding:0 var(--s-6) var(--s-9);min-width:0}
-.d-part{padding-top:var(--s-8)}.d-part>header{border-bottom:var(--border) solid var(--ink);padding-bottom:var(--s-4);margin-bottom:var(--s-6)}
+.d-part{padding-top:var(--s-8)}.d-part>header{border-bottom:var(--border) solid var(--edge-strong);padding-bottom:var(--s-4);margin-bottom:var(--s-6)}
 h1{font-size:44px;font-weight:var(--w-loud);font-stretch:85%;letter-spacing:-.04em;line-height:1;margin:0 0 var(--s-4)}
 h2{font-size:var(--t-6);font-weight:var(--w-loud);font-stretch:90%;letter-spacing:-.03em;line-height:1.1;margin:0}
 h3{font-size:var(--t-5);font-weight:var(--w-strong);letter-spacing:-.02em;line-height:1.2;margin:var(--s-7) 0 var(--s-2)}
 h4{font-size:var(--t-3);font-weight:var(--w-strong);margin:0 0 var(--s-1)}
 p{margin:0 0 var(--s-4);max-width:68ch}.d-lede{font-size:var(--t-4);color:var(--ink-2);max-width:60ch}
 .d-mono,code{font:400 var(--t-1)/1.5 var(--font-mono)}code{background:var(--line-soft);padding:1px 5px;border-radius:3px}
-.d-status{font:500 11px var(--font-mono);border:var(--border) solid var(--ink);border-radius:3px;padding:0 6px;vertical-align:middle;margin-left:var(--s-2)}
+.d-status{font:500 11px var(--font-mono);border:var(--border) solid var(--edge-strong);border-radius:3px;padding:0 6px;vertical-align:middle;margin-left:var(--s-2)}
 .d-status.locked{background:var(--ink);color:var(--paper)}.d-status.proposed{background:var(--mark);color:var(--on-mark)}
 .d-grid{display:grid;gap:var(--s-4);grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}.d-g2{display:grid;gap:var(--s-5);grid-template-columns:1fr 1fr}.d-g3{display:grid;gap:var(--s-5);grid-template-columns:repeat(3,1fr)}
-.d-rule{border-top:var(--border) solid var(--ink);padding-top:var(--s-3)}.d-rule p{margin:0;color:var(--ink-2);font-size:var(--t-2)}
+.d-rule{border-top:var(--border) solid var(--edge-strong);padding-top:var(--s-3)}.d-rule p{margin:0;color:var(--ink-2);font-size:var(--t-2)}
 .d-swatch{border:var(--border) solid var(--edge);border-radius:var(--radius);overflow:hidden;background:var(--card)}.d-swatch i{display:block;height:64px;border-bottom:var(--border) solid var(--edge)}.d-swatch div{padding:var(--s-2) var(--s-3)}.d-swatch p{margin:0;font-size:var(--t-1);color:var(--ink-2)}
 .d-cell{border:var(--border) solid var(--edge);border-radius:var(--radius);padding:var(--s-4);min-height:120px;display:flex;flex-direction:column;gap:var(--s-3);align-items:flex-start;min-width:0}
 .d-cell.on-paper{background:var(--card)}/* invariant: text over a photo always sits on the scrim, never on the bare image; the stand-in photo gets the same scrim a card has,
@@ -66,10 +66,9 @@ table{border-collapse:collapse;width:100%;font-size:var(--t-2)}th,td{text-align:
 .d-audit .d-demo{margin:2px 0 6px}.d-audit .d-demo .live{padding:10px}
 .d-audit .d-phones{grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-top:4px}
 .d-todo{border:var(--border) dashed var(--ink-muted);border-radius:var(--radius);padding:var(--s-5);color:var(--ink-muted)}
-@media(max-width:860px){.d-demo>.pair{grid-template-columns:1fr}.d-demo>.pair>.live+.live{border-left:0;border-top:var(--border) solid var(--ink)}.d-shell{grid-template-columns:1fr}.d-nav{position:static;height:auto;border-right:0;border-bottom:var(--border) solid var(--line)}.d-nav .d-links{display:none}main{padding:0 var(--gutter) var(--s-8)}.d-g2,.d-g3{grid-template-columns:1fr}h1{font-size:34px}}
+@media(max-width:860px){.d-demo>.pair{grid-template-columns:1fr}.d-demo>.pair>.live+.live{border-left:0;border-top:var(--border) solid var(--edge-strong)}.d-shell{grid-template-columns:1fr}.d-nav{position:static;height:auto;border-right:0;border-bottom:var(--border) solid var(--line)}.d-nav .d-links{display:none}main{padding:0 var(--gutter) var(--s-8)}.d-g2,.d-g3{grid-template-columns:1fr}h1{font-size:34px}}
 </style>
 <script type="module">/*ICM-JS*/</script>
-<script type="module">/*ICM-EDITOR*/</script>
 </head><body class="on-paper">
 <div class="d-shell">
 <nav class="d-nav"><b>icm-ui</b><small id="ver"></small>
@@ -77,19 +76,15 @@ table{border-collapse:collapse;width:100%;font-size:var(--t-2)}th,td{text-align:
   <div class="d-links" id="toc"></div></nav>
 <main>
 
-<section class="d-part" id="themes"><header><h1>Themes</h1>
-<p class="d-lede">One system, many looks. A theme is only token values: palettes, type sets, shape, a few effects. Pick one, make a palette from a color, change the type; this whole page is the preview, and every choice is held to the same contrast gate as the build.</p></header>
-<div class="icm-card"><icm-theme-editor></icm-theme-editor></div></section>
-
 <section class="d-part" id="intro"><header><h1>A calm interface for things you wrote down.</h1>
 <p class="d-lede">icm-ui is what an agent builds pages from: a morning feed, a spending view, a plan for a trip. It shares a brand with the kit's site and none of its volume. The site has to stop a stranger; these pages are opened every day on a phone and must get out of the way.</p></header>
 <div class="d-g3">
-<div class="d-rule"><h4>Kept from the site</h4><p>Cold paper and blue-black ink, ultramarine, the yellow marker, Archivo and IBM Plex Mono, hard edges, a shadow that is never blurred.</p></div>
-<div class="d-rule"><h4>Turned down</h4><p>No color blocks, no giant type, no 3D. Paper everywhere, 1.5px borders, 8px corners for thumbs, blue only on what can be acted on.</p></div>
-<div class="d-rule"><h4>Why “calm brutal”</h4><p>Honest construction reads as trustworthy for private data: you can see what is a button, what is a fact and what is yours to answer.</p></div></div>
+<div class="d-rule"><h4>One theme</h4><p>Aquarium, Pearl, Manrope, baked into the build. A page switches light and dark and nothing else.</p></div>
+<div class="d-rule"><h4>Glass</h4><p>Translucent cards over a soft colored depth, a blurred backdrop, a faint white rim, 20px corners. No shadow, no glow.</p></div>
+<div class="d-rule"><h4>Why calm</h4><p>These pages are opened every day on a phone: you can see what is a button, what is a fact and what is yours to answer.</p></div></div>
 <h3>Rules every page keeps</h3>
 <div class="d-g2">
-<div class="d-rule"><h4>A shadow means “press me”</h4><p>Only pressable things carry the hard shadow, and pressing moves them into it. What is only read is flat.</p></div>
+<div class="d-rule"><h4>A strong rim means “press me”</h4><p>Only pressable things carry the brighter edge, and pressing moves them down. What is only read has the faint one.</p></div>
 <div class="d-rule"><h4>Yellow means “this one”</h4><p>The marker is for what is current, chosen, or changed. One marked thing per screen if possible. Never decoration, and never alone: yellow on paper is a weak contrast, so the marked thing also gets an ink bar.</p></div>
 <div class="d-rule"><h4>Blue means “you can act”</h4><p>The primary action, a link that can be followed, the filled part of a gauge. Never a background.</p></div>
 <div class="d-rule"><h4>Hover never resizes text</h4><p>No weight, width or size change under a pointer. Color, ground and the marker may change.</p></div>

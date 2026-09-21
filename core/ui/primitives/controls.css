@@ -13,7 +13,7 @@
   color:var(--c-fg);background:var(--c-fill);border:var(--border) solid var(--c-border);border-radius:var(--radius);-webkit-appearance:none;
   transition:box-shadow .2s var(--spring)}
 textarea.icm-field{padding:var(--s-3);min-height:96px;max-width:none;resize:vertical}
-.icm-field:focus{outline:0;box-shadow:var(--press-x) var(--press-y) var(--press-blur) var(--c-accent)}
+.icm-field:focus{outline:0;box-shadow:0 0 0 2px var(--c-accent)}
 .icm-field::placeholder{color:var(--c-muted)}
 /* tabs: radios and labels, so the state lives in CSS and the page works with scripts off.
    <div class="icm-tabs"><label><input type="radio" name="m" checked><span>May</span></label>…</div> */
