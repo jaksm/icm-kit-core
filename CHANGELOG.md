@@ -3,6 +3,10 @@
 One entry per release, newest first. Every entry ends with **Outside core**: `nothing`, or `required`, which
 means the migration note lists work in your own files and `core-update` must stop at that release before going on.
 
+## 0.8.1
+The graph and expenses templates keep the look the library had (Aquarium theme, Pearl palette, Manrope, glass cards over the soft gradient depth), now carried by the template itself.
+**Outside core**: nothing. [MIGRATIONS/0.8.0-0.8.1.md](MIGRATIONS/0.8.0-0.8.1.md)
+
 ## 0.8.0
 The kit stops shipping a component library and a feed. `core/ui`, `sync-ui.sh`, `scripts/build-previews.py`, `previews/` and the `feed` workflow are gone. The graph and expenses templates are single self-contained pages written the way Anthropic's `artifact-design` skill says: tokens on `:root`, dark under `prefers-color-scheme` and `[data-theme="dark"]`, phone width with a 16px gutter, fonts from Google Fonts, scripts only from cdnjs. The builders only fill the template; `--demo` writes to `<tmp>/icm-kit-demo/`. `style-check.sh` no longer demands `/*ICM-CSS*/` in a template. The agent publishes a page as a plain artifact.
 **Outside core**: required. [MIGRATIONS/0.7.3-0.8.0.md](MIGRATIONS/0.7.3-0.8.0.md)

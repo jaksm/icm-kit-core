@@ -102,7 +102,7 @@ def panel(i, m, row, color, prev, cfg, L, name, month_name, trend=""):
     folded = next((f for _, _, f in items if f), None)
     foot = '<p class="caption">%s %s.</p>' % (L["inSmall"], E(", ".join(name(k) for k in folded))) if folded else ""
     return ('<section class="panel p%d" aria-label="%s"><div><div class="grid">%s</div>'
-            '<div><table><caption class="sr">%s %s</caption>'
+            '<div class="block"><table><caption class="sr">%s %s</caption>'
             '<tbody>%s</tbody><tfoot><tr><th scope="row">%s</th><td class="bar"></td><td class="is-num">%s&nbsp;%s</td><td class="is-num">100%%</td></tr></tfoot></table>%s</div>'
             '%s<dl class="facts">%s</dl></div></section>' % (i, E(month_name(m)), cards, L["caption"], E(month_name(m)), rows, L["total"], money(total), E(cur), foot,
                                        trend, "".join('<div><dt class="caption">%s</dt><dd class="text">%s</dd></div>' % (E(a), b) for a, b in facts)))
