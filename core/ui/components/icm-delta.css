@@ -1,5 +1,0 @@
-/* which direction is good depends on what is measured: spending up is bad, sessions up is good; `good` says which */
-.icm-delta{display:inline-flex;align-items:center;gap:6px;font-size:var(--t-2);color:var(--c-fg-2);font-variant-numeric:tabular-nums}
-.icm-delta i{font-style:normal;font-size:1em;line-height:1}
-.icm-delta.is-bad i{color:var(--state-bad)}
-.icm-delta.is-good i{color:var(--state-good)}

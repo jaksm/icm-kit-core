@@ -21,7 +21,6 @@ Every workflow is a folder with the same three parts, so setup can offer it with
 | `morning-review` | a routine that sorts the inbox, leaves unread only what needs the owner, writes a daily record with proof it ran | `sources`; the adapter's mail capability; routines for the schedule | 0.3.0 |
 | `import` | an old system (a notes app, another assistant's memory, an old repo, a disk, a large mailbox) walked through with the owner, five items at a time | nothing | 0.4.0 |
 | `expenses` | spending per month as aggregates and a page. Categorizing, aggregating and the page are ready; the statement parser is a recipe, built for the owner's bank | a sample statement; publishing a page, optional | 0.4.0 |
-| `feed` | a daily page of what is open in the ICM and what arrived, as reels to flick through on the phone, and a diary of what was looked at coming back. The funnel, media and the page are ready; what becomes a card is the agent's judgement, by written rules | publishing a page with a store; `uv`; optional: `sources`, `morning-review`, routines, ImageMagick, yt-dlp, ffmpeg | 0.5.0 |
 
 The graph of the ICM is not here: it is part of `core/`, every ICM has it.
 A row is added when the folder exists.

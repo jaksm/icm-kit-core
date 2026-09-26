@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 """Build the expenses page from monthly.csv. Usage: build-expenses-page.py [--check | --demo]
 
---demo builds the page from the mock months in template/demo/ (no _config, no base) into previews/expenses.html, so the
-look can be judged and refined without anyone's real numbers.
+--demo builds the page from the mock months in template/demo/ (no _config, no base) into <tmp>/icm-kit-demo/expenses.html,
+so the look can be judged and refined without anyone's real numbers.
 
 invariant: the page is built from the monthly aggregate only. It cannot show a transaction, because
 it never reads one.
 invariant: nothing about the owner is in this file. Plan, income, goal, names of categories and
 months, the notes under the cards and every label come from _config/expenses.json; without them the
 page shows spending alone, in English.
-State is CSS (one radio input per month) and bars are plain elements, so the numbers are there even
+The template is one self-contained page (tokens on :root, both themes); this file only fills it. State is CSS
+(one radio input per month), bars are plain elements and the trend is inline SVG, so the numbers are there even
 where scripts do not run.
 """
 import collections
 import csv
 import json
 import html
-import importlib.util
 import os
 import re
 import sys
@@ -24,7 +24,7 @@ import sys
 from common import ROOT, config, data
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# invariant: a category's color is a token of the library, by rank: --cat-1..8 for the largest eight, the grey tail
+# invariant: a category's color is a token of the template, by rank: --cat-1..8 for the largest eight, the grey tail
 # --cat-9..12 after that and for the folded "small items" line. No color is written in this file.
 CATS, TAIL_FROM, SMALL = 8, 9, "var(--cat-10)"
 LABELS = {
@@ -67,9 +67,9 @@ def arrange(row, small_share, L):
 
 
 def card(title, value, sub, note, cur, cls=""):
-    return ('<div class="icm-card"><div class="icm-stat"><p class="icm-caption">%s</p><span class="icm-num%s">%s<small>%s</small></span>%s%s</div></div>'
-            % (E(title), cls, money(value), E(cur), '<p class="icm-text is-small is-2">%s</p>' % sub if sub else "",
-               '<p class="icm-caption">%s</p>' % E(note) if note else ""))
+    return ('<div class="card"><p class="caption">%s</p><span class="num%s">%s<small>%s</small></span>%s%s</div>'
+            % (E(title), cls, money(value), E(cur), '<p class="text is-small">%s</p>' % sub if sub else "",
+               '<p class="caption">%s</p>' % E(note) if note else ""))
 
 
 def panel(i, m, row, color, prev, cfg, L, name, month_name, trend=""):
@@ -87,8 +87,8 @@ def panel(i, m, row, color, prev, cfg, L, name, month_name, trend=""):
         cards += card(L["income"], cfg["income"], "", cfg["notes"].get("income"), cur)
         cards += card(L["left"], left, "%s %s %s" % (L["goal"], money(goal), E(cur)) if goal is not None else "", cfg["notes"].get("left"), cur, state)
     rows = "".join(
-        '<tr%s><th scope="row"><span class="icm-dot" style="--dot:%s"></span> %s</th>'
-        '<td class="bar"><div class="icm-bar is-thin" style="--v:%.1f%%;--bar:%s"><i></i></div></td><td class="is-num">%s&nbsp;%s</td><td class="is-num">%d%%</td></tr>'
+        '<tr%s><th scope="row"><span class="dot" style="--dot:%s"></span> %s</th>'
+        '<td class="bar"><div style="--v:%.1f%%;--bar:%s"><i></i></div></td><td class="is-num">%s&nbsp;%s</td><td class="is-num">%d%%</td></tr>'
         % (' class="small"' if folded else "", SMALL if folded else color[k], E(k if folded else name(k)),
            v / items[0][1] * 100, SMALL if folded else color[k], money(v), E(cur), round(v / total * 100))
         for k, v, folded in items)
@@ -100,12 +100,12 @@ def panel(i, m, row, color, prev, cfg, L, name, month_name, trend=""):
         d = total - prev[1]
         facts.append((L["vsPrev"], "%s %s %s %s" % (money(abs(d)), E(cur), L["more"] if d > 0 else L["less"], E(prev[0]))))
     folded = next((f for _, _, f in items if f), None)
-    foot = '<p class="icm-caption">%s %s.</p>' % (L["inSmall"], E(", ".join(name(k) for k in folded))) if folded else ""
-    return ('<section class="panel p%d" aria-label="%s"><div class="icm-stack is-loose"><div class="icm-grid" style="--min:150px">%s</div>'
-            '<div class="icm-stack is-tight"><table class="icm-table"><caption class="sr">%s %s</caption>'
+    foot = '<p class="caption">%s %s.</p>' % (L["inSmall"], E(", ".join(name(k) for k in folded))) if folded else ""
+    return ('<section class="panel p%d" aria-label="%s"><div><div class="grid">%s</div>'
+            '<div><table><caption class="sr">%s %s</caption>'
             '<tbody>%s</tbody><tfoot><tr><th scope="row">%s</th><td class="bar"></td><td class="is-num">%s&nbsp;%s</td><td class="is-num">100%%</td></tr></tfoot></table>%s</div>'
             '%s<dl class="facts">%s</dl></div></section>' % (i, E(month_name(m)), cards, L["caption"], E(month_name(m)), rows, L["total"], money(total), E(cur), foot,
-                                       trend, "".join('<div><dt class="icm-caption">%s</dt><dd class="icm-text">%s</dd></div>' % (E(a), b) for a, b in facts)))
+                                       trend, "".join('<div><dt class="caption">%s</dt><dd class="text">%s</dd></div>' % (E(a), b) for a, b in facts)))
 
 
 def page(by_month, color, cfg):
@@ -114,19 +114,26 @@ def page(by_month, color, cfg):
     month_name = lambda m: "%s %s" % (names[int(m[5:7]) - 1], m[:4])
     name = lambda k: cfg["category_names"].get(k, k)
     ms = list(by_month)
-    # the radios live inside icm-tabs (the primitive styles the checked one); :has() shows the month's panel, still with no script
+    # one radio per month; :has() shows the month's panel, still with no script
     # newest first and short names: the strip scrolls sideways on a phone, and with no script the checked month must already be in view
     short = lambda m: "%s %s" % (names[int(m[5:7]) - 1][:3], m[:4])
     tabs = "".join('<label><input type="radio" name="m" id="m%d"%s aria-label="%s"><span>%s</span></label>'
                    % (i, " checked" if i == len(ms) - 1 else "", E(month_name(m)), E(short(m))) for i, m in reversed(list(enumerate(ms))))
     totals = [int(round(sum(by_month[m].values()))) for m in ms]
 
-    def trend(i):   # the months up to this one, as the library's own bars; a single month has no trend to show
+    def trend(i):   # the months up to this one as inline SVG bars on a zero baseline; a single month has no trend to show
         v = totals[max(0, i - 5):i + 1]
-        return ("<icm-series variant=\"bars\" values='%s' label=\"%s\"></icm-series>" % (json.dumps(v), E(L["trend"]))) if len(v) > 1 else ""
+        if len(v) < 2:
+            return ""
+        W, H, pad, hi = 210, 34, 3, max(v + [1])
+        slot = (W - 2 * pad) / len(v); w = slot * 0.62
+        bars = "".join('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f"%s/>'
+                       % (pad + j * slot + (slot - w) / 2, H - pad - t * (H - 2 * pad) / hi, w, max(1, t * (H - 2 * pad) / hi),
+                          ' class="is-last"' if j == len(v) - 1 else "") for j, t in enumerate(v))
+        return '<div class="trend"><svg viewBox="0 0 %d %d" preserveAspectRatio="none" aria-hidden="true">%s</svg><p class="caption">%s</p></div>' % (W, H, bars, E(L["trend"]))
     panels = "".join(panel(i, m, by_month[m], color, (month_name(ms[i - 1]), sum(by_month[ms[i - 1]].values())) if i else None,
                            cfg, L, name, month_name, trend(i)) for i, m in enumerate(ms))
-    rules = "\n".join(".icm-page:has(#m%d:checked) .p%d{display:block}" % (i, i) for i in range(len(ms)))
+    rules = "\n".join(".page:has(#m%d:checked) .p%d{display:block}" % (i, i) for i in range(len(ms)))
     t = open(os.path.join(HERE, "template/expenses-template.html"), encoding="utf-8").read()
     own = os.path.join(ROOT, "_config/overrides/core/workflows/expenses/template/expenses-template.html")
     if os.path.exists(own):
@@ -138,17 +145,6 @@ def page(by_month, color, cfg):
     return t.replace("__RULES__", rules).replace("__TABS__", tabs).replace("__PANELS__", panels)
 
 
-def _lib():
-    # installed: <icm>/core/ui. In the kit's own checkout (where --demo and --check run) the library is two folders up from here.
-    found = [p for p in (os.environ.get("ICM_LIB") or "", os.path.join(ROOT, "core/ui"), os.path.join(HERE, "../../core/ui"))
-             if p and os.path.exists(os.path.join(p, "build.py"))]
-    lib = found[0] if found else ""
-    assert lib, "the UI library was not found; set ICM_LIB"
-    spec = importlib.util.spec_from_file_location("icmlib", os.path.join(lib, "build.py"))
-    m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
-    return m
-
-
 def _check():
     from common import DEFAULTS
     cfg = {**DEFAULTS, "plan": 1000, "income": 1500}
@@ -158,9 +154,9 @@ def _check():
     color = {k: "var(--cat-%d)" % (i + 1) for i, k in enumerate(["rent", "food", "other", "gifts"])}
     out = page(by, color, cfg)
     assert out.count('class="panel p') == 2 and 'id="m1" checked' in out and "70 EUR below the plan of 1,000 EUR" in out, "plan line"
-    assert "icm-num is-good" in out            # 1500 - 930 = 570 against a goal of 500
-    assert ".icm-page:has(#m1:checked) .p1{display:block}" in out and "<icm-series" in out
-    assert not re.search(r"#[0-9a-fA-F]{6}\b", out.split("/*ICM-CSS*/")[1]), "a literal color in the page"
+    assert "num is-good" in out                # 1500 - 930 = 570 against a goal of 500
+    assert ".page:has(#m1:checked) .p1{display:block}" in out and '<div class="trend"><svg' in out
+    assert not re.search(r"#[0-9a-fA-F]{6}\b", out.split("</style>")[1]), "a literal color outside the tokens"
     assert "{{" not in out and "__" not in out.split("</style>")[1][:50]
     cfg2 = {**DEFAULTS}                         # with no plan and no income the page is spending alone
     assert "Income" not in page(by, color, cfg2)
@@ -177,10 +173,10 @@ def demo(write=True):
     html_ = page(by, color, cfg)
     if not write:
         return 0
-    kit = os.path.abspath(os.path.join(HERE, "../.."))
-    out = os.path.join(kit if os.path.exists(os.path.join(kit, "install.sh")) else os.path.join(ROOT, "pages"), "previews/expenses.html")
+    import tempfile
+    out = os.path.join(tempfile.gettempdir(), "icm-kit-demo/expenses.html")
     os.makedirs(os.path.dirname(out), exist_ok=True)
-    open(out, "w", encoding="utf-8").write(_lib().inline(html_))
+    open(out, "w", encoding="utf-8").write(html_)
     print("wrote %s, %d months, %d categories" % (out, len(by), len(color)))
     return 0
 
@@ -192,7 +188,7 @@ def main():
         print("0 months: the monthly file is empty"); return 1
     out = os.path.join(ROOT, cfg["out"])
     os.makedirs(os.path.dirname(out), exist_ok=True)
-    open(out, "w", encoding="utf-8").write(_lib().inline(page(by, color, cfg)))
+    open(out, "w", encoding="utf-8").write(page(by, color, cfg))
     print("wrote %s, %d B, %d months, %d categories" % (os.path.relpath(out, ROOT), os.path.getsize(out), len(by), len(color)))
     return 0
 

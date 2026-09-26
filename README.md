@@ -1,7 +1,7 @@
 # icm-kit-core
 
-The part of an ICM that is the same for everyone: checks, the harness adapter, the component
-library, core workflows and the skills that run the system. It is copied into a repo as `core/`
+The part of an ICM that is the same for everyone: checks, the harness adapter, core workflows and
+the skills that run the system. It is copied into a repo as `core/`
 and updated as a whole.
 
 An ICM is a knowledge base about one person that an AI agent works in: a git repo of markdown files with a
@@ -17,10 +17,9 @@ router at the top. No vector database, no server, nothing to keep running. Start
 | `core/skills/setup/` | Setup of a new ICM, or adoption of an existing one, in fourteen resumable steps with proof per step. |
 | `core/skills/core-update/` | How an agent updates `core/` without overwriting the owner's customizations. |
 | `core/backup/` | The recovery USB: key, restore scripts, and instructions for an agent on a bare computer. |
-| `core/ui/` | A vendored release of [icm-ui](https://github.com/jaksm/icm-ui), the web components pages are built from. |
-| `core/workflows/graph/` | Builds a searchable graph page of the whole repo. Part of every ICM. |
+| `core/workflows/graph/` | Builds a searchable graph page of the whole repo. Part of every ICM. Pages are single self-contained HTML files, built the way the harness's own artifact guidance says; the agent publishes them as plain artifacts. |
 | `core/RECIPES.md` | Ready code covers the common case; a recipe tells the agent how to build what can only be the owner's, and says whether anyone has run it. |
-| `catalog/` | Optional workflows, installed only on request: `sources`, `morning-review`, `feed`, `expenses`, `import`. See `catalog/index.md`. |
+| `catalog/` | Optional workflows, installed only on request: `sources`, `morning-review`, `expenses`, `import`. See `catalog/index.md`. |
 | `MIGRATIONS/` | One note per release: what moved, and what has to be done outside `core/`. |
 
 ## Install and update
@@ -28,7 +27,7 @@ router at the top. No vector database, no server, nothing to keep running. Start
 ```bash
 ./install.sh <repo>            # copies core/ and writes core.lock
 ./install.sh <repo> --status   # what the owner edited since, and which version is installed
-./install.sh <repo> --add feed # install a workflow from the catalog; --remove takes it out
+./install.sh <repo> --add expenses # install a workflow from the catalog; --remove takes it out
 ```
 
 `core.lock` holds the version and a hash per file, so an update can tell a local edit from an old

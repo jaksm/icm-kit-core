@@ -1,1 +1,0 @@
-{ "name": "icm-ui-bench", "private": true, "type": "module", "dependencies": { "puppeteer-core": "latest" } }

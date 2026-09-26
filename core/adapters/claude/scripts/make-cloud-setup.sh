@@ -33,12 +33,7 @@ out="${TMPDIR:-/tmp}/icm-cloud-setup-$(date +%Y%m%d-%H%M%S).sh"
   echo "# Setup script for the Claude Code cloud environment \"$env_name\". Paste into the environment's setup script field."
   echo '# Runs once and is cached for about 7 days, without environment variables; unlocking happens in the SessionStart hook.'
   echo 'set -e'
-  # imagemagick and ffmpeg are a FALLBACK, not a requirement: the feed builder reads image
-  # and video dimensions from the file header itself. Ubuntu 24.04 ships ImageMagick 6, which
-  # has no `magick` binary at all, so installing the package would NOT have fixed the crash
-  # that made this line grow (2026-09-19); they stay for formats the reader does not know.
-  echo '# ICM: imagemagick/ffmpeg are a fallback for formats the header reader does not know.'
-  echo 'for i in 1 2 3; do apt-get update -qq && apt-get install -y -qq gnupg git-remote-gcrypt imagemagick ffmpeg >/dev/null && break; sleep 5; done'
+  echo 'for i in 1 2 3; do apt-get update -qq && apt-get install -y -qq gnupg git-remote-gcrypt >/dev/null && break; sleep 5; done'
   echo 'command -v git-remote-gcrypt >/dev/null'
   # tiktoken lets tokeni.py measure instead of estimating; yt-dlp is for uzmi-mediju.py --video.
   # Neither may fail the setup, so the whole line is swallowed.

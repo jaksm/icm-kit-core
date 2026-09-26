@@ -45,10 +45,6 @@ for p in (ls(templates) if templates else []):
         bad.append('%s has no <meta name="viewport">' % p)
     if 'charset' not in t[:600]:
         bad.append('%s has no <meta charset="utf-8">' % p)
-    # every template takes style and components from core/ui; a private copy of the tokens is
-    # how one component ends up fixed in three places
-    if '/*ICM-CSS*/' not in t:
-        bad.append('%s does not take its style from core/ui (/*ICM-CSS*/)' % p)
 
 # A Cyrillic letter inside Latin text passes the eye and the spellchecker and cannot be found by
 # grep. For repos written in a Latin script language that also has a Cyrillic one. A line that

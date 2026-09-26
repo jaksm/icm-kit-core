@@ -19,7 +19,7 @@ Today there is one: `claude/`. `codex/` and `antigravity/` hold this contract an
 | Mail | Read the inbox, label, mark read, archive. Never send, never delete | the Gmail connector; other providers: none today |
 | Calendar | Create and read events in a calendar the owner chose | the Google Calendar connector |
 | Reminder | Create one item in a list the owner already looks at | none from a cloud session; on a Mac `core/scripts/remind.sh`; otherwise a calendar event |
-| Publishing a page | A built HTML file becomes a private page with a stable URL. `page-host.js` is the page's side: builders inline it, and a page reaches the host's store and connectors only through `window.icmHost.use(name)` | artifacts |
+| Publishing a page | A built HTML file (one self-contained page, written the way the harness's own artifact guidance says) becomes a private page with a stable URL, republished to the same URL after a rebuild | artifacts |
 | Skills | A folder with `SKILL.md` is discoverable by name and description | `.claude/skills/`, `skills/` |
 
 ## Rules

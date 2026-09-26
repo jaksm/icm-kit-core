@@ -21,4 +21,4 @@ To change how the page looks, copy `template/graph-template.html` to
 counts and writes the page. The page holds the whole text of the ICM: it is git ignored, and it is
 published only as a private page.
 
-The page is built from the library's primitives and tokens (`core/ui`, shown live by `python3 core/ui/build.py --docs`): change a token there for every page at once, the copy of the template for this page only. `--demo` builds the page from mock data into `previews/`, which is the quickest way to see a change without your base.
+The template is one self-contained page: its colors are tokens on `:root` with a dark set under `prefers-color-scheme`, d3 and Fuse come from cdnjs. `--demo` builds the page from mock data into `<tmp>/icm-kit-demo/graph.html`, which is the quickest way to see a change without your base.

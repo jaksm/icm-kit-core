@@ -149,6 +149,19 @@ module retired' "$d/core.lock" && rm "$d/core.lock.bak"
   echo "$out" | grep -q "no longer in the catalog" || { echo "$out"; return 1; }
   must grep -q "kept" "$d/core/workflows/retired/SKILL.md"
 }
+t_pages_build_from_demo() {
+  # invariant: both page builders fill a self-contained template from mock data, with no library and no leftover slot
+  local out; out="${TMPDIR:-/tmp}/icm-kit-demo"; rm -rf "$out"
+  must python3 "$here/core/workflows/graph/scripts/build-graph-page.py" --demo >/dev/null || return 1
+  must python3 "$here/catalog/expenses/scripts/build-expenses-page.py" --demo >/dev/null || return 1
+  must python3 "$here/catalog/expenses/scripts/build-expenses-page.py" --check >/dev/null || return 1
+  local f; for f in graph expenses; do
+    must test -s "$out/$f.html" || return 1
+    mustnot grep -q 'icm-\|ICM-\|{{\|__DATA__\|__TABS__' "$out/$f.html" || { echo "$f.html holds a leftover slot or library class"; return 1; }
+    must grep -q 'prefers-color-scheme' "$out/$f.html" || return 1
+  done
+  rm -rf "$out" "$here/pages"
+}
 t_release_is_documented() {
   local v; v="$(cat "$here/VERSION")"
   must grep -q "^## $v" "$here/CHANGELOG.md" || return 1
@@ -168,6 +181,7 @@ run not-a-repo t_not_a_repo
 run path-with-space t_path_with_space
 run worktree t_worktree
 run workflow-gone-from-catalog t_workflow_gone_from_catalog
+run pages-build-from-demo t_pages_build_from_demo
 run release-is-documented t_release_is_documented
 [ "$ran" -gt 0 ] || { echo "no case named '$only'"; exit 2; }
 echo "$((ran - failed)) of $ran passed"

@@ -1,8 +1,0 @@
-{
- "data": "data",
- "media_dir": "pages/media",
- "out": "pages/feed.html",
- "hosts": {
-  "example\\.com": "Open the offer"
- }
-}

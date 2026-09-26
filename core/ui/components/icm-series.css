@@ -1,7 +1,0 @@
-/* the chart takes the width it is given (viewBox stretched, strokes not), so it lines up with the text around it */
-.icm-series svg{display:block;overflow:visible;width:100%;max-width:420px;height:44px}
-.icm-series path{stroke:var(--c-fg)}
-.icm-series rect{fill:var(--c-edge-strong);opacity:.5}
-.icm-series .is-last{fill:var(--c-accent-fill);opacity:1}
-.icm-series path.is-last{stroke:var(--c-accent-fill);fill:none}
-.icm-series-label{margin-top:6px}

@@ -35,7 +35,7 @@ English reads as broken. Ask whether a refund should lower the category it came 
 Also: create the money area if there is none (`CONTEXT.md` and `output/expenses-state.md`: which
 statements are in, how many rows, the last date), add its routing row and a procedures row for
 `core/workflows/expenses/` to the instruction file, and list the owner's parser in `skills/CONTEXT.md`.
-The built page holds aggregates only, so it may be committed; publishing it is the adapter's "publish a page".
+The built page holds aggregates only, so it may be committed; publishing it is the adapter's "publish a page". To change how it looks, copy `template/expenses-template.html` to `_config/overrides/core/workflows/expenses/template/` and change the copy.
 
 ## First run and proof
 

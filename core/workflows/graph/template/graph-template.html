@@ -2,29 +2,64 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>ICM Graph</title>
-<!--ICM-FONTS-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600;700&family=IBM+Plex+Mono&display=swap">
 <style>
-/*ICM-CSS*/
-/* Only what is particular to this page: where the floating chrome sits over the canvas. What the chrome looks like is the
-   library's (icm-card, icm-field, icm-row, icm-badge, icm-dot, icm-option), and no color is written here or in the script:
-   node colors are the --cat tokens, read at draw time, so they follow the theme like everything else. */
+/* Self-contained page: every color is a token on :root, redefined for dark under prefers-color-scheme (guarded so an
+   explicit light choice wins) and again under [data-theme="dark"]. The script writes no color: node colors are the
+   --cat tokens, read at draw time, so the canvas follows the theme like the DOM. */
+:root{
+  color-scheme:light;
+  --paper:#F1F3EF; --card:#FBFBF9;
+  --ink:#1B211E; --ink-2:#3F4944; --ink-muted:#667169;
+  --line:#C7CEC8; --line-soft:#DFE4DE; --hairline:rgba(27,33,30,.12);
+  --edge:rgba(27,33,30,.24); --edge-strong:#1B211E;
+  --accent:#0F766E; --mark:#F5C242; --on-mark:#1B211E;
+  --cat-1:#2F6FD6; --cat-2:#C27A12; --cat-3:#4C9A3E; --cat-4:#D0483A; --cat-5:#7F55D1; --cat-6:#C2559A; --cat-7:#8A7A2E; --cat-8:#5E7288;
+  --cat-9:#8E979C; --cat-10:#A9B0B4; --cat-11:#C0C6C9; --cat-12:#D5DADC;
+  --font-sans:"Instrument Sans","Helvetica Neue",Arial,sans-serif; --font-mono:"IBM Plex Mono",Menlo,Consolas,monospace;
+  --t-1:12px; --t-2:14px; --t-4:18px; --radius:10px; --radius-s:6px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --paper:#131917; --card:#1B2320;
+  --ink:#E6EBE7; --ink-2:#B6C0B9; --ink-muted:#8A958E;
+  --line:#33403A; --line-soft:#232D28; --hairline:rgba(230,235,231,.12);
+  --edge:rgba(230,235,231,.26); --edge-strong:rgba(230,235,231,.7);
+  --accent:#3CC7B7;
+  --cat-1:#7FA6FF; --cat-2:#E5A344; --cat-3:#6FC15E; --cat-4:#F07A6A; --cat-5:#AE93F5; --cat-6:#E58BC4; --cat-7:#C9B65A; --cat-8:#93A6BC;
+  --cat-9:#7C858A; --cat-10:#666F74; --cat-11:#525A5E; --cat-12:#41484C;
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#131917; --card:#1B2320;
+  --ink:#E6EBE7; --ink-2:#B6C0B9; --ink-muted:#8A958E;
+  --line:#33403A; --line-soft:#232D28; --hairline:rgba(230,235,231,.12);
+  --edge:rgba(230,235,231,.26); --edge-strong:rgba(230,235,231,.7);
+  --accent:#3CC7B7;
+  --cat-1:#7FA6FF; --cat-2:#E5A344; --cat-3:#6FC15E; --cat-4:#F07A6A; --cat-5:#AE93F5; --cat-6:#E58BC4; --cat-7:#C9B65A; --cat-8:#93A6BC;
+  --cat-9:#7C858A; --cat-10:#666F74; --cat-11:#525A5E; --cat-12:#41484C;
+}
+*,*::before,*::after{box-sizing:border-box}
 html,body{height:100%;overflow:clip}
-body{margin:0;background:var(--paper);color:var(--ink);font:var(--w-body) var(--t-2)/1.45 var(--font-sans);font-variant-numeric:tabular-nums}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 var(--t-2)/1.45 var(--font-sans);font-variant-numeric:tabular-nums}
 canvas{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:none}
 canvas.dragging{cursor:grabbing}
 .float{position:fixed;z-index:2}
-.float.icm-card{box-shadow:var(--press) var(--press) 0 var(--c-press);border-color:var(--c-edge-strong)}   /* a panel is an object over the canvas */
-
-/* top bar: search against the left edge, icon buttons against the right, space between */
-#bar{top:calc(12px + env(safe-area-inset-top,0px));left:12px;right:100px;display:flex;align-items:flex-start}
-#bar{pointer-events:none}
-#bar>*{pointer-events:auto}
-#searchbox{flex:none;width:min(420px,calc(100vw - 24px))}
+.card{background:var(--card);border:1px solid var(--edge-strong);border-radius:var(--radius);padding:12px;box-shadow:2px 2px 0 var(--edge)}   /* a panel is an object over the canvas */
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none;background:var(--ink-muted)}
+.badge{display:inline-block;font-size:var(--t-1);padding:1px 8px;border:1px solid var(--line);border-radius:999px;color:var(--ink-2)}
 .field{position:relative}
 .field svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-muted);pointer-events:none}
-#search{max-width:none;padding-left:36px;box-shadow:var(--press) var(--press) 0 var(--c-press)}
-#results{list-style:none;margin:var(--s-2) 0 0;padding:0;max-height:65vh;overflow:auto}
-#results li{padding:var(--s-2) var(--s-3);cursor:pointer;border-bottom:var(--border) solid var(--c-hairline)}
+#search{width:100%;min-height:38px;padding:6px 12px 6px 36px;border:1px solid var(--edge-strong);border-radius:var(--radius);
+  background:var(--card);color:var(--ink);font:inherit;box-shadow:2px 2px 0 var(--edge)}
+#search:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* top bar: search against the left edge, icon buttons against the right, space between */
+#bar{top:calc(12px + env(safe-area-inset-top,0px));left:12px;right:100px;display:flex;align-items:flex-start;pointer-events:none}
+#bar>*{pointer-events:auto}
+#searchbox{flex:none;width:min(420px,calc(100vw - 24px))}
+#results{list-style:none;margin:8px 0 0;padding:0;max-height:65vh;overflow:auto}
+#results li{padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--hairline)}
 #results li:last-child{border-bottom:0}
 #results li:hover{background:var(--line-soft)}
 #results li[aria-selected="true"]{background:var(--mark);color:var(--on-mark);box-shadow:inset 4px 0 0 var(--on-mark);--ink-muted:var(--on-mark);--ink-2:var(--on-mark)}
@@ -36,7 +71,7 @@ mark{background:var(--mark);color:var(--on-mark);padding:0 2px}
 
 /* bottom: a full width status bar */
 #stat{position:fixed;z-index:2;left:0;right:0;bottom:0;display:flex;align-items:center;flex-wrap:nowrap;gap:10px;white-space:nowrap;
-  font-size:var(--t-1);color:var(--ink-muted);background:var(--card);border-top:var(--border) solid var(--edge);
+  font-size:var(--t-1);color:var(--ink-muted);background:var(--card);border-top:1px solid var(--edge);
   padding:3px 12px calc(3px + env(safe-area-inset-bottom,0px));min-height:30px;
   overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain}
 #stat::-webkit-scrollbar{display:none}
@@ -50,12 +85,12 @@ mark{background:var(--mark);color:var(--on-mark);padding:0 2px}
 #stat .total b{color:var(--ink)}
 
 /* right: settings */
-#settings{top:calc(56px + env(safe-area-inset-top,0px));right:12px;width:270px;max-height:calc(100% - 104px);overflow:auto;padding:4px var(--s-4) var(--s-3)}
-#settings .handle{display:flex;align-items:center;justify-content:space-between;cursor:grab;touch-action:none;user-select:none;padding:8px 0;font-weight:var(--w-strong)}
+#settings{top:calc(56px + env(safe-area-inset-top,0px));right:12px;width:270px;max-height:calc(100% - 104px);overflow:auto;padding:4px 16px 12px}
+#settings .handle{display:flex;align-items:center;justify-content:space-between;cursor:grab;touch-action:none;user-select:none;padding:8px 0;font-weight:700}
 .iconbtn{right:12px;width:36px;height:36px;display:grid;place-items:center;
-  border:var(--border) solid var(--edge-strong);border-radius:var(--radius);background:var(--card);color:var(--ink);cursor:pointer;
-  box-shadow:var(--press) var(--press) 0 var(--press-color);transition:translate .08s ease-out,box-shadow .08s ease-out}
-.iconbtn:active{translate:var(--press) var(--press);box-shadow:0 0 0 var(--press-color)}
+  border:1px solid var(--edge-strong);border-radius:var(--radius);background:var(--card);color:var(--ink);cursor:pointer;
+  box-shadow:2px 2px 0 var(--edge);transition:translate .08s ease-out,box-shadow .08s ease-out}
+.iconbtn:active{translate:2px 2px;box-shadow:0 0 0 var(--edge)}
 #gear{top:calc(10px + env(safe-area-inset-top,0px))}
 #legend-btn{top:calc(10px + env(safe-area-inset-top,0px));right:58px}
 .iconbtn[aria-expanded="true"]{background:var(--mark);color:var(--on-mark);border-color:var(--on-mark)}
@@ -64,34 +99,37 @@ mark{background:var(--mark);color:var(--on-mark);padding:0 2px}
   color:var(--ink-muted);font-size:20px;line-height:1}
 .x:hover{color:var(--on-mark);background:var(--mark)}
 .x:focus-visible{outline:2px solid var(--accent)}
-#colors{top:calc(56px + env(safe-area-inset-top,0px));right:12px;width:230px;max-height:calc(100% - 104px);overflow:auto;padding:var(--s-2)}
+#colors{top:calc(56px + env(safe-area-inset-top,0px));right:12px;width:230px;max-height:calc(100% - 104px);overflow:auto;padding:8px}
 #colors button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;padding:4px 8px;border-radius:var(--radius-s);font-size:var(--t-1)}
 #colors button:hover{background:var(--line-soft)}
 #colors button:focus-visible{outline:2px solid var(--accent)}
 #colors button[aria-pressed="false"]{opacity:.4}
 #colors .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
 #colors .count{color:var(--ink-muted)}
-details{border-top:var(--border) solid var(--line);padding:6px 0}
+details{border-top:1px solid var(--line);padding:6px 0}
 summary{cursor:pointer;color:var(--ink);font-weight:600;padding:4px 0;font-size:var(--t-1)}
 .row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px 0;font-size:var(--t-1)}
 .row label{display:flex;align-items:center;gap:8px;cursor:pointer;min-width:0}
 .row .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row .count{color:var(--ink-muted)}
-input[type=checkbox]{accent-color:var(--accent-fill);width:16px;height:16px}
-input[type=range]{accent-color:var(--accent-fill)}
+input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
+input[type=range]{accent-color:var(--accent)}
 .slider{display:grid;grid-template-columns:1fr auto;gap:2px 8px;margin:6px 0;font-size:var(--t-1)}
 .slider input{grid-column:1/3;width:100%}
 .buttons{display:flex;gap:6px;margin:4px 0 2px}
-.buttons .icm-option{min-height:32px;font-size:var(--t-1);padding:0 var(--s-3)}
+.option{all:unset;box-sizing:border-box;cursor:pointer;min-height:32px;display:inline-flex;align-items:center;padding:0 12px;
+  border:1px solid var(--line);border-radius:999px;font-size:var(--t-1);color:var(--ink)}
+.option:hover{background:var(--line-soft)}
+.option:focus-visible{outline:2px solid var(--accent)}
 
 /* bottom left: the selected node */
 #info{left:12px;bottom:calc(44px + env(safe-area-inset-bottom,0px));width:min(380px,calc(100vw - 24px));max-height:46vh;overflow:auto}
-#info h2{font-size:var(--t-4);font-weight:var(--w-strong);letter-spacing:-.01em;line-height:1.25;margin:0 0 4px;text-wrap:balance}
+#info h2{font-size:var(--t-4);font-weight:700;letter-spacing:-.01em;line-height:1.25;margin:0 0 4px;text-wrap:balance}
 #info .path{font:400 var(--t-1)/1.5 var(--font-mono);color:var(--ink-muted);word-break:break-all;margin:0 0 8px}
 #info .meta{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
 #info h3{font-size:var(--t-1);font-weight:600;color:var(--ink-2);margin:10px 0 2px}
 #info ul{list-style:none;margin:0;padding:0}
-#info li{border-bottom:var(--border) solid var(--c-hairline)}#info li:last-child{border-bottom:0}
+#info li{border-bottom:1px solid var(--hairline)}#info li:last-child{border-bottom:0}
 #info li button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:8px;padding:6px 4px;font-size:var(--t-2);width:100%}
 #info li button:hover,#info li button:focus-visible{background:var(--mark);color:var(--on-mark)}
 #info .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -108,19 +146,19 @@ input[type=range]{accent-color:var(--accent-fill)}
   #settings{top:calc(60px + env(safe-area-inset-top,0px));left:12px;right:12px;width:auto}
   #colors{display:none}
 }
-@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none}}
 </style>
 
-<body class="on-paper">
+<body>
 <canvas id="c" aria-label="{{canvas}}"></canvas>
 
 <div id="bar" class="float">
 <div id="searchbox">
   <div class="field">
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-    <input id="search" class="icm-field" type="search" placeholder="{{search}}" autocomplete="off" aria-controls="results" aria-label="{{searchLabel}}">
+    <input id="search"  type="search" placeholder="{{search}}" autocomplete="off" aria-controls="results" aria-label="{{searchLabel}}">
   </div>
-  <ul id="results" class="icm-card is-list" role="listbox" hidden></ul>
+  <ul id="results" class="card" role="listbox" hidden></ul>
 </div>
 
 </div>
@@ -132,13 +170,13 @@ input[type=range]{accent-color:var(--accent-fill)}
 <button id="legend-btn" class="float iconbtn" aria-label="{{legend}}" aria-expanded="true" aria-controls="colors">
   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><circle cx="8" cy="16" r="3"/><circle cx="16" cy="16" r="3"/></svg>
 </button>
-<div id="colors" class="float icm-card" aria-label="{{colors}}"></div>
-<div id="settings" class="float icm-card" hidden>
+<div id="colors" class="float card" aria-label="{{colors}}"></div>
+<div id="settings" class="float card" hidden>
   <div class="handle"><span>{{settings}}</span><button class="x" id="settings-x" aria-label="{{closeSettings}}">×</button></div>
   <div class="content">
     <details open>
       <summary>{{filters}}</summary>
-      <div class="buttons"><button class="icm-option" id="all-on">{{all}}</button><button class="icm-option" id="no-archive">{{noArchive}}</button></div>
+      <div class="buttons"><button class="option" id="all-on">{{all}}</button><button class="option" id="no-archive">{{noArchive}}</button></div>
       <div id="groups"></div>
       <div class="row"><label><input type="checkbox" id="orphans" checked> <span>{{orphans}}</span></label><span class="count" id="orphan-count"></span></div>
       <div id="statuses"></div>
@@ -160,20 +198,17 @@ input[type=range]{accent-color:var(--accent-fill)}
   </div>
 </div>
 
-<div id="info" class="float icm-card" hidden></div>
+<div id="info" class="float card" hidden></div>
 <div id="tip" hidden></div>
 
-<script>/* ?theme=dark or ?theme=light forces a theme; without it the system decides */
-{const t=new URLSearchParams(location.search).get('theme');if(t)document.documentElement.dataset.theme=t}</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/7.0.0/fuse.min.js"></script>
-<script type="module">/*ICM-JS*/</script>
 
 <script>
 const D = __DATA__;
 const $ = s => document.querySelector(s);
 const TYPES = ["Reference","Output","Decision","Skill","Tracking","Architecture","Research","Context","Untyped"];
-// invariant: no color in this script. A group gets a SLOT of the library's categorical ramp (--cat-1..8 by size, the grey tail
+// invariant: no color in this script. A group gets a SLOT of the categorical ramp (--cat-1..8 by size, the grey tail
 // --cat-9..12 for the archive); the DOM uses the token itself, the canvas reads its value at draw time, so both follow the theme.
 
 // A color belongs to a group and is given once: groups by size, the archive in grey tail colors.
@@ -209,7 +244,7 @@ function row(name, count, dotColor, checked, onChange) {
   const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = checked;
   cb.addEventListener("change", () => onChange(cb.checked));
   l.append(cb);
-  if (dotColor) { const t = document.createElement("span"); t.className = "icm-dot"; t.style.background = dotColor; l.append(t); }
+  if (dotColor) { const t = document.createElement("span"); t.className = "dot"; t.style.background = dotColor; l.append(t); }
   const s = document.createElement("span"); s.className = "name"; s.textContent = name; l.append(s);
   const b = document.createElement("span"); b.className = "count"; b.textContent = count;
   d.append(l, b); return {d, cb};
@@ -223,7 +258,7 @@ function setGroup(g, on) {
 }
 for (const g of groupOrder) {
   const b = document.createElement("button"); b.setAttribute("aria-pressed", state.groups.has(g)); b.title = "{{onlyGroup}}";
-  b.innerHTML = `<span class="icm-dot" style="background:${color.get(g)}"></span><span class="name"></span><span class="count">${groupCount.get(g)}</span>`;
+  b.innerHTML = `<span class="dot" style="background:${color.get(g)}"></span><span class="name"></span><span class="count">${groupCount.get(g)}</span>`;
   b.querySelector(".name").textContent = g;
   // Same as the status bar: a click leaves only that group, a second click restores all, Shift or Cmd adds.
   b.onclick = e => {
@@ -475,7 +510,7 @@ addEventListener("keydown", e => { if (e.key === "Escape") { select(null); $("#r
 // ---------- selected node ----------
 function item(id) {
   const n = nodeById.get(id), li = document.createElement("li"), b = document.createElement("button");
-  const t = document.createElement("span"); t.className = "icm-dot"; t.style.background = color.get(n.g);
+  const t = document.createElement("span"); t.className = "dot"; t.style.background = color.get(n.g);
   const s = document.createElement("span"); s.className = "name"; s.textContent = n.t; s.title = id;
   b.append(t, s); b.onclick = () => select(id, true); li.append(b); return li;
 }
@@ -492,7 +527,7 @@ function select(id, recenter) {
   handle.append(h, z);
   const p = document.createElement("p"); p.className = "path"; p.textContent = n.id;
   const m = document.createElement("div"); m.className = "meta";
-  for (const v of [n.ty, n.st, n.tr, n.g].filter(Boolean)) { const c = document.createElement("span"); c.className = "icm-badge"; c.textContent = v; m.append(c); }
+  for (const v of [n.ty, n.st, n.tr, n.g].filter(Boolean)) { const c = document.createElement("span"); c.className = "badge"; c.textContent = v; m.append(c); }
   info.append(handle, p, m);
   for (const [heading, list] of [[`{{pointsTo}} ${nb.out.length}`, nb.out], [`{{pointedBy}} ${nb.inc.length}`, nb.inc]]) {
     const h3 = document.createElement("h3"); h3.textContent = heading; info.append(h3);

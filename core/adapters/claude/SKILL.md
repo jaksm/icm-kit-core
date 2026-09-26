@@ -72,7 +72,7 @@ they matter; terms change.
 | the instruction file | `CLAUDE.md` at the root |
 | open a cloud session | claude.ai/code or the mobile app, with the environment from **Setup** below |
 | schedule a routine | a cloud routine bound to that environment and the repo; its whole prompt is one line pointing at a `SKILL.md` |
-| publish a page | an artifact; always republished to its existing URL, listed in `domains/system/output/pages.md` |
+| publish a page | an artifact, published with the Artifact tool following Anthropic's `artifact-design` skill (one self-contained HTML file, external scripts only from cdnjs or jsdelivr); always republished to its existing URL, listed in `domains/system/output/pages.md` |
 | skills | `core/skills/*/SKILL.md` and the owner's `skills/`; downloaded ones in `.claude/skills/` |
 | mail | the Gmail connector, connected by the owner in the app's connector settings. Its send, reply, draft, trash and spam tools exist and are **not used**: triage is read and label only. No connector for other providers today; say so |
 | calendar | the Google Calendar connector |

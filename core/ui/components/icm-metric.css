@@ -1,8 +1,0 @@
-/* a number that leads: .icm-num does the work; loud by default, quiet follows the story */
-.icm-metric{display:flex;align-items:baseline;gap:6px}
-/* loud is size, not color: the accent is for what can be acted on, and a state colors the number when there is one */
-.icm-metric .icm-num{--num:clamp(48px,14vw,68px)}.icm-metric .icm-num small{font-size:var(--t-4)}
-.icm-metric.is-quiet .icm-num{--num:clamp(28px,8vw,38px)}.icm-metric.is-quiet .icm-num small{font-size:var(--t-3)}
-/* state: the number is read against a threshold, so the threshold colors it */
-.icm-metric.is-good .icm-num{color:var(--state-good)}.icm-metric.is-warn .icm-num{color:var(--state-warn)}.icm-metric.is-bad .icm-num{color:var(--state-bad)}
-.icm-metric-label{margin-top:var(--s-1)}

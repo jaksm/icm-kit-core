@@ -2,29 +2,96 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>{{title}}</title>
-<!--ICM-FONTS-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Public+Sans:wght@400;600&display=swap">
 <style>
-/*ICM-CSS*/
-/* Only what is particular to this page; everything else is a primitive of the library (icm-page, icm-stack, icm-tabs, icm-card,
-   icm-stat, icm-table, icm-dot, icm-bar, icm-series). State is CSS: one radio per month inside icm-tabs, no script draws
-   anything, so the page still shows its numbers where scripts do not run. */
-body{margin:0;background:var(--paper)}
-.icm-page{--page:720px}
+/* Self-contained page: tokens on :root, dark under prefers-color-scheme (guarded so an explicit light choice wins) and
+   again under [data-theme="dark"]. State is CSS: one radio per month, :has() shows its panel, bars are plain elements,
+   the trend is inline SVG. No script draws anything, so the numbers are there even where scripts do not run. */
+:root{
+  color-scheme:light;
+  --paper:#F1F2F6; --card:#FCFCFE;
+  --ink:#191C2B; --ink-2:#3D4256; --ink-muted:#646A80;
+  --line:#C8CBD8; --line-soft:#E0E2EA; --hairline:rgba(25,28,43,.12); --edge:rgba(25,28,43,.22);
+  --accent:#4C46B8; --mark:#F5C242; --on-mark:#191C2B;
+  --good:#2E7D4F; --warn:#B3701A; --bad:#C23B3B;
+  --cat-1:#2F6FD6; --cat-2:#C27A12; --cat-3:#4C9A3E; --cat-4:#D0483A; --cat-5:#7F55D1; --cat-6:#C2559A; --cat-7:#8A7A2E; --cat-8:#5E7288;
+  --cat-9:#8E979C; --cat-10:#A9B0B4; --cat-11:#C0C6C9; --cat-12:#D5DADC;
+  --font-sans:"Public Sans","Helvetica Neue",Arial,sans-serif; --font-display:Fraunces,Georgia,"Times New Roman",serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --paper:#14161F; --card:#1C1F2B;
+  --ink:#E8E9F0; --ink-2:#B9BCCC; --ink-muted:#8B90A6;
+  --line:#363B4F; --line-soft:#252938; --hairline:rgba(232,233,240,.12); --edge:rgba(232,233,240,.24);
+  --accent:#9B97FF;
+  --good:#63C48A; --warn:#E3A24A; --bad:#EF7272;
+  --cat-1:#7FA6FF; --cat-2:#E5A344; --cat-3:#6FC15E; --cat-4:#F07A6A; --cat-5:#AE93F5; --cat-6:#E58BC4; --cat-7:#C9B65A; --cat-8:#93A6BC;
+  --cat-9:#7C858A; --cat-10:#666F74; --cat-11:#525A5E; --cat-12:#41484C;
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#14161F; --card:#1C1F2B;
+  --ink:#E8E9F0; --ink-2:#B9BCCC; --ink-muted:#8B90A6;
+  --line:#363B4F; --line-soft:#252938; --hairline:rgba(232,233,240,.12); --edge:rgba(232,233,240,.24);
+  --accent:#9B97FF;
+  --good:#63C48A; --warn:#E3A24A; --bad:#EF7272;
+  --cat-1:#7FA6FF; --cat-2:#E5A344; --cat-3:#6FC15E; --cat-4:#F07A6A; --cat-5:#AE93F5; --cat-6:#E58BC4; --cat-7:#C9B65A; --cat-8:#93A6BC;
+  --cat-9:#7C858A; --cat-10:#666F74; --cat-11:#525A5E; --cat-12:#41484C;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 15px/1.5 var(--font-sans);font-variant-numeric:tabular-nums}
+.is-num,tfoot{font-variant-numeric:tabular-nums}
+.page{max-width:720px;margin:0 auto;padding-block:24px 48px;padding-inline:16px;display:grid;gap:24px}
+h1{font:600 30px/1.15 var(--font-display);letter-spacing:-.01em;margin:0;text-wrap:balance}
+.caption{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-muted);margin:0}
+.text{margin:0;color:var(--ink-2)}
+.text.is-small{font-size:13px}
+
+/* month tabs: a scrolling strip of radios, newest first, the checked one marked */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs label{flex:none;cursor:pointer;position:relative}
+.tabs input{position:absolute;opacity:0;width:1px;height:1px}
+.tabs span{display:inline-block;padding:6px 14px;border:1px solid var(--line);border-radius:999px;font-size:13px;color:var(--ink-2)}
+.tabs input:checked+span{background:var(--mark);color:var(--on-mark);border-color:var(--on-mark);font-weight:600}
+.tabs input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
 .panel{display:none}
-.icm-table td.bar{width:34%}
-tr.small th,tr.small td{color:var(--c-muted)}
-.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--s-4);margin:0;padding-top:var(--s-4);border-top:var(--border) solid var(--c-hairline)}
-.facts dd{margin:0}
+.panel>div{display:grid;gap:24px}
+
+/* the three figures */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--edge);border-radius:12px;padding:14px 16px;display:grid;gap:4px;align-content:start}
+.num{font:600 28px/1.1 var(--font-display);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.num small{font-size:13px;font-weight:400;color:var(--ink-muted);margin-left:4px}
+.num.is-good{color:var(--good)}.num.is-warn{color:var(--warn)}.num.is-bad{color:var(--bad)}
+
+/* categories: name, bar, amount, share */
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--hairline);vertical-align:middle;font-weight:400}
+th{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw}
+td.bar{width:34%}
+td.is-num{text-align:right;white-space:nowrap}
+tfoot th,tfoot td{border-bottom:0;border-top:1px solid var(--line);font-weight:600}
+tr.small th,tr.small td{color:var(--ink-muted)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;background:var(--dot,var(--ink-muted))}
+.bar>div{height:8px;border-radius:4px;background:var(--line-soft);overflow:hidden}
+.bar>div i{display:block;height:100%;width:var(--v,0%);background:var(--bar,var(--accent))}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-@media (max-width:480px){.icm-table td.bar{display:none}}
+@media (max-width:480px){td.bar{display:none}}
+
+/* the trend: the months up to this one, zero baseline, the current month in ink */
+.trend{display:grid;gap:4px}
+.trend svg{width:100%;max-width:100%;height:40px;display:block}
+.trend rect{fill:var(--line)}
+.trend rect.is-last{fill:var(--ink)}
+
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:0;padding-top:16px;border-top:1px solid var(--hairline)}
+.facts dd{margin:0}
 __RULES__
 </style>
-<body class="on-paper">
-<main class="icm-page"><div class="icm-stack is-loose">
-<h1 class="icm-title">{{title}}</h1>
-<div class="icm-tabs is-scroll" role="tablist" aria-label="{{months}}">__TABS__</div>
+<body>
+<main class="page">
+<h1>{{title}}</h1>
+<div class="tabs" role="tablist" aria-label="{{months}}">__TABS__</div>
 <div class="panels">__PANELS__</div>
-</div></main>
-<script>/* ?theme=dark or ?theme=light forces a theme, for a preview or a screenshot; without it the system decides */
-{const t=new URLSearchParams(location.search).get('theme');if(t)document.documentElement.dataset.theme=t}</script>
-<script type="module">/*ICM-JS*/</script>
+</main>

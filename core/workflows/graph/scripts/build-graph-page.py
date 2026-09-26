@@ -16,9 +16,10 @@ and `out` (where the page is written, default pages/graph.html).
     python3 core/workflows/graph/scripts/build-graph-page.py [--check | --demo]
 
 --demo writes a mock base of about sixty records (areas, skills, an archive, orphans) into a scratch folder, builds its graph
-into previews/graph.html and removes the scratch folder. Nothing of an owner's is read.
+into <tmp>/icm-kit-demo/graph.html and removes the scratch folder. Nothing of an owner's is read.
+
+The template is one self-contained page: tokens on :root, both themes, d3 and Fuse from cdnjs. The builder only fills it.
 """
-import importlib.util
 import json
 import os
 import re
@@ -106,20 +107,6 @@ def group(p):
     return parts[0]
 
 
-def _lib():
-    """Build script of the shared component library: it inlines the stylesheet and module."""
-    # installed: <icm>/core/ui; in the kit's own checkout the library is beside core/workflows
-    for lib in (os.environ.get("ICM_LIB", ""), os.path.join(ROOT, "core/ui"), os.path.join(HERE, "../../ui")):
-        if lib and os.path.exists(os.path.join(lib, "build.py")):
-            break
-    else:
-        sys.exit("component library not found at core/ui; set ICM_LIB to the folder that holds build.py")
-    spec = importlib.util.spec_from_file_location("icmlib", os.path.join(lib, "build.py"))
-    m = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(m)
-    return m
-
-
 def fill_labels(template):
     for k, v in LABELS.items():
         if isinstance(v, str):
@@ -196,16 +183,15 @@ def main():
 
     template = open(TEMPLATE, encoding="utf-8").read()
     assert "__DATA__" in template, "the template has no data slot"
-    template = _lib().inline(fill_labels(template))
+    template = fill_labels(template)
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     open(OUT, "w", encoding="utf-8").write(template.replace("__DATA__", js))
     print("wrote %s, %d KB" % (os.path.relpath(OUT, ROOT), os.path.getsize(OUT) // 1024))
 
 
 def demo():
-    import random, shutil, subprocess
-    kit = os.path.abspath(os.path.join(HERE, "../../.."))
-    out = os.path.join(kit if os.path.exists(os.path.join(kit, "install.sh")) else os.path.join(ROOT, "pages"), "previews")
+    import random, shutil, subprocess, tempfile
+    out = os.path.join(tempfile.gettempdir(), "icm-kit-demo")
     root = os.path.join(out, ".graph-root")
     shutil.rmtree(root, ignore_errors=True)
     rnd = random.Random(11)
@@ -236,8 +222,7 @@ def demo():
     for rel, text in files.items():
         os.makedirs(os.path.dirname(os.path.join(root, rel)) or root, exist_ok=True)
         open(os.path.join(root, rel), "w", encoding="utf-8").write(text)
-    lib = next(p for p in (os.environ.get("ICM_LIB", ""), os.path.join(ROOT, "core/ui"), os.path.join(HERE, "../../ui")) if p and os.path.exists(os.path.join(p, "build.py")))
-    r = subprocess.run([sys.executable, os.path.abspath(__file__)], env={**os.environ, "ICM_ROOT": root, "ICM_LIB": lib})
+    r = subprocess.run([sys.executable, os.path.abspath(__file__)], env={**os.environ, "ICM_ROOT": root})
     if r.returncode == 0:
         shutil.copy(os.path.join(root, "pages/graph.html"), os.path.join(out, "graph.html"))
         print("wrote %s, %d mock records" % (os.path.join(out, "graph.html"), len(files)))

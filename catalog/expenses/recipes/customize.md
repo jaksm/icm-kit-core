@@ -13,4 +13,4 @@ A second view (a year, a comparison of two people who share costs) is a new buil
 `skills/`, reading the same `monthly.csv`. Shared costs between people are a different workflow: who
 paid and who owes is exactly what this one refuses to hold.
 
-The page is built from the library's primitives and tokens (`core/ui`, shown live by `python3 core/ui/build.py --docs`): change a token there for every page at once, the copy of the template for this page only. `--demo` builds the page from mock data into `previews/`, which is the quickest way to see a change without your base.
+The template is one self-contained page: its colors are tokens on `:root` with a dark set under `prefers-color-scheme`, no library. `--demo` builds the page from mock data into `<tmp>/icm-kit-demo/expenses.html`, which is the quickest way to see a change without your base.
